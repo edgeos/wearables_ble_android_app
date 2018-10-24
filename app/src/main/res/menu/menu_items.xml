@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/device_id"
+        android:title="@string/device_id"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/update_rate"
+        android:title="@string/update_rate" />
+    <item
+        android:id="@+id/rename"
+        android:title="@string/rename" />
+    <item
+        android:id="@+id/disconnect"
+        android:title="@string/disconnect" />
+    <item
+        android:id="@+id/dev_mode"
+        android:title="@string/dev_mode" />
+</menu>
