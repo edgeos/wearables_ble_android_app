@@ -32,10 +32,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
+import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
+import com.wearables.ge.wearables_ble_receiver.utils.QueueItem;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -57,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
     public static BluetoothGatt connectedGatt;
     public static String deviceName;
 
+    private BLEQueue bleQueue = new BLEQueue();
+    private boolean bleQueueIsFree = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
 
-        //set spinner
+        //initialize spinner
         spinner = findViewById(R.id.progressBar);
         spinner.setVisibility(View.GONE);
 
@@ -244,20 +252,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void enableCharacteristicNotification(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         //set characteristics and descriptors to notify for constant updates whenever values are changed
-        boolean characteristicWriteSuccess = gatt.setCharacteristicNotification(characteristic, true);
-        if (characteristicWriteSuccess) {
-            Log.d(TAG,"Characteristic notification set successfully for " + characteristic.getUuid().toString());
-            for(BluetoothGattDescriptor descriptor : characteristic.getDescriptors()){
-                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                boolean notifySuccess = gatt.writeDescriptor(descriptor);
-                if(notifySuccess){
-                    Log.d(TAG, "Successfully set notify on descriptor: " + descriptor.getUuid() + " for characteristic: " + characteristic.getUuid());
-                } else {
-                    Log.d(TAG, "Unable to set notify on descriptor: " + descriptor.getUuid() + " for characteristic: " + characteristic.getUuid());
+        if(characteristic.getUuid().equals(UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb"))){
+            boolean characteristicWriteSuccess = gatt.setCharacteristicNotification(characteristic, true);
+            if (characteristicWriteSuccess) {
+                Log.d(TAG,"Characteristic notification set successfully for " + characteristic.getUuid().toString());
+                for(BluetoothGattDescriptor descriptor : characteristic.getDescriptors()){
+                    descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                    boolean notifySuccess = gatt.writeDescriptor(descriptor);
+                    if(notifySuccess){
+                        Log.d(TAG, "Successfully set notify on descriptor: " + descriptor.getUuid() + " for characteristic: " + characteristic.getUuid());
+                    } else {
+                        Log.d(TAG, "Unable to set notify on descriptor: " + descriptor.getUuid() + " for characteristic: " + characteristic.getUuid());
+                    }
                 }
+            } else {
+                Log.d(TAG,"Characteristic notification set failure for " + characteristic.getUuid().toString());
             }
-        } else {
-            Log.d(TAG,"Characteristic notification set failure for " + characteristic.getUuid().toString());
         }
     }
 
@@ -308,7 +318,22 @@ public class MainActivity extends AppCompatActivity {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
 
             super.onCharacteristicChanged(gatt, characteristic);
-            byte[] messageBytes = characteristic.getValue();
+            //byte[] messageBytes = characteristic.getValue();
+            byte[] messageBytes;
+            int messageInt;
+            UUID batteryLevelUuid = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
+            UUID batteryServiceUuid = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb");
+            if(characteristic.getUuid().equals(batteryLevelUuid)){
+                Log.d(TAG, "attempting to parse battery level");
+                BluetoothGattService batteryServ = gatt.getService(batteryServiceUuid);
+                BluetoothGattCharacteristic battLevel = batteryServ.getCharacteristic(batteryLevelUuid);
+                bleQueue.addRead(battLevel);
+                processQueue();
+                messageBytes = battLevel.getValue();
+                messageInt = battLevel.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+            } else {
+                return;
+            }
             if(messageBytes == null){
                 Log.d(TAG, "No message parsed on characteristic.");
                 return;
@@ -322,12 +347,47 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.d(TAG, "Char UUID: " + characteristic.getUuid());
                 Log.d(TAG, "Received message: " + new String(messageBytes));
-                Log.d(TAG, "Formatted: " + stringBuilder.toString());
+                Log.d(TAG, "Raw: " + stringBuilder.toString());
+                Log.d(TAG, "Formatted: " + messageInt);
                 Log.d(TAG, " ");
             } catch (Exception e) {
                 Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
             }
             Log.d(TAG, "Received message (string value): " + characteristic.getStringValue(0));
+        }
+    }
+
+    private void processQueue() {
+        if (bleQueueIsFree) {
+            bleQueueIsFree = false;
+            QueueItem queueItem = bleQueue.getNextItem();
+            if (queueItem == null) {
+                bleQueueIsFree = true;
+                return;
+            } else {
+                boolean status = false;
+                switch (queueItem.itemType) {
+                    case BLEQueue.ITEM_TYPE_READ:
+                        status = connectedGatt.readCharacteristic(queueItem.characteristic);
+                        break;
+                    case BLEQueue.ITEM_TYPE_WRITE:
+                        status = connectedGatt.writeCharacteristic(queueItem.characteristic);
+                        break;
+                    case BLEQueue.ITEM_TYPE_NOTIFICATION:
+                        connectedGatt.setCharacteristicNotification(queueItem.characteristic, true);
+                        BluetoothGattDescriptor descriptor = queueItem.characteristic.getDescriptor(UUID.fromString(GattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+                        if (descriptor != null) {
+                            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                            status = connectedGatt.writeDescriptor(descriptor);
+                        } else {
+                            status = false;
+                        }
+                        break;
+                }
+                if (!status) {
+                    bleQueueIsFree = true;
+                }
+            }
         }
     }
 
