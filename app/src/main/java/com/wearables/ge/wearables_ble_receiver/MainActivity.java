@@ -15,6 +15,7 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -24,6 +25,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -64,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
 
     private BLEQueue bleQueue = new BLEQueue();
     private boolean bleQueueIsFree = true;
+
+    public static UUID batteryCharacteristicUuid = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
+    public static UUID batteryServiceUuid = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -252,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void enableCharacteristicNotification(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         //set characteristics and descriptors to notify for constant updates whenever values are changed
-        if(characteristic.getUuid().equals(UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb"))){
+        if(characteristic.getUuid().equals(batteryCharacteristicUuid)){
             boolean characteristicWriteSuccess = gatt.setCharacteristicNotification(characteristic, true);
             if (characteristicWriteSuccess) {
                 Log.d(TAG,"Characteristic notification set successfully for " + characteristic.getUuid().toString());
@@ -318,29 +323,40 @@ public class MainActivity extends AppCompatActivity {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
 
             super.onCharacteristicChanged(gatt, characteristic);
-            //byte[] messageBytes = characteristic.getValue();
-            byte[] messageBytes;
+            byte[] messageBytes = characteristic.getValue();
+            //byte[] messageBytes;
             int messageInt;
-            UUID batteryLevelUuid = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
-            UUID batteryServiceUuid = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb");
-            if(characteristic.getUuid().equals(batteryLevelUuid)){
+
+            if(characteristic.getUuid().equals(batteryCharacteristicUuid)){
                 Log.d(TAG, "attempting to parse battery level");
                 BluetoothGattService batteryServ = gatt.getService(batteryServiceUuid);
-                BluetoothGattCharacteristic battLevel = batteryServ.getCharacteristic(batteryLevelUuid);
+                BluetoothGattCharacteristic battLevel = batteryServ.getCharacteristic(batteryCharacteristicUuid);
                 bleQueue.addRead(battLevel);
                 processQueue();
-                messageBytes = battLevel.getValue();
+                //messageBytes = battLevel.getValue();
                 messageInt = battLevel.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-            } else {
+
+
+                runOnUiThread(() -> {
+                    setContentView(R.layout.activity_display_message);
+                    TextView batteryLevelView = findViewById(R.id.battery_level);
+                    if(batteryLevelView == null){
+                        Log.d(TAG, "NULL BATT LEVEL VIEW");
+                    } else {
+                        Log.d(TAG, "NOT NULL BATT LEVEL VIEW");
+                    }
+                });
+
+                Log.d(TAG, "Battery level: " + messageInt + "%");
                 return;
             }
+
             if(messageBytes == null){
                 Log.d(TAG, "No message parsed on characteristic.");
                 return;
             }
 
             try {
-
                 final StringBuilder stringBuilder = new StringBuilder(messageBytes.length);
                 for(byte byteChar : messageBytes){
                     stringBuilder.append(String.format("%02x ", byteChar));
@@ -348,8 +364,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Char UUID: " + characteristic.getUuid());
                 Log.d(TAG, "Received message: " + new String(messageBytes));
                 Log.d(TAG, "Raw: " + stringBuilder.toString());
-                Log.d(TAG, "Formatted: " + messageInt);
-                Log.d(TAG, " ");
+                //Log.d(TAG, "Formatted: " + messageInt);
             } catch (Exception e) {
                 Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
             }

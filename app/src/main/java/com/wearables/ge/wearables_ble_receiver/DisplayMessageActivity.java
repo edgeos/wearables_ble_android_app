@@ -16,6 +16,8 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.concurrent.TimeUnit;
+
 public class DisplayMessageActivity extends AppCompatActivity {
     private static String TAG = "Display_Message";
 
@@ -93,7 +95,14 @@ public class DisplayMessageActivity extends AppCompatActivity {
             textView.setGravity(Gravity.CENTER);
             linLayout.addView(textView);
 
-            for(BluetoothGattService obj : connectedGatt.getServices()){
+
+            /*TextView batteryLevelView = new TextView(this);
+            batteryLevelView.setText("Battery level: undefined");
+            batteryLevelView.setGravity(Gravity.CENTER);
+            batteryLevelView.setId(R.id.battery_level);
+            linLayout.addView(batteryLevelView);*/
+
+            /*for(BluetoothGattService obj : connectedGatt.getServices()){
                 textView = new TextView(this);
                 textView.setText("Found service UUID: " + obj.getUuid());
                 textView.setGravity(Gravity.CENTER);
@@ -112,7 +121,12 @@ public class DisplayMessageActivity extends AppCompatActivity {
                         linLayout.addView(textView);
                     }
                 }
-            }
+            }*/
         }
+    }
+
+    public void setBattLevelValue(int batteryLevel){
+        LinearLayout linLayout = findViewById(R.id.rootContainer2);
+        TextView batteryLevelView = findViewById(R.id.battery_level);
     }
 }
