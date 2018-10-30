@@ -4,18 +4,12 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -25,7 +19,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -34,22 +27,17 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
-import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
-import com.wearables.ge.wearables_ble_receiver.utils.QueueItem;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_FINE_LOCATION = 2;
-    private static final int SCAN_PERIOD = 3000;
+    private static final int SCAN_PERIOD = 5000;
 
     private boolean mScanning;
     private Handler mHandler;
@@ -63,12 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static BluetoothGatt connectedGatt;
     public static String deviceName;
-
-    private BLEQueue bleQueue = new BLEQueue();
-    private boolean bleQueueIsFree = true;
-
-    public static UUID batteryCharacteristicUuid = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
-    public static UUID batteryServiceUuid = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb");
+    public static BluetoothDevice connectedDevice;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,7 +161,9 @@ public class MainActivity extends AppCompatActivity {
             //set onclick event for connect button
             btnShow.setOnClickListener(v -> {
                 Toast.makeText(MainActivity.this, "connecting...", Toast.LENGTH_LONG).show();
-                connectDevice(obj);
+                connectedDevice = obj;
+                openConnectedPage();
+                //connectDevice(obj);
             });
 
             // Add Button and text to linear layout
@@ -247,162 +232,6 @@ public class MainActivity extends AppCompatActivity {
             BluetoothDevice device = result.getDevice();
             String deviceAddress = device.getAddress();
             mScanResults.put(deviceAddress, device);
-        }
-    }
-
-    private void connectDevice(BluetoothDevice device) {
-        MainActivity.GattClientCallback gattClientCallback = new MainActivity.GattClientCallback();
-        connectedGatt = device.connectGatt(this, false, gattClientCallback);
-    }
-
-    private void enableCharacteristicNotification(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-        //set characteristics and descriptors to notify for constant updates whenever values are changed
-        if(characteristic.getUuid().equals(batteryCharacteristicUuid)){
-            boolean characteristicWriteSuccess = gatt.setCharacteristicNotification(characteristic, true);
-            if (characteristicWriteSuccess) {
-                Log.d(TAG,"Characteristic notification set successfully for " + characteristic.getUuid().toString());
-                for(BluetoothGattDescriptor descriptor : characteristic.getDescriptors()){
-                    descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                    boolean notifySuccess = gatt.writeDescriptor(descriptor);
-                    if(notifySuccess){
-                        Log.d(TAG, "Successfully set notify on descriptor: " + descriptor.getUuid() + " for characteristic: " + characteristic.getUuid());
-                    } else {
-                        Log.d(TAG, "Unable to set notify on descriptor: " + descriptor.getUuid() + " for characteristic: " + characteristic.getUuid());
-                    }
-                }
-            } else {
-                Log.d(TAG,"Characteristic notification set failure for " + characteristic.getUuid().toString());
-            }
-        }
-    }
-
-    private class GattClientCallback extends BluetoothGattCallback {
-
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            super.onConnectionStateChange(gatt, status, newState);
-            if (status == BluetoothGatt.GATT_FAILURE) {
-                disconnectGattServer();
-                return;
-            } else if (status != BluetoothGatt.GATT_SUCCESS) {
-                disconnectGattServer();
-                return;
-            }
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                //triggered when a device is connected
-
-                //set global variables for connected device and device name
-                connectedGatt = gatt;
-                deviceName = gatt.getDevice().getName() == null ? gatt.getDevice().getAddress() : gatt.getDevice().getName();
-                Log.d(TAG, "Device connected: " + deviceName);
-
-                gatt.discoverServices();
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                disconnectGattServer();
-            }
-        }
-
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            super.onServicesDiscovered(gatt, status);
-            if (status != BluetoothGatt.GATT_SUCCESS) {
-                return;
-            }
-
-            runOnUiThread(MainActivity.this::openConnectedPage);
-
-            for(BluetoothGattService service : connectedGatt.getServices()){
-                for(BluetoothGattCharacteristic gattChar : service.getCharacteristics()){
-                    BluetoothGattCharacteristic characteristic = service.getCharacteristic(gattChar.getUuid());
-                    characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
-                    enableCharacteristicNotification(gatt, characteristic);
-                    onCharacteristicChanged(gatt, characteristic);
-                }
-            }
-        }
-
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-
-            super.onCharacteristicChanged(gatt, characteristic);
-            byte[] messageBytes = characteristic.getValue();
-            //byte[] messageBytes;
-            int messageInt;
-
-            if(characteristic.getUuid().equals(batteryCharacteristicUuid)){
-                Log.d(TAG, "attempting to parse battery level");
-                BluetoothGattService batteryServ = gatt.getService(batteryServiceUuid);
-                BluetoothGattCharacteristic battLevel = batteryServ.getCharacteristic(batteryCharacteristicUuid);
-                bleQueue.addRead(battLevel);
-                processQueue();
-                //messageBytes = battLevel.getValue();
-                messageInt = battLevel.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-
-
-                runOnUiThread(() -> {
-                    setContentView(R.layout.activity_display_message);
-                    TextView batteryLevelView = findViewById(R.id.battery_level);
-                    if(batteryLevelView == null){
-                        Log.d(TAG, "NULL BATT LEVEL VIEW");
-                    } else {
-                        Log.d(TAG, "NOT NULL BATT LEVEL VIEW");
-                    }
-                });
-
-                Log.d(TAG, "Battery level: " + messageInt + "%");
-                return;
-            }
-
-            if(messageBytes == null){
-                Log.d(TAG, "No message parsed on characteristic.");
-                return;
-            }
-
-            try {
-                final StringBuilder stringBuilder = new StringBuilder(messageBytes.length);
-                for(byte byteChar : messageBytes){
-                    stringBuilder.append(String.format("%02x ", byteChar));
-                }
-                Log.d(TAG, "Char UUID: " + characteristic.getUuid());
-                Log.d(TAG, "Received message: " + new String(messageBytes));
-                Log.d(TAG, "Raw: " + stringBuilder.toString());
-                //Log.d(TAG, "Formatted: " + messageInt);
-            } catch (Exception e) {
-                Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
-            }
-            Log.d(TAG, "Received message (string value): " + characteristic.getStringValue(0));
-        }
-    }
-
-    private void processQueue() {
-        if (bleQueueIsFree) {
-            bleQueueIsFree = false;
-            QueueItem queueItem = bleQueue.getNextItem();
-            if (queueItem == null) {
-                bleQueueIsFree = true;
-                return;
-            } else {
-                boolean status = false;
-                switch (queueItem.itemType) {
-                    case BLEQueue.ITEM_TYPE_READ:
-                        status = connectedGatt.readCharacteristic(queueItem.characteristic);
-                        break;
-                    case BLEQueue.ITEM_TYPE_WRITE:
-                        status = connectedGatt.writeCharacteristic(queueItem.characteristic);
-                        break;
-                    case BLEQueue.ITEM_TYPE_NOTIFICATION:
-                        connectedGatt.setCharacteristicNotification(queueItem.characteristic, true);
-                        BluetoothGattDescriptor descriptor = queueItem.characteristic.getDescriptor(UUID.fromString(GattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
-                        if (descriptor != null) {
-                            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                            status = connectedGatt.writeDescriptor(descriptor);
-                        } else {
-                            status = false;
-                        }
-                        break;
-                }
-                if (!status) {
-                    bleQueueIsFree = true;
-                }
-            }
         }
     }
 
