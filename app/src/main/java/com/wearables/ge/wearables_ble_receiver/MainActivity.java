@@ -78,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
         //get bluetooth object
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
+
+        startScan(null);
     }
 
     public void openConnectedPage() {

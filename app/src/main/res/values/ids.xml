@@ -8,4 +8,5 @@
     <item type="id" name="spo2_sensor" />
     <item type="id" name="voltage_level" />
     <item type="id" name="alarm_threshold" />
+    <item type="id" name="voltage_log" />
 </resources>

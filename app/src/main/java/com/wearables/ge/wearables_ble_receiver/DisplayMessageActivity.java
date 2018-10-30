@@ -7,22 +7,34 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.wearables.ge.wearables_ble_receiver.res.gattAttributes;
 
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class DisplayMessageActivity extends AppCompatActivity {
@@ -34,9 +46,9 @@ public class DisplayMessageActivity extends AppCompatActivity {
 
     public int batteryLevel;
     public String voltageSensorStatus;
-    public int temperature;
-    public int humidity;
-    public int VOC;
+    public String temperature;
+    public String humidity;
+    public String VOC;
     public String spo2_sensor;
     public int voltageLevel;
     public int alarmThreshold;
@@ -169,6 +181,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
             Button alarmThresholdButton = new Button(this);
             alarmThresholdButton.setText(R.string.alarm_threshold_button);
             alarmThresholdButton.setOnClickListener(v -> {
+                showAlarmThresholdDialog();
                 Log.d(TAG, "Alarm Threshold button pressed");
             });
             linLayout.addView(alarmThresholdButton);
@@ -176,32 +189,69 @@ public class DisplayMessageActivity extends AppCompatActivity {
             Button voltageEventsButton = new Button(this);
             voltageEventsButton.setText(R.string.voltage_events_button);
             voltageEventsButton.setOnClickListener(v -> {
+                showVoltageEventsDialog();
                 Log.d(TAG, "Voltage Events button pressed");
             });
             linLayout.addView(voltageEventsButton);
-
-            /*for(BluetoothGattService obj : connectedGatt.getServices()){
-                textView = new TextView(this);
-                textView.setText("Found service UUID: " + obj.getUuid());
-                textView.setGravity(Gravity.CENTER);
-                linLayout.addView(textView);
-
-                for(BluetoothGattCharacteristic obj2 : obj.getCharacteristics()){
-                    textView = new TextView(this);
-                    textView.setText("characteristic: " + obj2.getUuid() + " containing descriptor: ");
-                    textView.setGravity(Gravity.CENTER);
-                    linLayout.addView(textView);
-
-                    for(BluetoothGattDescriptor obj3 : obj2.getDescriptors()){
-                        textView = new TextView(this);
-                        textView.setText(obj3.getUuid().toString());
-                        textView.setGravity(Gravity.CENTER);
-                        linLayout.addView(textView);
-                    }
-                }
-            }*/
         }
     }
+
+    private void showAlarmThresholdDialog(){
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+        alert.setMessage(R.string.alert_threshold_dialog_message);
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        alert.setView(input);
+
+        alert.setPositiveButton(R.string.dialog_accept_button_message, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                int value = Integer.parseInt(input.getText().toString());
+                //TODO: send this new threshold to the device
+                Log.d(TAG, "Alarm Threshold set to: " + value);
+            }
+        });
+
+        alert.setNegativeButton(R.string.dialog_cancel_button_message, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                Log.d(TAG, "Alarm Threshold dialog closed");
+            }
+        });
+
+        alert.show();
+    }
+
+    private void showVoltageEventsDialog(){
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+        alert.setMessage(R.string.voltage_event_dialog_message);
+
+        LinearLayout voltageLogLinearLayout = new LinearLayout(this);
+        voltageLogLinearLayout.setOrientation(LinearLayout.VERTICAL);
+
+        List<String> testList = new ArrayList<>(Arrays.asList("one", "two", "three"));
+
+        for(String obj : testList){
+            TextView textView = new TextView(this);
+            textView.setText(obj);
+            textView.setGravity(Gravity.CENTER);
+            voltageLogLinearLayout.addView(textView);
+        }
+
+        alert.setView(voltageLogLinearLayout);
+
+        alert.setNegativeButton(R.string.dialog_cancel_button_message, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                voltageLogLinearLayout.removeAllViews();
+                Log.d(TAG, "Voltage Log dialog closed");
+            }
+        });
+
+        alert.show();
+    }
+
 
     public void updateVoltageSensorStatus(){
         TextView voltageSensorStatusView = findViewById(R.id.voltage_sensor_status);
@@ -341,22 +391,31 @@ public class DisplayMessageActivity extends AppCompatActivity {
                     stringBuilder.append(String.format("%02x ", byteChar));
                 }
 
+                //TODO: send this data to AWS for storage
+                String value = stringBuilder.toString();
+
                 if(characteristic.getUuid().equals(gattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + stringBuilder.toString());
+                    Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
                 } else if(characteristic.getUuid().equals(gattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + stringBuilder.toString());
+                    Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
                 } else if(characteristic.getUuid().equals(gattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "ACCELEROMETER_DATA value: " + stringBuilder.toString());
+                    Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
                 } else if(characteristic.getUuid().equals(gattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + stringBuilder.toString());
+                    temperature = value;
+                    humidity = value;
+                    VOC = value;
+                    runOnUiThread(DisplayMessageActivity.this::updateHumidity);
+                    runOnUiThread(DisplayMessageActivity.this::updateTemperature);
+                    runOnUiThread(DisplayMessageActivity.this::updateVOC);
+                    Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
                 } else if(characteristic.getUuid().equals(gattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "GAS_SENSOR_DATA value: " + stringBuilder.toString());
+                    Log.d(TAG, "GAS_SENSOR_DATA value: " + value);
                 } else if(characteristic.getUuid().equals(gattAttributes.OPTICAL_SENSOR_DATA_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "OPTICAL_SENSOR_DATA value: " + stringBuilder.toString());
+                    Log.d(TAG, "OPTICAL_SENSOR_DATA value: " + value);
                 } else if(characteristic.getUuid().equals(gattAttributes.STREAMING_DATA_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "STREAMING_DATA value: " + stringBuilder.toString());
+                    Log.d(TAG, "STREAMING_DATA value: " + value);
                 } else {
-                    Log.d(TAG, "Received message: " + stringBuilder.toString() + " with UUID: " + characteristic.getUuid());
+                    Log.d(TAG, "Received message: " + value + " with UUID: " + characteristic.getUuid());
                 }
 
             } catch (Exception e) {
