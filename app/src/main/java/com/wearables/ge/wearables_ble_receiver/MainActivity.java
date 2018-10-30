@@ -49,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ProgressBar spinner;
 
-    public static BluetoothGatt connectedGatt;
     public static String deviceName;
     public static BluetoothDevice connectedDevice;
 
@@ -71,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
         linLayout.removeAllViews();
 
         //disconnect if returning to main page while connected to a BT device
-        if(connectedGatt != null){
-            Log.d(TAG,"Main page, disconnecting from " + deviceName);
+        if(DisplayMessageActivity.connectedGatt != null){
+            Log.d(TAG,"Main page, disconnecting from " + DisplayMessageActivity.deviceName);
             disconnectGattServer();
         }
 
@@ -237,10 +236,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void disconnectGattServer() {
         //disconnect;
-        Log.d(TAG, "Attempting to disconnect " + deviceName);
-        if (connectedGatt != null) {
-            connectedGatt.disconnect();
-            connectedGatt.close();
+        Log.d(TAG, "Attempting to disconnect " + DisplayMessageActivity.deviceName);
+        if (DisplayMessageActivity.connectedGatt != null) {
+            DisplayMessageActivity.connectedGatt.disconnect();
+            DisplayMessageActivity.connectedGatt.close();
         }
     }
 

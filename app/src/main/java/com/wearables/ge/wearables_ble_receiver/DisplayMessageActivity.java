@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
-import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +16,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -24,18 +24,22 @@ import com.wearables.ge.wearables_ble_receiver.res.gattAttributes;
 
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.UUID;
 
 public class DisplayMessageActivity extends AppCompatActivity {
     private static String TAG = "Display_Message";
 
-    public BluetoothGatt connectedGatt;
-    public String deviceName = MainActivity.deviceName;
+    public static BluetoothGatt connectedGatt;
+    public static String deviceName = MainActivity.deviceName;
     public BluetoothDevice connectedDevice = MainActivity.connectedDevice;
 
-    public int battLevelValue;
-
-
+    public int batteryLevel;
+    public String voltageSensorStatus;
+    public int temperature;
+    public int humidity;
+    public int VOC;
+    public String spo2_sensor;
+    public int voltageLevel;
+    public int alarmThreshold;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,13 +118,69 @@ public class DisplayMessageActivity extends AppCompatActivity {
             linLayout.addView(textView);
 
 
+            TextView voltageSensorStatusView = new TextView(this);
+            voltageSensorStatusView.setText("Status: undefined");
+            voltageSensorStatusView.setGravity(Gravity.CENTER);
+            voltageSensorStatusView.setId(R.id.voltage_sensor_status);
+            linLayout.addView(voltageSensorStatusView);
+
             TextView batteryLevelView = new TextView(this);
             batteryLevelView.setText("Battery level: undefined");
             batteryLevelView.setGravity(Gravity.CENTER);
             batteryLevelView.setId(R.id.battery_level);
             linLayout.addView(batteryLevelView);
 
-            for(BluetoothGattService obj : connectedGatt.getServices()){
+            TextView temperatureView = new TextView(this);
+            temperatureView.setText("Temperature: undefined"  + " \u00b0C");
+            temperatureView.setGravity(Gravity.CENTER);
+            temperatureView.setId(R.id.temperature);
+            linLayout.addView(temperatureView);
+
+            TextView humidityView = new TextView(this);
+            humidityView.setText("Humidity: undefined");
+            humidityView.setGravity(Gravity.CENTER);
+            humidityView.setId(R.id.humidity);
+            linLayout.addView(humidityView);
+
+            TextView VOCView = new TextView(this);
+            VOCView.setText("VOC: undefined");
+            VOCView.setGravity(Gravity.CENTER);
+            VOCView.setId(R.id.VOC);
+            linLayout.addView(VOCView);
+
+            TextView spo2SensorView = new TextView(this);
+            spo2SensorView.setText("Spo2 Sensor: undefined");
+            spo2SensorView.setGravity(Gravity.CENTER);
+            spo2SensorView.setId(R.id.spo2_sensor);
+            linLayout.addView(spo2SensorView);
+
+            TextView voltageLevelView = new TextView(this);
+            voltageLevelView.setText("Voltage Level: undefined");
+            voltageLevelView.setGravity(Gravity.CENTER);
+            voltageLevelView.setId(R.id.voltage_level);
+            linLayout.addView(voltageLevelView);
+
+            TextView alarmThresholdView = new TextView(this);
+            alarmThresholdView.setText("Alarm Threshold: undefined");
+            alarmThresholdView.setGravity(Gravity.CENTER);
+            alarmThresholdView.setId(R.id.alarm_threshold);
+            linLayout.addView(alarmThresholdView);
+
+            Button alarmThresholdButton = new Button(this);
+            alarmThresholdButton.setText(R.string.alarm_threshold_button);
+            alarmThresholdButton.setOnClickListener(v -> {
+                Log.d(TAG, "Alarm Threshold button pressed");
+            });
+            linLayout.addView(alarmThresholdButton);
+
+            Button voltageEventsButton = new Button(this);
+            voltageEventsButton.setText(R.string.voltage_events_button);
+            voltageEventsButton.setOnClickListener(v -> {
+                Log.d(TAG, "Voltage Events button pressed");
+            });
+            linLayout.addView(voltageEventsButton);
+
+            /*for(BluetoothGattService obj : connectedGatt.getServices()){
                 textView = new TextView(this);
                 textView.setText("Found service UUID: " + obj.getUuid());
                 textView.setGravity(Gravity.CENTER);
@@ -139,17 +199,52 @@ public class DisplayMessageActivity extends AppCompatActivity {
                         linLayout.addView(textView);
                     }
                 }
-            }
+            }*/
         }
+    }
+
+    public void updateVoltageSensorStatus(){
+        TextView voltageSensorStatusView = findViewById(R.id.voltage_sensor_status);
+        voltageSensorStatusView.setText("Status: " + voltageSensorStatus);
     }
 
     public void updateBatteryLevel(){
         TextView batteryLevelView = findViewById(R.id.battery_level);
-        batteryLevelView.setText("Battery level: " + battLevelValue + "%");
+        batteryLevelView.setText("Battery level: " + batteryLevel + "%");
     }
 
-    private Queue<BluetoothGattDescriptor> descriptorWriteQueue = new LinkedList<BluetoothGattDescriptor>();
-    private Queue<BluetoothGattCharacteristic> characteristicReadQueue = new LinkedList<BluetoothGattCharacteristic>();
+    public void updateTemperature(){
+        TextView voltageSensorStatusView = findViewById(R.id.temperature);
+        voltageSensorStatusView.setText("Temperature: " + temperature + "\u00b0C");
+    }
+
+    public void updateHumidity(){
+        TextView voltageSensorStatusView = findViewById(R.id.humidity);
+        voltageSensorStatusView.setText("Humidity: " + humidity + "%");
+    }
+
+    public void updateVOC(){
+        TextView voltageSensorStatusView = findViewById(R.id.VOC);
+        voltageSensorStatusView.setText("VOC: " + VOC + "ppm");
+    }
+
+    public void updateSpo2Sensor(){
+        TextView voltageSensorStatusView = findViewById(R.id.spo2_sensor);
+        voltageSensorStatusView.setText("SpO2 Sensor " + spo2_sensor);
+    }
+
+    public void updateVoltageLevel(){
+        TextView voltageSensorStatusView = findViewById(R.id.voltage_level);
+        voltageSensorStatusView.setText("Voltage Level: " + voltageLevel);
+    }
+
+    public void updateAlarmThreshold(){
+        TextView voltageSensorStatusView = findViewById(R.id.alarm_threshold);
+        voltageSensorStatusView.setText("Alarm Threshold: " + alarmThreshold);
+    }
+
+    private Queue<BluetoothGattDescriptor> descriptorWriteQueue = new LinkedList<>();
+    private Queue<BluetoothGattCharacteristic> characteristicReadQueue = new LinkedList<>();
 
     private void enableCharacteristicNotification(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         //set characteristics and descriptors to notify for constant updates whenever values are changed
@@ -200,8 +295,11 @@ public class DisplayMessageActivity extends AppCompatActivity {
                 return;
             }
 
+            //UI changes need to be run on the original UI thread
             runOnUiThread(DisplayMessageActivity.this::showConnectedMessage);
 
+            //Enable notifications for all characteristics found
+            //we can do this dynamically later
             for(BluetoothGattService service : connectedGatt.getServices()){
                 for(BluetoothGattCharacteristic gattChar : service.getCharacteristics()){
                     BluetoothGattCharacteristic characteristic = service.getCharacteristic(gattChar.getUuid());
@@ -212,32 +310,25 @@ public class DisplayMessageActivity extends AppCompatActivity {
         }
 
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            //this method is triggered when the process is notified that a characteristic has changed
 
             super.onCharacteristicChanged(gatt, characteristic);
 
-            int messageInt;
-
-            if(characteristic.getUuid().equals(gattAttributes.BATT_LEVEL_CHAR_UUID)){
-                Log.d(TAG, "attempting to parse battery level");
-                BluetoothGattService batteryServ = gatt.getService(gattAttributes.BATT_SERVICE_UUID);
-                BluetoothGattCharacteristic battLevel = batteryServ.getCharacteristic(gattAttributes.BATT_LEVEL_CHAR_UUID);
-                characteristicReadQueue.add(characteristic);
-                if((characteristicReadQueue.size() == 1) && (descriptorWriteQueue.size() == 0)){
-                    gatt.readCharacteristic(characteristic);
-                }
-                messageInt = battLevel.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-                battLevelValue = messageInt;
-                runOnUiThread(DisplayMessageActivity.this::updateBatteryLevel);
-
-                Log.d(TAG, "Battery level: " + messageInt + "%");
-                return;
-            }
-
+            //add the characteristic to the queue to be read, if queue is empty, read it.
             characteristicReadQueue.add(characteristic);
             if((characteristicReadQueue.size() == 1) && (descriptorWriteQueue.size() == 0)){
                 gatt.readCharacteristic(characteristic);
             }
 
+            //handle battery level case
+            if(characteristic.getUuid().equals(gattAttributes.BATT_LEVEL_CHAR_UUID)){
+                batteryLevel = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+                runOnUiThread(DisplayMessageActivity.this::updateBatteryLevel);
+                Log.d(TAG, "Battery level: " + batteryLevel + "%");
+                return;
+            }
+
+            //if none of the cases above, parse message as a normal byte array
             byte[] messageBytes = characteristic.getValue();
             if(messageBytes == null){
                 Log.d(TAG, "No message parsed on characteristic.");
@@ -249,13 +340,28 @@ public class DisplayMessageActivity extends AppCompatActivity {
                 for(byte byteChar : messageBytes){
                     stringBuilder.append(String.format("%02x ", byteChar));
                 }
-                //Log.d(TAG, "Char UUID: " + characteristic.getUuid());
-                //Log.d(TAG, "Received message: " + new String(messageBytes));
-                Log.d(TAG, "Received message: " + stringBuilder.toString());
+
+                if(characteristic.getUuid().equals(gattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
+                    Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + stringBuilder.toString());
+                } else if(characteristic.getUuid().equals(gattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
+                    Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + stringBuilder.toString());
+                } else if(characteristic.getUuid().equals(gattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
+                    Log.d(TAG, "ACCELEROMETER_DATA value: " + stringBuilder.toString());
+                } else if(characteristic.getUuid().equals(gattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
+                    Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + stringBuilder.toString());
+                } else if(characteristic.getUuid().equals(gattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
+                    Log.d(TAG, "GAS_SENSOR_DATA value: " + stringBuilder.toString());
+                } else if(characteristic.getUuid().equals(gattAttributes.OPTICAL_SENSOR_DATA_CHARACTERISTIC_UUID)){
+                    Log.d(TAG, "OPTICAL_SENSOR_DATA value: " + stringBuilder.toString());
+                } else if(characteristic.getUuid().equals(gattAttributes.STREAMING_DATA_CHARACTERISTIC_UUID)){
+                    Log.d(TAG, "STREAMING_DATA value: " + stringBuilder.toString());
+                } else {
+                    Log.d(TAG, "Received message: " + stringBuilder.toString() + " with UUID: " + characteristic.getUuid());
+                }
+
             } catch (Exception e) {
                 Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
             }
-            Log.d(TAG, "Received message (string value): " + characteristic.getStringValue(0));
         }
 
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {

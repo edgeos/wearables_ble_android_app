@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <item type="id" name="voltage_sensor_status" />
     <item type="id" name="battery_level" />
+    <item type="id" name="temperature" />
+    <item type="id" name="humidity" />
+    <item type="id" name="VOC" />
+    <item type="id" name="spo2_sensor" />
+    <item type="id" name="voltage_level" />
+    <item type="id" name="alarm_threshold" />
 </resources>

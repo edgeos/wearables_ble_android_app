@@ -9,4 +9,6 @@
     <string name="rename">Rename</string>
     <string name="disconnect">Disconnect</string>
     <string name="dev_mode">Dev Mode</string>
+    <string name="alarm_threshold_button">Set alarm threshold</string>
+    <string name="voltage_events_button">View voltage events</string>
 </resources>
