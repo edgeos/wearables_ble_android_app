@@ -15,4 +15,6 @@
     <string name="dialog_accept_button_message">Ok</string>
     <string name="dialog_cancel_button_message">Cancel</string>
     <string name="voltage_event_dialog_message">Voltage Event Log</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_authenticator">AuthenticatorActivity</string>
 </resources>
