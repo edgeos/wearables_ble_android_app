@@ -9,13 +9,10 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
@@ -28,8 +25,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.wearables.ge.wearables_ble_receiver.res.gattAttributes;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -125,55 +120,55 @@ public class DisplayMessageActivity extends AppCompatActivity {
             linLayout.removeAllViews();
 
             TextView textView = new TextView(this);
-            textView.setText("Connected to device: " + deviceName);
+            textView.setText(getString(R.string.connected_device_message, deviceName));
             textView.setGravity(Gravity.CENTER);
             linLayout.addView(textView);
 
 
             TextView voltageSensorStatusView = new TextView(this);
-            voltageSensorStatusView.setText("Status: undefined");
+            voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, "undefined"));
             voltageSensorStatusView.setGravity(Gravity.CENTER);
             voltageSensorStatusView.setId(R.id.voltage_sensor_status);
             linLayout.addView(voltageSensorStatusView);
 
             TextView batteryLevelView = new TextView(this);
-            batteryLevelView.setText("Battery level: undefined");
+            batteryLevelView.setText(getString(R.string.battery_level, 0));
             batteryLevelView.setGravity(Gravity.CENTER);
             batteryLevelView.setId(R.id.battery_level);
             linLayout.addView(batteryLevelView);
 
             TextView temperatureView = new TextView(this);
-            temperatureView.setText("Temperature: undefined"  + " \u00b0C");
+            temperatureView.setText(getString(R.string.temperature, "undefined"));
             temperatureView.setGravity(Gravity.CENTER);
             temperatureView.setId(R.id.temperature);
             linLayout.addView(temperatureView);
 
             TextView humidityView = new TextView(this);
-            humidityView.setText("Humidity: undefined");
+            humidityView.setText(getString(R.string.humidity, "undefined"));
             humidityView.setGravity(Gravity.CENTER);
             humidityView.setId(R.id.humidity);
             linLayout.addView(humidityView);
 
             TextView VOCView = new TextView(this);
-            VOCView.setText("VOC: undefined");
+            VOCView.setText(getString(R.string.VOC, "undefined"));
             VOCView.setGravity(Gravity.CENTER);
             VOCView.setId(R.id.VOC);
             linLayout.addView(VOCView);
 
             TextView spo2SensorView = new TextView(this);
-            spo2SensorView.setText("Spo2 Sensor: undefined");
+            spo2SensorView.setText(getString(R.string.spo2, "undefined"));
             spo2SensorView.setGravity(Gravity.CENTER);
             spo2SensorView.setId(R.id.spo2_sensor);
             linLayout.addView(spo2SensorView);
 
             TextView voltageLevelView = new TextView(this);
-            voltageLevelView.setText("Voltage Level: undefined");
+            voltageLevelView.setText(getString(R.string.voltage_level, 0));
             voltageLevelView.setGravity(Gravity.CENTER);
             voltageLevelView.setId(R.id.voltage_level);
             linLayout.addView(voltageLevelView);
 
             TextView alarmThresholdView = new TextView(this);
-            alarmThresholdView.setText("Alarm Threshold: undefined");
+            alarmThresholdView.setText(getString(R.string.alarm_threshold, 0));
             alarmThresholdView.setGravity(Gravity.CENTER);
             alarmThresholdView.setId(R.id.alarm_threshold);
             linLayout.addView(alarmThresholdView);
@@ -255,42 +250,50 @@ public class DisplayMessageActivity extends AppCompatActivity {
 
     public void updateVoltageSensorStatus(){
         TextView voltageSensorStatusView = findViewById(R.id.voltage_sensor_status);
-        voltageSensorStatusView.setText("Status: " + voltageSensorStatus);
+        voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, voltageSensorStatus));
+        //voltageSensorStatusView.setText("Status: " + voltageSensorStatus);
     }
 
     public void updateBatteryLevel(){
         TextView batteryLevelView = findViewById(R.id.battery_level);
-        batteryLevelView.setText("Battery level: " + batteryLevel + "%");
+        batteryLevelView.setText(getString(R.string.battery_level, batteryLevel));
+        //batteryLevelView.setText("Battery level: " + batteryLevel + "%");
     }
 
     public void updateTemperature(){
         TextView voltageSensorStatusView = findViewById(R.id.temperature);
-        voltageSensorStatusView.setText("Temperature: " + temperature + "\u00b0C");
+        voltageSensorStatusView.setText(getString(R.string.temperature, temperature));
+        //voltageSensorStatusView.setText("Temperature: " + temperature + "\u00b0C");
     }
 
     public void updateHumidity(){
         TextView voltageSensorStatusView = findViewById(R.id.humidity);
-        voltageSensorStatusView.setText("Humidity: " + humidity + "%");
+        voltageSensorStatusView.setText(getString(R.string.humidity, humidity));
+        //voltageSensorStatusView.setText("Humidity: " + humidity + "%");
     }
 
     public void updateVOC(){
         TextView voltageSensorStatusView = findViewById(R.id.VOC);
-        voltageSensorStatusView.setText("VOC: " + VOC + "ppm");
+        voltageSensorStatusView.setText(getString(R.string.VOC, VOC));
+        //voltageSensorStatusView.setText("VOC: " + VOC + "ppm");
     }
 
     public void updateSpo2Sensor(){
         TextView voltageSensorStatusView = findViewById(R.id.spo2_sensor);
-        voltageSensorStatusView.setText("SpO2 Sensor " + spo2_sensor);
+        voltageSensorStatusView.setText(getString(R.string.spo2, spo2_sensor));
+        //voltageSensorStatusView.setText("SpO2 Sensor " + spo2_sensor);
     }
 
     public void updateVoltageLevel(){
         TextView voltageSensorStatusView = findViewById(R.id.voltage_level);
-        voltageSensorStatusView.setText("Voltage Level: " + voltageLevel);
+        voltageSensorStatusView.setText(getString(R.string.voltage_level, voltageLevel));
+        //voltageSensorStatusView.setText("Voltage Level: " + voltageLevel);
     }
 
     public void updateAlarmThreshold(){
         TextView voltageSensorStatusView = findViewById(R.id.alarm_threshold);
-        voltageSensorStatusView.setText("Alarm Threshold: " + alarmThreshold);
+        voltageSensorStatusView.setText(getString(R.string.alarm_threshold, alarmThreshold));
+        //voltageSensorStatusView.setText("Alarm Threshold: " + alarmThreshold);
     }
 
     private Queue<BluetoothGattDescriptor> descriptorWriteQueue = new LinkedList<>();

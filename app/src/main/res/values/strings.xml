@@ -17,4 +17,13 @@
     <string name="voltage_event_dialog_message">Voltage Event Log</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="title_activity_authenticator">AuthenticatorActivity</string>
+    <string name="connected_device_message">Connected to: %1$s</string>
+    <string name="voltage_sensor_status">Status: %1$s</string>
+    <string name="battery_level">Battery Level: %1$d%%</string>
+    <string name="temperature">Temperature: %1$s °C</string>
+    <string name="humidity">Humidity: %1$s%%</string>
+    <string name="VOC">VOC: %1$s ppm</string>
+    <string name="spo2">SpO2 Sensor: %1$s</string>
+    <string name="voltage_level">Voltage level: %1$d</string>
+    <string name="alarm_threshold">Alarm threshold: %1$d</string>
 </resources>
