@@ -1,5 +1,6 @@
 package com.wearables.ge.wearables_ble_receiver;
 
+import android.Manifest;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -7,8 +8,14 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -25,6 +32,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.wearables.ge.wearables_ble_receiver.res.gattAttributes;
+import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,21 +64,22 @@ public class DisplayMessageActivity extends AppCompatActivity {
         myToolbar.setTitle(deviceName);
         setSupportActionBar(myToolbar);
         ActionBar myActionBar = getSupportActionBar();
-        if(myActionBar != null){
+        if (myActionBar != null) {
             myActionBar.setDisplayHomeAsUpEnabled(true);
         }
         connectDevice(connectedDevice);
+        LocationService.startLocationService(this);
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_items, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        switch(item.getItemId()){
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
             case R.id.update_rate:
                 Log.d(TAG, "update_rate button pushed");
                 //action for update_rate click
@@ -114,9 +123,9 @@ public class DisplayMessageActivity extends AppCompatActivity {
         }
     }
 
-    public void showConnectedMessage(){
+    public void showConnectedMessage() {
         LinearLayout linLayout = findViewById(R.id.rootContainer2);
-        if(linLayout != null){
+        if (linLayout != null) {
             linLayout.removeAllViews();
 
             TextView textView = new TextView(this);
@@ -191,7 +200,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
         }
     }
 
-    private void showAlarmThresholdDialog(){
+    private void showAlarmThresholdDialog() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
         alert.setMessage(R.string.alert_threshold_dialog_message);
@@ -218,7 +227,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
         alert.show();
     }
 
-    private void showVoltageEventsDialog(){
+    private void showVoltageEventsDialog() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
         alert.setMessage(R.string.voltage_event_dialog_message);
@@ -226,14 +235,63 @@ public class DisplayMessageActivity extends AppCompatActivity {
         LinearLayout voltageLogLinearLayout = new LinearLayout(this);
         voltageLogLinearLayout.setOrientation(LinearLayout.VERTICAL);
 
-        List<String> testList = new ArrayList<>(Arrays.asList("one", "two", "three"));
+        for(Location location : LocationService.locations){
+            Double lattitude = location.getLatitude();
+            Double longitude = location.getLongitude();
 
-        for(String obj : testList){
-            TextView textView = new TextView(this);
-            textView.setText(obj);
+            String message = lattitude.toString() + "," + longitude.toString();
+
+            TextView textView = new TextView(DisplayMessageActivity.this);
+            textView.setText(message);
             textView.setGravity(Gravity.CENTER);
             voltageLogLinearLayout.addView(textView);
         }
+
+        /*LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        LocationListener locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+
+                Double lattitude = location.getLatitude();
+                Double longitude = location.getLongitude();
+
+                String message = lattitude.toString() + "," + longitude.toString();
+
+                TextView textView = new TextView(DisplayMessageActivity.this);
+                textView.setText(message);
+                textView.setGravity(Gravity.CENTER);
+                voltageLogLinearLayout.addView(textView);
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            Log.d(TAG, "Location permission not granted");
+        } else {
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+        }*/
 
         alert.setView(voltageLogLinearLayout);
 
