@@ -26,4 +26,5 @@
     <string name="spo2">SpO2 Sensor: %1$s</string>
     <string name="voltage_level">Voltage level: %1$d</string>
     <string name="alarm_threshold">Alarm threshold: %1$d</string>
+    <string name="title_activity_developer_mode">DeveloperModeActivity</string>
 </resources>

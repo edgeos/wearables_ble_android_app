@@ -61,6 +61,8 @@ public class DisplayMessageActivity extends AppCompatActivity {
     public void onPause() {
         super.onPause();
         Log.d(TAG, "Activity paused");
+        //Some activities may not want to disconnect the device.
+        // we will want to handle this scenario
         try {
             mService.disconnectGattServer();
             mService.close();
@@ -143,12 +145,17 @@ public class DisplayMessageActivity extends AppCompatActivity {
                 return true;
             case R.id.dev_mode:
                 Log.d(TAG, "dev_mode button pushed");
-                //action for dev_mode
+                openDevMode();
                 return true;
             default:
                 Log.d(TAG, "No menu item found for " + item.getItemId());
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void openDevMode(){
+        Intent intent = new Intent(this, DeveloperModeActivity.class);
+        startActivity(intent);
     }
 
     public void showConnectedMessage() {

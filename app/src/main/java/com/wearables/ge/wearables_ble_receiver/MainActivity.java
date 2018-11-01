@@ -58,12 +58,9 @@ public class MainActivity extends AppCompatActivity {
     public static String deviceName;
     public static BluetoothDevice connectedDevice;
 
-    public static Boolean opened;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        opened = true;
         setContentView(R.layout.activity_main);
 
         //create custom toolbar
@@ -78,13 +75,6 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout linLayout = findViewById(R.id.rootContainer);
         linLayout.removeAllViews();
 
-        //disconnect if returning to main page while connected to a BT device
-        /*if(BluetoothService.connectedGatt != null){
-            Log.d(TAG,"Main page, disconnecting from " + BluetoothService.deviceName);
-            Intent intent = new Intent(this, BluetoothService.class);
-            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        }*/
-
         //get bluetooth object
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
@@ -92,32 +82,10 @@ public class MainActivity extends AppCompatActivity {
         startScan(null);
     }
 
-    /*BluetoothService mService;
-    boolean mBound = false;
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            Log.d(TAG, "attempting bind to bluetooth service");
-            BluetoothService.LocalBinder binder = (BluetoothService.LocalBinder) service;
-            mService = binder.getService();
-            Log.d(TAG, "Bluetooth service bound successfully");
-            mBound = true;
-            mService.disconnectGattServer();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            Log.d(TAG, "Bluetooth service disconnected");
-            mBound = false;
-        }
-    };*/
-
 
     public void openConnectedPage() {
         //move to the DisplayMessageActivity page to show device info
         //TODO: rename the DisplayMessageActivity to something more helpful
-        opened = false;
         Intent intent = new Intent(this, DisplayMessageActivity.class);
         startActivity(intent);
     }

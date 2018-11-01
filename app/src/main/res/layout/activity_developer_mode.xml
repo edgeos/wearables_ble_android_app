@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".DisplayMessageActivity">
+    tools:context=".DeveloperModeActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/display_message_toolbar"
@@ -21,7 +21,7 @@
         app:titleTextColor="@android:color/white"/>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/rootContainer2"
+        android:id="@+id/rootContainer3"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
@@ -33,4 +33,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/display_message_toolbar" />
+
 </android.support.constraint.ConstraintLayout>
