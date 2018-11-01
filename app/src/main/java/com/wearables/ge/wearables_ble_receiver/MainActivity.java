@@ -3,16 +3,21 @@ package com.wearables.ge.wearables_ble_receiver;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -25,6 +30,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,9 +58,12 @@ public class MainActivity extends AppCompatActivity {
     public static String deviceName;
     public static BluetoothDevice connectedDevice;
 
+    public static Boolean opened;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        opened = true;
         setContentView(R.layout.activity_main);
 
         //create custom toolbar
@@ -69,10 +79,11 @@ public class MainActivity extends AppCompatActivity {
         linLayout.removeAllViews();
 
         //disconnect if returning to main page while connected to a BT device
-        if(DisplayMessageActivity.connectedGatt != null){
-            Log.d(TAG,"Main page, disconnecting from " + DisplayMessageActivity.deviceName);
-            disconnectGattServer();
-        }
+        /*if(BluetoothService.connectedGatt != null){
+            Log.d(TAG,"Main page, disconnecting from " + BluetoothService.deviceName);
+            Intent intent = new Intent(this, BluetoothService.class);
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        }*/
 
         //get bluetooth object
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
@@ -81,9 +92,32 @@ public class MainActivity extends AppCompatActivity {
         startScan(null);
     }
 
+    /*BluetoothService mService;
+    boolean mBound = false;
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            Log.d(TAG, "attempting bind to bluetooth service");
+            BluetoothService.LocalBinder binder = (BluetoothService.LocalBinder) service;
+            mService = binder.getService();
+            Log.d(TAG, "Bluetooth service bound successfully");
+            mBound = true;
+            mService.disconnectGattServer();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            Log.d(TAG, "Bluetooth service disconnected");
+            mBound = false;
+        }
+    };*/
+
+
     public void openConnectedPage() {
         //move to the DisplayMessageActivity page to show device info
         //TODO: rename the DisplayMessageActivity to something more helpful
+        opened = false;
         Intent intent = new Intent(this, DisplayMessageActivity.class);
         startActivity(intent);
     }
@@ -235,14 +269,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void disconnectGattServer() {
+    /*public void disconnectGattServer(BluetoothGatt gatt) {
         //disconnect;
         Log.d(TAG, "Attempting to disconnect " + DisplayMessageActivity.deviceName);
-        if (DisplayMessageActivity.connectedGatt != null) {
-            DisplayMessageActivity.connectedGatt.disconnect();
-            DisplayMessageActivity.connectedGatt.close();
+        if (gatt != null) {
+            gatt.disconnect();
+            gatt.close();
         }
-    }
+    }*/
 
     private boolean hasPermissions() {
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {

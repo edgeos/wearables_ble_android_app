@@ -1,21 +1,15 @@
 package com.wearables.ge.wearables_ble_receiver;
 
-import android.Manifest;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothProfile;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.support.v4.app.ActivityCompat;
+import android.os.IBinder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -31,30 +25,19 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.wearables.ge.wearables_ble_receiver.res.gattAttributes;
+import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.Random;
 
 public class DisplayMessageActivity extends AppCompatActivity {
     private static String TAG = "Display_Message";
 
-    public static BluetoothGatt connectedGatt;
     public static String deviceName = MainActivity.deviceName;
     public BluetoothDevice connectedDevice = MainActivity.connectedDevice;
 
-    public int batteryLevel;
-    public String voltageSensorStatus;
-    public String temperature;
-    public String humidity;
-    public String VOC;
-    public String spo2_sensor;
-    public int voltageLevel;
-    public int alarmThreshold;
+    BluetoothService mService;
+    boolean mBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,9 +50,64 @@ public class DisplayMessageActivity extends AppCompatActivity {
         if (myActionBar != null) {
             myActionBar.setDisplayHomeAsUpEnabled(true);
         }
-        connectDevice(connectedDevice);
+
+        Intent intent = new Intent(this, BluetoothService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
         LocationService.startLocationService(this);
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "Activity paused");
+        try {
+            mService.disconnectGattServer();
+            mService.close();
+        } catch (Exception e){
+            Log.d(TAG, "Couldn't disconnect bluetooth device: " + e.getMessage());
+        }
+        Log.d(TAG, "Unregistering update receiver and unbinding service");
+        if(mBound){
+            unbindService(mConnection);
+            unregisterReceiver(mGattUpdateReceiver);
+        }
+    }
+
+
+    private static IntentFilter createIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE);
+        intentFilter.addAction(BluetoothService.ACTION_UPDATE_ALARM_THRESHOLD);
+        intentFilter.addAction(BluetoothService.ACTION_UPDATE_BATTERY_LEVEL);
+        intentFilter.addAction(BluetoothService.ACTION_UPDATE_HUMIDITY);
+        intentFilter.addAction(BluetoothService.ACTION_UPDATE_SPO2_SENSOR_STATUS);
+        intentFilter.addAction(BluetoothService.ACTION_UPDATE_TEMPERATURE);
+        intentFilter.addAction(BluetoothService.ACTION_UPDATE_VOC);
+        intentFilter.addAction(BluetoothService.ACTION_UPDATE_VOLTAGE_LEVEL);
+        intentFilter.addAction(BluetoothService.ACTION_UPDATE_VOLTAGE_SENSOR_STATUS);
+        return intentFilter;
+    }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            Log.d(TAG, "attempting bind to bluetooth service");
+            BluetoothService.LocalBinder binder = (BluetoothService.LocalBinder) service;
+            mService = binder.getService();
+            registerReceiver(mGattUpdateReceiver, createIntentFilter());
+            mService.connectDevice(connectedDevice);
+            Log.d(TAG, "Bluetooth service bound successfully");
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            Log.d(TAG, "Bluetooth service disconnected");
+            mBound = false;
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -95,7 +133,11 @@ public class DisplayMessageActivity extends AppCompatActivity {
             case R.id.disconnect:
                 //action for disconnect
                 Log.d(TAG, "Disconnect button pushed");
-                disconnectGattServer();
+                mService.disconnectGattServer();
+
+                unbindService(mConnection);
+                mBound = false;
+
                 Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
                 return true;
@@ -106,20 +148,6 @@ public class DisplayMessageActivity extends AppCompatActivity {
             default:
                 Log.d(TAG, "No menu item found for " + item.getItemId());
                 return super.onOptionsItemSelected(item);
-        }
-    }
-
-    private void connectDevice(BluetoothDevice device) {
-        DisplayMessageActivity.GattClientCallback gattClientCallback = new DisplayMessageActivity.GattClientCallback();
-        connectedGatt = device.connectGatt(this, false, gattClientCallback);
-    }
-
-    public void disconnectGattServer() {
-        //disconnect;
-        Log.d(TAG, "Attempting to disconnect " + deviceName);
-        if (connectedGatt != null) {
-            connectedGatt.disconnect();
-            connectedGatt.close();
         }
     }
 
@@ -236,62 +264,30 @@ public class DisplayMessageActivity extends AppCompatActivity {
         voltageLogLinearLayout.setOrientation(LinearLayout.VERTICAL);
 
         for(Location location : LocationService.locations){
-            Double lattitude = location.getLatitude();
+            Double latitude = location.getLatitude();
             Double longitude = location.getLongitude();
 
-            String message = lattitude.toString() + "," + longitude.toString();
+            //just filler data for voltage events
+            String date = new java.util.Date().toString();
+            TextView dateTimeTextView = new TextView(DisplayMessageActivity.this);
+            dateTimeTextView.setText(date);
+            dateTimeTextView.setGravity(Gravity.CENTER);
+            voltageLogLinearLayout.addView(dateTimeTextView);
 
-            TextView textView = new TextView(DisplayMessageActivity.this);
-            textView.setText(message);
-            textView.setGravity(Gravity.CENTER);
-            voltageLogLinearLayout.addView(textView);
+            Random rand = new Random();
+            String message = "Level " + rand.nextInt(1000) + ", lasted " + rand.nextInt(20) + " seconds";
+            TextView messageTextView = new TextView(DisplayMessageActivity.this);
+            messageTextView.setText(message);
+            messageTextView.setGravity(Gravity.CENTER);
+            voltageLogLinearLayout.addView(messageTextView);
+
+            String coordinates = "(" + latitude.toString() + "," + longitude.toString() + ")";
+            TextView locationTextView = new TextView(DisplayMessageActivity.this);
+            locationTextView.setText(coordinates);
+            locationTextView.setGravity(Gravity.CENTER);
+            locationTextView.setPadding(0,0,0,30);
+            voltageLogLinearLayout.addView(locationTextView);
         }
-
-        /*LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-
-        LocationListener locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-
-                Double lattitude = location.getLatitude();
-                Double longitude = location.getLongitude();
-
-                String message = lattitude.toString() + "," + longitude.toString();
-
-                TextView textView = new TextView(DisplayMessageActivity.this);
-                textView.setText(message);
-                textView.setGravity(Gravity.CENTER);
-                voltageLogLinearLayout.addView(textView);
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-
-            }
-        };
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Log.d(TAG, "Location permission not granted");
-        } else {
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-        }*/
 
         alert.setView(voltageLogLinearLayout);
 
@@ -305,213 +301,80 @@ public class DisplayMessageActivity extends AppCompatActivity {
         alert.show();
     }
 
+    public final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            switch(action){
+                case BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE:
+                    showConnectedMessage();
+                    break;
+                case BluetoothService.ACTION_UPDATE_VOLTAGE_SENSOR_STATUS:
+                    updateVoltageSensorStatus();
+                    break;
+                case BluetoothService.ACTION_UPDATE_BATTERY_LEVEL:
+                    updateBatteryLevel();
+                    break;
+                case BluetoothService.ACTION_UPDATE_TEMPERATURE:
+                    updateTemperature();
+                    break;
+                case BluetoothService.ACTION_UPDATE_HUMIDITY:
+                    updateHumidity();
+                    break;
+                case BluetoothService.ACTION_UPDATE_VOC:
+                    updateVOC();
+                    break;
+                case BluetoothService.ACTION_UPDATE_SPO2_SENSOR_STATUS:
+                    updateSpo2Sensor();
+                    break;
+                case BluetoothService.ACTION_UPDATE_VOLTAGE_LEVEL:
+                    updateVoltageLevel();
+                    break;
+                case BluetoothService.ACTION_UPDATE_ALARM_THRESHOLD:
+                    updateAlarmThreshold();
+                    break;
+            }
+        }
+    };
+
 
     public void updateVoltageSensorStatus(){
         TextView voltageSensorStatusView = findViewById(R.id.voltage_sensor_status);
-        voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, voltageSensorStatus));
-        //voltageSensorStatusView.setText("Status: " + voltageSensorStatus);
+        voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, mService.voltageSensorStatus));
     }
 
     public void updateBatteryLevel(){
         TextView batteryLevelView = findViewById(R.id.battery_level);
-        batteryLevelView.setText(getString(R.string.battery_level, batteryLevel));
-        //batteryLevelView.setText("Battery level: " + batteryLevel + "%");
+        batteryLevelView.setText(getString(R.string.battery_level, mService.batteryLevel));
     }
 
     public void updateTemperature(){
         TextView voltageSensorStatusView = findViewById(R.id.temperature);
-        voltageSensorStatusView.setText(getString(R.string.temperature, temperature));
-        //voltageSensorStatusView.setText("Temperature: " + temperature + "\u00b0C");
+        voltageSensorStatusView.setText(getString(R.string.temperature, mService.temperature));
     }
 
     public void updateHumidity(){
         TextView voltageSensorStatusView = findViewById(R.id.humidity);
-        voltageSensorStatusView.setText(getString(R.string.humidity, humidity));
-        //voltageSensorStatusView.setText("Humidity: " + humidity + "%");
+        voltageSensorStatusView.setText(getString(R.string.humidity, mService.humidity));
     }
 
     public void updateVOC(){
         TextView voltageSensorStatusView = findViewById(R.id.VOC);
-        voltageSensorStatusView.setText(getString(R.string.VOC, VOC));
-        //voltageSensorStatusView.setText("VOC: " + VOC + "ppm");
+        voltageSensorStatusView.setText(getString(R.string.VOC, mService.VOC));
     }
 
     public void updateSpo2Sensor(){
         TextView voltageSensorStatusView = findViewById(R.id.spo2_sensor);
-        voltageSensorStatusView.setText(getString(R.string.spo2, spo2_sensor));
-        //voltageSensorStatusView.setText("SpO2 Sensor " + spo2_sensor);
+        voltageSensorStatusView.setText(getString(R.string.spo2, mService.spo2_sensor));
     }
 
     public void updateVoltageLevel(){
         TextView voltageSensorStatusView = findViewById(R.id.voltage_level);
-        voltageSensorStatusView.setText(getString(R.string.voltage_level, voltageLevel));
-        //voltageSensorStatusView.setText("Voltage Level: " + voltageLevel);
+        voltageSensorStatusView.setText(getString(R.string.voltage_level, mService.voltageLevel));
     }
 
     public void updateAlarmThreshold(){
         TextView voltageSensorStatusView = findViewById(R.id.alarm_threshold);
-        voltageSensorStatusView.setText(getString(R.string.alarm_threshold, alarmThreshold));
-        //voltageSensorStatusView.setText("Alarm Threshold: " + alarmThreshold);
-    }
-
-    private Queue<BluetoothGattDescriptor> descriptorWriteQueue = new LinkedList<>();
-    private Queue<BluetoothGattCharacteristic> characteristicReadQueue = new LinkedList<>();
-
-    private void enableCharacteristicNotification(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-        //set characteristics and descriptors to notify for constant updates whenever values are changed
-        boolean characteristicWriteSuccess = gatt.setCharacteristicNotification(characteristic, true);
-        if (characteristicWriteSuccess) {
-            Log.d(TAG, "Characteristic notification set successfully for " + characteristic.getUuid().toString());
-            for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
-                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                descriptorWriteQueue.add(descriptor);
-                if (descriptorWriteQueue.size() == 1) {
-                    gatt.writeDescriptor(descriptor);
-                }
-            }
-        } else {
-            Log.d(TAG, "Characteristic notification set failure for " + characteristic.getUuid().toString());
-        }
-    }
-
-    private class GattClientCallback extends BluetoothGattCallback {
-
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            super.onConnectionStateChange(gatt, status, newState);
-            if (status == BluetoothGatt.GATT_FAILURE) {
-                disconnectGattServer();
-                return;
-            } else if (status != BluetoothGatt.GATT_SUCCESS) {
-                disconnectGattServer();
-                return;
-            }
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                //triggered when a device is connected
-
-                //set global variables for connected device and device name
-                connectedGatt = gatt;
-                deviceName = gatt.getDevice().getName() == null ? gatt.getDevice().getAddress() : gatt.getDevice().getName();
-                Log.d(TAG, "Device connected: " + deviceName);
-
-                gatt.discoverServices();
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                disconnectGattServer();
-            }
-        }
-
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            super.onServicesDiscovered(gatt, status);
-            if (status != BluetoothGatt.GATT_SUCCESS) {
-                return;
-            }
-
-            //UI changes need to be run on the original UI thread
-            runOnUiThread(DisplayMessageActivity.this::showConnectedMessage);
-
-            //Enable notifications for all characteristics found
-            //we can do this dynamically later
-            for(BluetoothGattService service : connectedGatt.getServices()){
-                for(BluetoothGattCharacteristic gattChar : service.getCharacteristics()){
-                    BluetoothGattCharacteristic characteristic = service.getCharacteristic(gattChar.getUuid());
-                    characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
-                    enableCharacteristicNotification(gatt, characteristic);
-                }
-            }
-        }
-
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            //this method is triggered when the process is notified that a characteristic has changed
-
-            super.onCharacteristicChanged(gatt, characteristic);
-
-            //add the characteristic to the queue to be read, if queue is empty, read it.
-            characteristicReadQueue.add(characteristic);
-            if((characteristicReadQueue.size() == 1) && (descriptorWriteQueue.size() == 0)){
-                gatt.readCharacteristic(characteristic);
-            }
-
-            //handle battery level case
-            if(characteristic.getUuid().equals(gattAttributes.BATT_LEVEL_CHAR_UUID)){
-                batteryLevel = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-                runOnUiThread(DisplayMessageActivity.this::updateBatteryLevel);
-                Log.d(TAG, "Battery level: " + batteryLevel + "%");
-                return;
-            }
-
-            //if none of the cases above, parse message as a normal byte array
-            byte[] messageBytes = characteristic.getValue();
-            if(messageBytes == null){
-                Log.d(TAG, "No message parsed on characteristic.");
-                return;
-            }
-
-            try {
-                final StringBuilder stringBuilder = new StringBuilder(messageBytes.length);
-                for(byte byteChar : messageBytes){
-                    stringBuilder.append(String.format("%02x ", byteChar));
-                }
-
-                //TODO: send this data to AWS for storage
-                String value = stringBuilder.toString();
-
-                if(characteristic.getUuid().equals(gattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
-                } else if(characteristic.getUuid().equals(gattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
-                } else if(characteristic.getUuid().equals(gattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
-                } else if(characteristic.getUuid().equals(gattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
-                    temperature = value;
-                    humidity = value;
-                    VOC = value;
-                    runOnUiThread(DisplayMessageActivity.this::updateHumidity);
-                    runOnUiThread(DisplayMessageActivity.this::updateTemperature);
-                    runOnUiThread(DisplayMessageActivity.this::updateVOC);
-                    Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
-                } else if(characteristic.getUuid().equals(gattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "GAS_SENSOR_DATA value: " + value);
-                } else if(characteristic.getUuid().equals(gattAttributes.OPTICAL_SENSOR_DATA_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "OPTICAL_SENSOR_DATA value: " + value);
-                } else if(characteristic.getUuid().equals(gattAttributes.STREAMING_DATA_CHARACTERISTIC_UUID)){
-                    Log.d(TAG, "STREAMING_DATA value: " + value);
-                } else {
-                    Log.d(TAG, "Received message: " + value + " with UUID: " + characteristic.getUuid());
-                }
-
-            } catch (Exception e) {
-                Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
-            }
-        }
-
-        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.d(TAG, "Callback: Wrote GATT Descriptor successfully.");
-            }
-            else{
-                Log.d(TAG, "Callback: Error writing GATT Descriptor: "+ status);
-            }
-            descriptorWriteQueue.remove();  //pop the item that we just finishing writing
-            //if there is more to write, do it!
-            if(descriptorWriteQueue.size() > 0)
-                connectedGatt.writeDescriptor(descriptorWriteQueue.element());
-            else if(characteristicReadQueue.size() > 0)
-                connectedGatt.readCharacteristic(characteristicReadQueue.element());
-        }
-
-        public void onCharacteristicRead(BluetoothGatt gatt,
-                                         BluetoothGattCharacteristic characteristic,
-                                         int status) {
-            characteristicReadQueue.remove();
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.d(TAG, "onCharacteristicRead success: " + status);
-            }
-            else{
-                Log.d(TAG, "onCharacteristicRead error: " + status);
-            }
-
-            if(characteristicReadQueue.size() > 0)
-                connectedGatt.readCharacteristic(characteristicReadQueue.element());
-        }
+        voltageSensorStatusView.setText(getString(R.string.alarm_threshold, mService.alarmThreshold));
     }
 }

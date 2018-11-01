@@ -15,7 +15,7 @@ import java.util.List;
 
 public class LocationService {
 
-    public static String TAG = "Location Service";
+    private static String TAG = "Location Service";
 
     public static List<Location> locations = new ArrayList<>();
 
