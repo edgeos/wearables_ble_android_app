@@ -8,7 +8,6 @@
     <string name="device_id">View Device ID</string>
     <string name="rename">Rename</string>
     <string name="disconnect">Disconnect</string>
-    <string name="dev_mode">Dev Mode</string>
     <string name="alarm_threshold_button">Set alarm threshold</string>
     <string name="voltage_events_button">View voltage events</string>
     <string name="alert_threshold_dialog_message">Enter an alert threshold</string>
@@ -27,4 +26,7 @@
     <string name="voltage_level">Voltage level: %1$d</string>
     <string name="alarm_threshold">Alarm threshold: %1$d</string>
     <string name="title_activity_developer_mode">DeveloperModeActivity</string>
+    <string name="show_real_time_data_button">View real time data</string>
+    <string name="normal_mode_menu_item">Normal mode</string>
+    <string name="dev_mode_menu_item">Dev mode</string>
 </resources>

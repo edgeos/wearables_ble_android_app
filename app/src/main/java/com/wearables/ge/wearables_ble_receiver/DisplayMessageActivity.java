@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2017 General Electric Company. All rights reserved.
+ *
+ * The copyright to the computer software herein is the property of
+ * General Electric Company. The software may be used and/or copied only
+ * with the written permission of General Electric Company or in accordance
+ * with the terms and conditions stipulated in the agreement/contract
+ * under which the software has been supplied.
+ */
+
 package com.wearables.ge.wearables_ble_receiver;
 
 import android.bluetooth.BluetoothDevice;
@@ -39,35 +49,51 @@ public class DisplayMessageActivity extends AppCompatActivity {
     BluetoothService mService;
     boolean mBound = false;
 
+    boolean shouldDisconnect = true;
+    boolean devMode = false;
+
+    private Menu menu;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_message);
+
+        //create custom toolbar
         Toolbar myToolbar = findViewById(R.id.display_message_toolbar);
         myToolbar.setTitle(deviceName);
+        //extra logic for back button
         setSupportActionBar(myToolbar);
         ActionBar myActionBar = getSupportActionBar();
         if (myActionBar != null) {
             myActionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        //bind this activity to bluetooth service
         Intent intent = new Intent(this, BluetoothService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
+        //start location service
+        //Location service is not an extension of the service class and doesn't need to be bound to.
+        //This is because we don't need the location service to send updates to the UI.
+        //We only need to grab the latest coordinates from the location service.
         LocationService.startLocationService(this);
     }
 
     @Override
     public void onPause() {
+        //action for pressing the back button (or any time we leave this activity)
         super.onPause();
         Log.d(TAG, "Activity paused");
         //Some activities may not want to disconnect the device.
-        // we will want to handle this scenario
-        try {
-            mService.disconnectGattServer();
-            mService.close();
-        } catch (Exception e){
-            Log.d(TAG, "Couldn't disconnect bluetooth device: " + e.getMessage());
+        if(shouldDisconnect){
+            try {
+                Log.d(TAG,"Disconnecting bluetooth device");
+                mService.disconnectGattServer();
+                mService.close();
+            } catch (Exception e){
+                Log.d(TAG, "Couldn't disconnect bluetooth device: " + e.getMessage());
+            }
         }
         Log.d(TAG, "Unregistering update receiver and unbinding service");
         if(mBound){
@@ -77,6 +103,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
     }
 
 
+    //create custom intent filter for broadcasting messages from the bluetooth service to this activity
     private static IntentFilter createIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE);
@@ -91,6 +118,44 @@ public class DisplayMessageActivity extends AppCompatActivity {
         return intentFilter;
     }
 
+    //this method handles broadcasts sent from the bluetooth service
+    public final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            switch(action){
+                case BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE:
+                    showConnectedMessage();
+                    break;
+                case BluetoothService.ACTION_UPDATE_VOLTAGE_SENSOR_STATUS:
+                    updateVoltageSensorStatus();
+                    break;
+                case BluetoothService.ACTION_UPDATE_BATTERY_LEVEL:
+                    updateBatteryLevel();
+                    break;
+                case BluetoothService.ACTION_UPDATE_TEMPERATURE:
+                    updateTemperature();
+                    break;
+                case BluetoothService.ACTION_UPDATE_HUMIDITY:
+                    updateHumidity();
+                    break;
+                case BluetoothService.ACTION_UPDATE_VOC:
+                    updateVOC();
+                    break;
+                case BluetoothService.ACTION_UPDATE_SPO2_SENSOR_STATUS:
+                    updateSpo2Sensor();
+                    break;
+                case BluetoothService.ACTION_UPDATE_VOLTAGE_LEVEL:
+                    updateVoltageLevel();
+                    break;
+                case BluetoothService.ACTION_UPDATE_ALARM_THRESHOLD:
+                    updateAlarmThreshold();
+                    break;
+            }
+        }
+    };
+
+    //connection callback for bluetooth service
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -98,7 +163,11 @@ public class DisplayMessageActivity extends AppCompatActivity {
             Log.d(TAG, "attempting bind to bluetooth service");
             BluetoothService.LocalBinder binder = (BluetoothService.LocalBinder) service;
             mService = binder.getService();
+
+            //register the broadcast receiver
             registerReceiver(mGattUpdateReceiver, createIntentFilter());
+
+            //connect the bluetooth device
             mService.connectDevice(connectedDevice);
             Log.d(TAG, "Bluetooth service bound successfully");
             mBound = true;
@@ -114,9 +183,11 @@ public class DisplayMessageActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_items, menu);
+        this.menu = menu;
         return true;
     }
 
+    //switch case logic for menu button
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -145,7 +216,13 @@ public class DisplayMessageActivity extends AppCompatActivity {
                 return true;
             case R.id.dev_mode:
                 Log.d(TAG, "dev_mode button pushed");
-                openDevMode();
+                //dev mode is not a new activity, just a change to the UI
+                if(devMode){
+                    devMode = false;
+                } else {
+                    devMode = true;
+                }
+                switchModes();
                 return true;
             default:
                 Log.d(TAG, "No menu item found for " + item.getItemId());
@@ -153,9 +230,58 @@ public class DisplayMessageActivity extends AppCompatActivity {
         }
     }
 
-    public void openDevMode(){
-        Intent intent = new Intent(this, DeveloperModeActivity.class);
-        startActivity(intent);
+    public void switchModes(){
+        //just change the buttons and one of the menu items
+        //if devmode gets more complex we may want to create a separate activity for it
+        LinearLayout linLayout = findViewById(R.id.rootContainer2);
+        if(devMode){
+            linLayout.removeView(findViewById(R.id.alarm_threshold_button));
+
+            Button showRealTimeDataButton = new Button(this);
+            showRealTimeDataButton.setText(R.string.show_real_time_data_button);
+            showRealTimeDataButton.setId(R.id.real_time_data_button);
+            showRealTimeDataButton.setOnClickListener(v -> {
+                showRealTimeData();
+                Log.d(TAG, "Show real time data button pressed");
+            });
+            linLayout.addView(showRealTimeDataButton);
+
+            MenuItem devModeItem = menu.findItem(R.id.dev_mode);
+            devModeItem.setTitle(R.string.normal_mode_menu_item);
+        } else {
+            //when returning to normal mode, remove the two buttons and add them back in the right order
+            linLayout.removeView(findViewById(R.id.real_time_data_button));
+            linLayout.removeView(findViewById(R.id.voltage_events_button));
+            addNormalModeButtons();
+            MenuItem devModeItem = menu.findItem(R.id.dev_mode);
+            devModeItem.setTitle(R.string.dev_mode_menu_item);
+        }
+    }
+
+    //method for adding the buttons that show up in normal mode
+    private void addNormalModeButtons(){
+        LinearLayout linLayout = findViewById(R.id.rootContainer2);
+        Button alarmThresholdButton = new Button(this);
+        alarmThresholdButton.setText(R.string.alarm_threshold_button);
+        alarmThresholdButton.setId(R.id.alarm_threshold_button);
+        alarmThresholdButton.setOnClickListener(v -> {
+            showAlarmThresholdDialog();
+            Log.d(TAG, "Alarm Threshold button pressed");
+        });
+        linLayout.addView(alarmThresholdButton);
+
+        Button voltageEventsButton = new Button(this);
+        voltageEventsButton.setText(R.string.voltage_events_button);
+        voltageEventsButton.setId(R.id.voltage_events_button);
+        voltageEventsButton.setOnClickListener(v -> {
+            showVoltageEventsDialog();
+            Log.d(TAG, "Voltage Events button pressed");
+        });
+        linLayout.addView(voltageEventsButton);
+    }
+
+    private void showRealTimeData(){
+
     }
 
     public void showConnectedMessage() {
@@ -217,24 +343,11 @@ public class DisplayMessageActivity extends AppCompatActivity {
             alarmThresholdView.setId(R.id.alarm_threshold);
             linLayout.addView(alarmThresholdView);
 
-            Button alarmThresholdButton = new Button(this);
-            alarmThresholdButton.setText(R.string.alarm_threshold_button);
-            alarmThresholdButton.setOnClickListener(v -> {
-                showAlarmThresholdDialog();
-                Log.d(TAG, "Alarm Threshold button pressed");
-            });
-            linLayout.addView(alarmThresholdButton);
-
-            Button voltageEventsButton = new Button(this);
-            voltageEventsButton.setText(R.string.voltage_events_button);
-            voltageEventsButton.setOnClickListener(v -> {
-                showVoltageEventsDialog();
-                Log.d(TAG, "Voltage Events button pressed");
-            });
-            linLayout.addView(voltageEventsButton);
+            addNormalModeButtons();
         }
     }
 
+    //alarm threshold button opens up a modal dialog that allows the user to enter a number
     private void showAlarmThresholdDialog() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
@@ -276,20 +389,20 @@ public class DisplayMessageActivity extends AppCompatActivity {
 
             //just filler data for voltage events
             String date = new java.util.Date().toString();
-            TextView dateTimeTextView = new TextView(DisplayMessageActivity.this);
+            TextView dateTimeTextView = new TextView(this);
             dateTimeTextView.setText(date);
             dateTimeTextView.setGravity(Gravity.CENTER);
             voltageLogLinearLayout.addView(dateTimeTextView);
 
             Random rand = new Random();
             String message = "Level " + rand.nextInt(1000) + ", lasted " + rand.nextInt(20) + " seconds";
-            TextView messageTextView = new TextView(DisplayMessageActivity.this);
+            TextView messageTextView = new TextView(this);
             messageTextView.setText(message);
             messageTextView.setGravity(Gravity.CENTER);
             voltageLogLinearLayout.addView(messageTextView);
 
             String coordinates = "(" + latitude.toString() + "," + longitude.toString() + ")";
-            TextView locationTextView = new TextView(DisplayMessageActivity.this);
+            TextView locationTextView = new TextView(this);
             locationTextView.setText(coordinates);
             locationTextView.setGravity(Gravity.CENTER);
             locationTextView.setPadding(0,0,0,30);
@@ -307,43 +420,6 @@ public class DisplayMessageActivity extends AppCompatActivity {
 
         alert.show();
     }
-
-    public final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
-            switch(action){
-                case BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE:
-                    showConnectedMessage();
-                    break;
-                case BluetoothService.ACTION_UPDATE_VOLTAGE_SENSOR_STATUS:
-                    updateVoltageSensorStatus();
-                    break;
-                case BluetoothService.ACTION_UPDATE_BATTERY_LEVEL:
-                    updateBatteryLevel();
-                    break;
-                case BluetoothService.ACTION_UPDATE_TEMPERATURE:
-                    updateTemperature();
-                    break;
-                case BluetoothService.ACTION_UPDATE_HUMIDITY:
-                    updateHumidity();
-                    break;
-                case BluetoothService.ACTION_UPDATE_VOC:
-                    updateVOC();
-                    break;
-                case BluetoothService.ACTION_UPDATE_SPO2_SENSOR_STATUS:
-                    updateSpo2Sensor();
-                    break;
-                case BluetoothService.ACTION_UPDATE_VOLTAGE_LEVEL:
-                    updateVoltageLevel();
-                    break;
-                case BluetoothService.ACTION_UPDATE_ALARM_THRESHOLD:
-                    updateAlarmThreshold();
-                    break;
-            }
-        }
-    };
-
 
     public void updateVoltageSensorStatus(){
         TextView voltageSensorStatusView = findViewById(R.id.voltage_sensor_status);

@@ -18,5 +18,5 @@
         android:title="@string/disconnect" />
     <item
         android:id="@+id/dev_mode"
-        android:title="@string/dev_mode" />
+        android:title="@string/dev_mode_menu_item" />
 </menu>
