@@ -14,7 +14,6 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -123,34 +122,36 @@ public class DisplayMessageActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            switch(action){
-                case BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE:
-                    showConnectedMessage();
-                    break;
-                case BluetoothService.ACTION_UPDATE_VOLTAGE_SENSOR_STATUS:
-                    updateVoltageSensorStatus();
-                    break;
-                case BluetoothService.ACTION_UPDATE_BATTERY_LEVEL:
-                    updateBatteryLevel();
-                    break;
-                case BluetoothService.ACTION_UPDATE_TEMPERATURE:
-                    updateTemperature();
-                    break;
-                case BluetoothService.ACTION_UPDATE_HUMIDITY:
-                    updateHumidity();
-                    break;
-                case BluetoothService.ACTION_UPDATE_VOC:
-                    updateVOC();
-                    break;
-                case BluetoothService.ACTION_UPDATE_SPO2_SENSOR_STATUS:
-                    updateSpo2Sensor();
-                    break;
-                case BluetoothService.ACTION_UPDATE_VOLTAGE_LEVEL:
-                    updateVoltageLevel();
-                    break;
-                case BluetoothService.ACTION_UPDATE_ALARM_THRESHOLD:
-                    updateAlarmThreshold();
-                    break;
+            if(action != null){
+                switch(action){
+                    case BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE:
+                        showConnectedMessage();
+                        break;
+                    case BluetoothService.ACTION_UPDATE_VOLTAGE_SENSOR_STATUS:
+                        updateVoltageSensorStatus();
+                        break;
+                    case BluetoothService.ACTION_UPDATE_BATTERY_LEVEL:
+                        updateBatteryLevel();
+                        break;
+                    case BluetoothService.ACTION_UPDATE_TEMPERATURE:
+                        updateTemperature();
+                        break;
+                    case BluetoothService.ACTION_UPDATE_HUMIDITY:
+                        updateHumidity();
+                        break;
+                    case BluetoothService.ACTION_UPDATE_VOC:
+                        updateVOC();
+                        break;
+                    case BluetoothService.ACTION_UPDATE_SPO2_SENSOR_STATUS:
+                        updateSpo2Sensor();
+                        break;
+                    case BluetoothService.ACTION_UPDATE_VOLTAGE_LEVEL:
+                        updateVoltageLevel();
+                        break;
+                    case BluetoothService.ACTION_UPDATE_ALARM_THRESHOLD:
+                        updateAlarmThreshold();
+                        break;
+                }
             }
         }
     };
@@ -217,11 +218,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
             case R.id.dev_mode:
                 Log.d(TAG, "dev_mode button pushed");
                 //dev mode is not a new activity, just a change to the UI
-                if(devMode){
-                    devMode = false;
-                } else {
-                    devMode = true;
-                }
+                devMode = !devMode;
                 switchModes();
                 return true;
             default:
@@ -358,19 +355,13 @@ public class DisplayMessageActivity extends AppCompatActivity {
 
         alert.setView(input);
 
-        alert.setPositiveButton(R.string.dialog_accept_button_message, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                int value = Integer.parseInt(input.getText().toString());
-                //TODO: send this new threshold to the device
-                Log.d(TAG, "Alarm Threshold set to: " + value);
-            }
+        alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
+            int value = Integer.parseInt(input.getText().toString());
+            //TODO: send this new threshold to the device
+            Log.d(TAG, "Alarm Threshold set to: " + value);
         });
 
-        alert.setNegativeButton(R.string.dialog_cancel_button_message, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                Log.d(TAG, "Alarm Threshold dialog closed");
-            }
-        });
+        alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Alarm Threshold dialog closed"));
 
         alert.show();
     }
@@ -387,7 +378,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
             Double latitude = location.getLatitude();
             Double longitude = location.getLongitude();
 
-            //just filler data for voltage events
+            //mostly just filler data for voltage events
             String date = new java.util.Date().toString();
             TextView dateTimeTextView = new TextView(this);
             dateTimeTextView.setText(date);
@@ -411,11 +402,9 @@ public class DisplayMessageActivity extends AppCompatActivity {
 
         alert.setView(voltageLogLinearLayout);
 
-        alert.setNegativeButton(R.string.dialog_cancel_button_message, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                voltageLogLinearLayout.removeAllViews();
-                Log.d(TAG, "Voltage Log dialog closed");
-            }
+        alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> {
+            voltageLogLinearLayout.removeAllViews();
+            Log.d(TAG, "Voltage Log dialog closed");
         });
 
         alert.show();
