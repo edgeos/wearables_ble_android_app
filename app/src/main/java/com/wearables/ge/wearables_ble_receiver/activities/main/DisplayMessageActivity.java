@@ -145,7 +145,6 @@ public class DisplayMessageActivity extends AppCompatActivity {
                         updateVoltageSensorStatus();
                         break;
                     case BluetoothService.ACTION_UPDATE_BATTERY_LEVEL:
-                        Log.d(TAG, "update battery level broadcast received");
                         updateBatteryLevel();
                         break;
                     case BluetoothService.ACTION_UPDATE_TEMPERATURE:
