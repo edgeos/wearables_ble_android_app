@@ -8,7 +8,7 @@
  * under which the software has been supplied.
  */
 
-package com.wearables.ge.wearables_ble_receiver;
+package com.wearables.ge.wearables_ble_receiver.activities.main;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -34,6 +34,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 
@@ -46,7 +47,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
     public BluetoothDevice connectedDevice = MainActivity.connectedDevice;
 
     BluetoothService mService;
-    boolean mBound = false;
+    boolean mBound;
 
     boolean shouldDisconnect = true;
     boolean devMode = false;
@@ -56,6 +57,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate()");
         setContentView(R.layout.activity_display_message);
 
         //create custom toolbar
@@ -71,6 +73,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
         //bind this activity to bluetooth service
         Intent intent = new Intent(this, BluetoothService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        mBound = true;
 
         //start location service
         //Location service is not an extension of the service class and doesn't need to be bound to.
@@ -78,6 +81,13 @@ public class DisplayMessageActivity extends AppCompatActivity {
         //We only need to grab the latest coordinates from the location service.
         LocationService.startLocationService(this);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        showConnectedMessage();
+    }
+
 
     @Override
     public void onPause() {
@@ -89,18 +99,22 @@ public class DisplayMessageActivity extends AppCompatActivity {
             try {
                 Log.d(TAG,"Disconnecting bluetooth device");
                 mService.disconnectGattServer();
-                mService.close();
+                //mService.close();
             } catch (Exception e){
                 Log.d(TAG, "Couldn't disconnect bluetooth device: " + e.getMessage());
             }
+            unbindBluetoothService();
         }
-        Log.d(TAG, "Unregistering update receiver and unbinding service");
-        if(mBound){
-            unbindService(mConnection);
-            unregisterReceiver(mGattUpdateReceiver);
-        }
+        unregisterReceiver(mGattUpdateReceiver);
     }
 
+    public void unbindBluetoothService(){
+        if(mBound){
+            Log.d(TAG, "Unbinding service");
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
 
     //create custom intent filter for broadcasting messages from the bluetooth service to this activity
     private static IntentFilter createIntentFilter() {
@@ -131,6 +145,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
                         updateVoltageSensorStatus();
                         break;
                     case BluetoothService.ACTION_UPDATE_BATTERY_LEVEL:
+                        Log.d(TAG, "update battery level broadcast received");
                         updateBatteryLevel();
                         break;
                     case BluetoothService.ACTION_UPDATE_TEMPERATURE:
@@ -169,7 +184,10 @@ public class DisplayMessageActivity extends AppCompatActivity {
             registerReceiver(mGattUpdateReceiver, createIntentFilter());
 
             //connect the bluetooth device
-            mService.connectDevice(connectedDevice);
+            if(BluetoothService.connectedGatt == null){
+                mService.connectDevice(connectedDevice);
+            }
+
             Log.d(TAG, "Bluetooth service bound successfully");
             mBound = true;
         }
@@ -207,10 +225,11 @@ public class DisplayMessageActivity extends AppCompatActivity {
             case R.id.disconnect:
                 //action for disconnect
                 Log.d(TAG, "Disconnect button pushed");
-                mService.disconnectGattServer();
+                //mService.disconnectGattServer();
 
                 unbindService(mConnection);
                 mBound = false;
+                shouldDisconnect = true;
 
                 Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
@@ -278,7 +297,9 @@ public class DisplayMessageActivity extends AppCompatActivity {
     }
 
     private void showRealTimeData(){
-
+        shouldDisconnect = true;
+        Intent intent = new Intent(this, RealTimeDataSelectionActivity.class);
+        startActivity(intent);
     }
 
     public void showConnectedMessage() {
@@ -412,41 +433,58 @@ public class DisplayMessageActivity extends AppCompatActivity {
 
     public void updateVoltageSensorStatus(){
         TextView voltageSensorStatusView = findViewById(R.id.voltage_sensor_status);
-        voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, mService.voltageSensorStatus));
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, mService.voltageSensorStatus));
+        }
     }
 
     public void updateBatteryLevel(){
         TextView batteryLevelView = findViewById(R.id.battery_level);
-        batteryLevelView.setText(getString(R.string.battery_level, mService.batteryLevel));
+        if(batteryLevelView != null){
+            batteryLevelView.setText(getString(R.string.battery_level, mService.batteryLevel));
+        }
     }
 
     public void updateTemperature(){
         TextView voltageSensorStatusView = findViewById(R.id.temperature);
-        voltageSensorStatusView.setText(getString(R.string.temperature, mService.temperature));
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.temperature, mService.temperature));
+        }
     }
 
     public void updateHumidity(){
         TextView voltageSensorStatusView = findViewById(R.id.humidity);
-        voltageSensorStatusView.setText(getString(R.string.humidity, mService.humidity));
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.humidity, mService.humidity));
+        }
     }
 
     public void updateVOC(){
         TextView voltageSensorStatusView = findViewById(R.id.VOC);
-        voltageSensorStatusView.setText(getString(R.string.VOC, mService.VOC));
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.VOC, mService.VOC));
+        }
     }
 
     public void updateSpo2Sensor(){
         TextView voltageSensorStatusView = findViewById(R.id.spo2_sensor);
-        voltageSensorStatusView.setText(getString(R.string.spo2, mService.spo2_sensor));
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.spo2, mService.spo2_sensor));
+        }
     }
 
     public void updateVoltageLevel(){
         TextView voltageSensorStatusView = findViewById(R.id.voltage_level);
-        voltageSensorStatusView.setText(getString(R.string.voltage_level, mService.voltageLevel));
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.voltage_level, mService.voltageLevel));
+        }
     }
+
 
     public void updateAlarmThreshold(){
         TextView voltageSensorStatusView = findViewById(R.id.alarm_threshold);
-        voltageSensorStatusView.setText(getString(R.string.alarm_threshold, mService.alarmThreshold));
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.alarm_threshold, mService.alarmThreshold));
+        }
     }
 }

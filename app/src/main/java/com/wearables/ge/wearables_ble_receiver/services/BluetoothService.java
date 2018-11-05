@@ -83,22 +83,10 @@ public class BluetoothService extends Service {
         if (connectedGatt != null) {
             connectedGatt.disconnect();
             connectedGatt.close();
+            connectedGatt = null;
+        } else {
+            Log.d(TAG, "connectedGatt was null");
         }
-    }
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        // Close to connection
-        close();
-        return super.onUnbind(intent);
-    }
-
-    public void close() {
-        if (connectedGatt == null) {
-            return;
-        }
-        connectedGatt.close();
-        connectedGatt = null;
     }
 
     private Queue<BluetoothGattDescriptor> descriptorWriteQueue = new LinkedList<>();
@@ -137,9 +125,11 @@ public class BluetoothService extends Service {
                 //triggered when a device is connected
 
                 //set global variables for connected device and device name
-                connectedGatt = gatt;
-                deviceName = gatt.getDevice().getName() == null ? gatt.getDevice().getAddress() : gatt.getDevice().getName();
-                Log.d(TAG, "Device connected: " + deviceName);
+                if(gatt != null){
+                    connectedGatt = gatt;
+                    deviceName = gatt.getDevice().getName() == null ? gatt.getDevice().getAddress() : gatt.getDevice().getName();
+                    Log.d(TAG, "Device connected: " + deviceName);
+                }
 
                 gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -181,7 +171,6 @@ public class BluetoothService extends Service {
             //handle battery level case
             if(characteristic.getUuid().equals(gattAttributes.BATT_LEVEL_CHAR_UUID)){
                 batteryLevel = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-                //runOnUiThread(DisplayMessageActivity.this::updateBatteryLevel);
                 broadcastUpdate(ACTION_UPDATE_BATTERY_LEVEL);
                 Log.d(TAG, "Battery level: " + batteryLevel + "%");
                 return;
@@ -262,6 +251,4 @@ public class BluetoothService extends Service {
                 connectedGatt.readCharacteristic(characteristicReadQueue.element());
         }
     }
-
-
 }

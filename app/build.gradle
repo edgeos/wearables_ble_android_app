@@ -43,4 +43,7 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:28.+'
     implementation('com.amazonaws:aws-android-sdk-auth-ui:2.7.+@aar') { transitive = true }
 
+    //Graphview library
+    implementation 'com.jjoe64:graphview:4.2.2'
+
 }

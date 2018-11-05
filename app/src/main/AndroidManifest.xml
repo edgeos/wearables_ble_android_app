@@ -18,18 +18,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".MainActivity" />
+        <activity android:name=".activities.main.MainActivity" />
         <activity
-            android:name=".DisplayMessageActivity"
-            android:parentActivityName=".MainActivity">
+            android:name=".activities.main.DisplayMessageActivity"
+            android:parentActivityName=".activities.main.MainActivity">
 
             <!-- The meta-data tag is required if you support API level 15 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".activities.main.MainActivity" />
         </activity>
         <activity
-            android:name=".AuthenticatorActivity"
+            android:name=".activities.main.AuthenticatorActivity"
             android:label="@string/title_activity_authenticator"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
@@ -42,12 +42,20 @@
         <service android:name=".services.BluetoothService" />
 
         <activity
-            android:name=".DeveloperModeActivity"
-            android:label="@string/title_activity_developer_mode"
+            android:name=".activities.main.RealTimeDataSelectionActivity"
+            android:label="@string/title_activity_real_time_data_selection"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".activities.main.DisplayMessageActivity" />
+        </activity>
+        <activity
+            android:name=".activities.graphs.VoltageSensorGraphsActivity"
+            android:label="@string/title_activity_voltage_sensor_graphs"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.main.RealTimeDataSelectionActivity" />
         </activity>
     </application>
 

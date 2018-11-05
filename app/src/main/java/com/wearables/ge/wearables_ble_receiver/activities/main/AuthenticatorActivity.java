@@ -8,16 +8,13 @@
  * under which the software has been supplied.
  */
 
-package com.wearables.ge.wearables_ble_receiver;
+package com.wearables.ge.wearables_ble_receiver.activities.main;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.amazonaws.mobile.auth.ui.SignInUI;
-import com.amazonaws.mobile.client.AWSMobileClient;
-import com.amazonaws.mobile.client.AWSStartupHandler;
-import com.amazonaws.mobile.client.AWSStartupResult;
+import com.wearables.ge.wearables_ble_receiver.R;
 
 public class AuthenticatorActivity extends AppCompatActivity {
 

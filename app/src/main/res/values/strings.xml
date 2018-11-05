@@ -29,4 +29,11 @@
     <string name="show_real_time_data_button">View real time data</string>
     <string name="normal_mode_menu_item">Normal mode</string>
     <string name="dev_mode_menu_item">Dev mode</string>
+    <string name="title_activity_real_time_data_selection">RealTimeDataSelectionActivity</string>
+    <string name="voltage_sensor_button">Voltage Sensor</string>
+    <string name="acceleration_sensor_button">Acceleration Sensor</string>
+    <string name="spo2_sensor_button">SpO2 Sensor</string>
+    <string name="temp_humidity_sensor_button">Temp/Humidity Sensor</string>
+    <string name="VOC_sensor_button">VOC Sensor</string>
+    <string name="title_activity_voltage_sensor_graphs">VoltageSensorGraphsActivity</string>
 </resources>

@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2017 General Electric Company. All rights reserved.
+  ~
+  ~ The copyright to the computer software herein is the property of
+  ~ General Electric Company. The software may be used and/or copied only
+  ~ with the written permission of General Electric Company or in accordance
+  ~ with the terms and conditions stipulated in the agreement/contract
+  ~ under which the software has been supplied.
+  -->
+
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.main.DisplayMessageActivity">
+    tools:context=".activities.graphs.VoltageSensorGraphsActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/display_message_toolbar"
@@ -20,17 +30,23 @@
         app:title="@string/app_name"
         app:titleTextColor="@android:color/white"/>
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/rootContainer2"
-        android:layout_width="0dp"
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:orientation="vertical"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/display_message_toolbar" />
+        app:layout_constraintTop_toBottomOf="@+id/display_message_toolbar">
+
+        <com.jjoe64.graphview.GraphView
+            android:layout_width="match_parent"
+            android:layout_height="200dip"
+            android:id="@id/voltage_sensor_graph_1" />
+
+    </android.support.constraint.ConstraintLayout>
+
 </android.support.constraint.ConstraintLayout>

@@ -12,4 +12,5 @@
     <item type="id" name="voltage_events_button" />
     <item type="id" name="alarm_threshold_button" />
     <item type="id" name="real_time_data_button" />
+    <item type="id" name="voltage_sensor_graph_1" />
 </resources>

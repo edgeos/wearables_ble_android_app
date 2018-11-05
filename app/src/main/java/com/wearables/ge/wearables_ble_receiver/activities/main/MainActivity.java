@@ -8,7 +8,7 @@
  * under which the software has been supplied.
  */
 
-package com.wearables.ge.wearables_ble_receiver;
+package com.wearables.ge.wearables_ble_receiver.activities.main;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -35,6 +35,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.wearables.ge.wearables_ble_receiver.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
