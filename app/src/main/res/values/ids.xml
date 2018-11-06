@@ -13,4 +13,15 @@
     <item type="id" name="alarm_threshold_button" />
     <item type="id" name="real_time_data_button" />
     <item type="id" name="voltage_sensor_graph_1" />
+    <item type="id" name="voltage_sensor_graph_2" />
+    <item type="id" name="voltage_sensor_graph_3" />
+    <item type="id" name="acceleration_sensor_graph_1" />
+    <item type="id" name="acceleration_sensor_graph_2" />
+    <item type="id" name="acceleration_sensor_graph_3" />
+    <item type="id" name="spo2_sensor_graph_1" />
+    <item type="id" name="spo2_sensor_graph_2" />
+    <item type="id" name="spo2_sensor_graph_3" />
+    <item type="id" name="temp_humid_sensor_graph_1" />
+    <item type="id" name="temp_humid_sensor_graph_2" />
+    <item type="id" name="voc_sensor_graph_1" />
 </resources>

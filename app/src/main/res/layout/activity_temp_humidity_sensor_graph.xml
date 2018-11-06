@@ -14,7 +14,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.graphs.VoltageSensorGraphsActivity">
+    tools:context=".activities.graphs.TempHumiditySensorGraph">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/display_message_toolbar"
@@ -43,30 +43,19 @@
         app:layout_constraintTop_toBottomOf="@+id/display_message_toolbar">
 
         <com.jjoe64.graphview.GraphView
-            android:id="@id/voltage_sensor_graph_1"
+            android:id="@id/temp_humid_sensor_graph_1"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/voltage_sensor_graph_2"
+            app:layout_constraintBottom_toTopOf="@+id/temp_humid_sensor_graph_2"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.jjoe64.graphview.GraphView
-            android:id="@id/voltage_sensor_graph_2"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/voltage_sensor_graph_3"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/voltage_sensor_graph_1" />
-
-        <com.jjoe64.graphview.GraphView
-            android:id="@id/voltage_sensor_graph_3"
+            android:id="@id/temp_humid_sensor_graph_2"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="8dp"
@@ -75,7 +64,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/voltage_sensor_graph_2" />
+            app:layout_constraintTop_toBottomOf="@+id/temp_humid_sensor_graph_1" />
 
     </android.support.constraint.ConstraintLayout>
 

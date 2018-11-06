@@ -160,14 +160,15 @@ public class MainActivity extends AppCompatActivity {
             Button btnShow = new Button(this);
 
             //grab device name or address if it doesn't have a defined name
-            String deviceName = obj.getName() == null ? obj.getAddress() : obj.getName();
-            Log.d(TAG, "Found device: " + deviceName);
+            String objName = obj.getName() == null ? obj.getAddress() : obj.getName();
+            Log.d(TAG, "Found device: " + objName);
             btnShow.setText(R.string.connect_button);
-            textView.setText(deviceName);
+            textView.setText(objName);
 
             //set onclick event for connect button
             btnShow.setOnClickListener(v -> {
                 Toast.makeText(MainActivity.this, "connecting...", Toast.LENGTH_LONG).show();
+                deviceName = objName;
                 connectedDevice = obj;
                 openConnectedPage();
                 //connectDevice(obj);
@@ -241,15 +242,6 @@ public class MainActivity extends AppCompatActivity {
             mScanResults.put(deviceAddress, device);
         }
     }
-
-    /*public void disconnectGattServer(BluetoothGatt gatt) {
-        //disconnect;
-        Log.d(TAG, "Attempting to disconnect " + DisplayMessageActivity.deviceName);
-        if (gatt != null) {
-            gatt.disconnect();
-            gatt.close();
-        }
-    }*/
 
     private boolean hasPermissions() {
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {

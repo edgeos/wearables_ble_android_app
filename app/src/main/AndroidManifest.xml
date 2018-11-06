@@ -57,6 +57,38 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.main.RealTimeDataSelectionActivity" />
         </activity>
+        <activity
+            android:name=".activities.graphs.AccelerationSensorGraphs"
+            android:label="@string/title_activity_acceleration_sensor_graphs"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.main.RealTimeDataSelectionActivity" />
+        </activity>
+        <activity
+            android:name=".activities.graphs.SpO2SensorGraphs"
+            android:label="@string/title_activity_sp_o2_sensor_graphs"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.main.RealTimeDataSelectionActivity" />
+        </activity>
+        <activity
+            android:name=".activities.graphs.TempHumiditySensorGraph"
+            android:label="@string/title_activity_temp_humidity_sensor_graph"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.main.RealTimeDataSelectionActivity" />
+        </activity>
+        <activity
+            android:name=".activities.graphs.VocGraphs"
+            android:label="@string/title_activity_voc_graphs"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.main.RealTimeDataSelectionActivity" />
+        </activity>
     </application>
 
 </manifest>

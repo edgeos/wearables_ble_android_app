@@ -19,12 +19,15 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.Viewport;
@@ -34,8 +37,9 @@ import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainActivity;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 
-public class VoltageSensorGraphsActivity extends AppCompatActivity {
-    public static String TAG = "Voltage sensor graphs";
+public class AccelerationSensorGraphs extends AppCompatActivity {
+
+    public static String TAG = "Acceleration sensor graphs";
 
     public static String deviceName = MainActivity.deviceName;
     public BluetoothDevice connectedDevice = MainActivity.connectedDevice;
@@ -55,7 +59,7 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_voltage_sensor_graphs);
+        setContentView(R.layout.activity_acceleration_sensor_graphs);
         //create custom toolbar
         Toolbar myToolbar = findViewById(R.id.display_message_toolbar);
         myToolbar.setTitle(deviceName);
@@ -71,7 +75,7 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
         // get graph view instance
-        GraphView graph1 = findViewById(R.id.voltage_sensor_graph_1);
+        GraphView graph1 = findViewById(R.id.acceleration_sensor_graph_1);
         // data
         series1 = new LineGraphSeries<>();
         graph1.addSeries(series1);
@@ -83,7 +87,7 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
         viewport1.setScrollable(true);
 
         // second graph
-        GraphView graph2 = findViewById(R.id.voltage_sensor_graph_2);
+        GraphView graph2 = findViewById(R.id.acceleration_sensor_graph_2);
         series2 = new LineGraphSeries<>();
         graph2.addSeries(series2);
         Viewport viewport2 = graph2.getViewport();
@@ -93,7 +97,7 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
         viewport2.setScrollable(true);
 
         // third graph
-        GraphView graph3 = findViewById(R.id.voltage_sensor_graph_3);
+        GraphView graph3 = findViewById(R.id.acceleration_sensor_graph_3);
         series3 = new LineGraphSeries<>();
         graph3.addSeries(series3);
         Viewport viewport3 = graph3.getViewport();

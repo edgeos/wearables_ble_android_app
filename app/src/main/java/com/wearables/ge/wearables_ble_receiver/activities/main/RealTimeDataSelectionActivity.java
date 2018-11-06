@@ -22,6 +22,10 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.wearables.ge.wearables_ble_receiver.R;
+import com.wearables.ge.wearables_ble_receiver.activities.graphs.AccelerationSensorGraphs;
+import com.wearables.ge.wearables_ble_receiver.activities.graphs.SpO2SensorGraphs;
+import com.wearables.ge.wearables_ble_receiver.activities.graphs.TempHumiditySensorGraph;
+import com.wearables.ge.wearables_ble_receiver.activities.graphs.VocGraphs;
 import com.wearables.ge.wearables_ble_receiver.activities.graphs.VoltageSensorGraphsActivity;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainActivity;
 
@@ -100,19 +104,23 @@ public class RealTimeDataSelectionActivity extends AppCompatActivity {
     }
 
     public void accelerationSensorButton(View view){
-
+        Intent intent = new Intent(this, AccelerationSensorGraphs.class);
+        startActivity(intent);
     }
 
     public void tempHumiditySensorButton(View view){
-
+        Intent intent = new Intent(this, TempHumiditySensorGraph.class);
+        startActivity(intent);
     }
 
     public void spo2SensorButton(View view){
-
+        Intent intent = new Intent(this, SpO2SensorGraphs.class);
+        startActivity(intent);
     }
 
     public void vocSensorButton(View view){
-
+        Intent intent = new Intent(this, VocGraphs.class);
+        startActivity(intent);
     }
 
 }
