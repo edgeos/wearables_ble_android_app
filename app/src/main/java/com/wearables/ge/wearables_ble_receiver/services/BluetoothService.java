@@ -101,8 +101,8 @@ public class BluetoothService extends Service {
         } catch (UnsupportedEncodingException e) {
             Log.d(TAG, "Unable to convert message to bytes" + e.getMessage());
         }
-
-        alarmThreshChar.setValue(messageBytes);
+        //alarmThreshChar.setValue(messageBytes);
+        writeCharacteristic(alarmThreshChar, messageBytes);
     }
 
     private class GattClientCallback extends BluetoothGattCallback {

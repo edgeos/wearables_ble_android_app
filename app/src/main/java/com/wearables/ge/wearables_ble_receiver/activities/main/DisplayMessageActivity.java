@@ -404,14 +404,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
         alert.setView(input);
 
         alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
-            int value = Integer.parseInt(input.getText().toString());
-            //TODO: send this new threshold to the device
             mService.sendAlarmThresholdMessage(input.getText().toString());
-            /*if (messageSuccess){
-                Log.d(TAG, "Write successful! Alarm Threshold set to: " + value);
-            } else {
-                Log.d(TAG, "Write failed. Alarm Threshold not set to: " + value);
-            }*/
         });
 
         alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Alarm Threshold dialog closed"));
