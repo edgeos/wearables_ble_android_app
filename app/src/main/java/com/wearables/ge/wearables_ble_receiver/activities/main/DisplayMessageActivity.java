@@ -37,8 +37,11 @@ import android.widget.TextView;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.services.LocationService;
+import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
+import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 
 import java.util.Random;
+import java.util.UUID;
 
 public class DisplayMessageActivity extends AppCompatActivity {
     private static String TAG = "Display_Message";
@@ -119,15 +122,8 @@ public class DisplayMessageActivity extends AppCompatActivity {
     //create custom intent filter for broadcasting messages from the bluetooth service to this activity
     private static IntentFilter createIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_ALARM_THRESHOLD);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_BATTERY_LEVEL);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_HUMIDITY);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_SPO2_SENSOR_STATUS);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_TEMPERATURE);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_VOC);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_VOLTAGE_LEVEL);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_VOLTAGE_SENSOR_STATUS);
+        intentFilter.addAction(BluetoothService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothService.ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
 
@@ -138,32 +134,16 @@ public class DisplayMessageActivity extends AppCompatActivity {
             final String action = intent.getAction();
             if(action != null){
                 switch(action){
-                    case BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE:
+                    case BluetoothService.ACTION_GATT_SERVICES_DISCOVERED:
+                        Log.d(TAG, "ACTION_GATT_SERVICES_DISCOVERED broadcast received");
                         showConnectedMessage();
+                        mService.setNotifyOnCharacteristics();
                         break;
-                    case BluetoothService.ACTION_UPDATE_VOLTAGE_SENSOR_STATUS:
-                        updateVoltageSensorStatus();
-                        break;
-                    case BluetoothService.ACTION_UPDATE_BATTERY_LEVEL:
-                        updateBatteryLevel();
-                        break;
-                    case BluetoothService.ACTION_UPDATE_TEMPERATURE:
-                        updateTemperature();
-                        break;
-                    case BluetoothService.ACTION_UPDATE_HUMIDITY:
-                        updateHumidity();
-                        break;
-                    case BluetoothService.ACTION_UPDATE_VOC:
-                        updateVOC();
-                        break;
-                    case BluetoothService.ACTION_UPDATE_SPO2_SENSOR_STATUS:
-                        updateSpo2Sensor();
-                        break;
-                    case BluetoothService.ACTION_UPDATE_VOLTAGE_LEVEL:
-                        updateVoltageLevel();
-                        break;
-                    case BluetoothService.ACTION_UPDATE_ALARM_THRESHOLD:
-                        updateAlarmThreshold();
+                    case BluetoothService.ACTION_DATA_AVAILABLE:
+                        int extraType = intent.getIntExtra(BluetoothService.EXTRA_TYPE, -1);
+                        if(extraType == BLEQueue.ITEM_TYPE_READ){
+                            readAvailableData(intent);
+                        }
                         break;
                 }
             }
@@ -243,6 +223,54 @@ public class DisplayMessageActivity extends AppCompatActivity {
                 Log.d(TAG, "No menu item found for " + item.getItemId());
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void readAvailableData(Intent intent){
+        UUID extraUuid = UUID.fromString(intent.getStringExtra(BluetoothService.EXTRA_UUID));
+        byte[] extraData = intent.getByteArrayExtra(BluetoothService.EXTRA_DATA);
+        int extraIntData = intent.getIntExtra(BluetoothService.EXTRA_INT_DATA, 0);
+
+        if(extraData == null){
+            Log.d(TAG, "No message parsed on characteristic.");
+            return;
+        }
+        String value = null;
+        try {
+            final StringBuilder stringBuilder = new StringBuilder(extraData.length);
+            for(byte byteChar : extraData){
+                stringBuilder.append(String.format("%02x ", byteChar));
+            }
+            //TODO: send this data to AWS for storage
+            value = stringBuilder.toString();
+        } catch (Exception e) {
+            Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
+        }
+
+        if(extraUuid.equals(GattAttributes.BATT_LEVEL_CHAR_UUID)){
+            updateBatteryLevel(extraIntData);
+            Log.d(TAG, "Battery level: " + extraIntData + "%");
+        } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
+            Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
+        } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
+            Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
+        } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
+            updateVoltageSensorStatus(String.valueOf(extraIntData));
+            Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
+        } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
+            updateHumidity(extraIntData);
+            updateTemperature(extraIntData);
+            updateVOC(extraIntData);
+            Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
+        } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
+            Log.d(TAG, "GAS_SENSOR_DATA value: " + value);
+        } else if(extraUuid.equals(GattAttributes.OPTICAL_SENSOR_DATA_CHARACTERISTIC_UUID)){
+            Log.d(TAG, "OPTICAL_SENSOR_DATA value: " + value);
+        } else if(extraUuid.equals(GattAttributes.STREAMING_DATA_CHARACTERISTIC_UUID)){
+            Log.d(TAG, "STREAMING_DATA value: " + value);
+        } else {
+            Log.d(TAG, "Received message: " + value + " with UUID: " + extraUuid);
+        }
+
     }
 
     public void switchModes(){
@@ -378,7 +406,12 @@ public class DisplayMessageActivity extends AppCompatActivity {
         alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
             int value = Integer.parseInt(input.getText().toString());
             //TODO: send this new threshold to the device
-            Log.d(TAG, "Alarm Threshold set to: " + value);
+            mService.sendAlarmThresholdMessage(input.getText().toString());
+            /*if (messageSuccess){
+                Log.d(TAG, "Write successful! Alarm Threshold set to: " + value);
+            } else {
+                Log.d(TAG, "Write failed. Alarm Threshold not set to: " + value);
+            }*/
         });
 
         alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Alarm Threshold dialog closed"));
@@ -430,60 +463,59 @@ public class DisplayMessageActivity extends AppCompatActivity {
         alert.show();
     }
 
-    public void updateVoltageSensorStatus(){
+    public void updateVoltageSensorStatus(String sensorStatus){
         TextView voltageSensorStatusView = findViewById(R.id.voltage_sensor_status);
         if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, mService.voltageSensorStatus));
+            voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, sensorStatus));
         }
     }
 
-    public void updateBatteryLevel(){
+    public void updateBatteryLevel(int batteryLevel){
         TextView batteryLevelView = findViewById(R.id.battery_level);
         if(batteryLevelView != null){
-            batteryLevelView.setText(getString(R.string.battery_level, mService.batteryLevel));
+            batteryLevelView.setText(getString(R.string.battery_level, batteryLevel));
         }
     }
 
-    public void updateTemperature(){
+    public void updateTemperature(int temp){
         TextView voltageSensorStatusView = findViewById(R.id.temperature);
         if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.temperature, mService.temperature));
+            voltageSensorStatusView.setText(getString(R.string.temperature, String.valueOf(temp)));
         }
     }
 
-    public void updateHumidity(){
+    public void updateHumidity(int humidity){
         TextView voltageSensorStatusView = findViewById(R.id.humidity);
         if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.humidity, mService.humidity));
+            voltageSensorStatusView.setText(getString(R.string.humidity, String.valueOf(humidity)));
         }
     }
 
-    public void updateVOC(){
+    public void updateVOC(int VOC){
         TextView voltageSensorStatusView = findViewById(R.id.VOC);
         if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.VOC, mService.VOC));
+            voltageSensorStatusView.setText(getString(R.string.VOC, String.valueOf(VOC)));
         }
     }
 
-    public void updateSpo2Sensor(){
+    public void updateSpo2Sensor(String spo2SensorStatus){
         TextView voltageSensorStatusView = findViewById(R.id.spo2_sensor);
         if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.spo2, mService.spo2_sensor));
+            voltageSensorStatusView.setText(getString(R.string.spo2, spo2SensorStatus));
         }
     }
 
-    public void updateVoltageLevel(){
+    public void updateVoltageLevel(int voltageLevel){
         TextView voltageSensorStatusView = findViewById(R.id.voltage_level);
         if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.voltage_level, mService.voltageLevel));
+            voltageSensorStatusView.setText(getString(R.string.voltage_level, voltageLevel));
         }
     }
 
-
-    public void updateAlarmThreshold(){
+    public void updateAlarmThreshold(int threshold){
         TextView voltageSensorStatusView = findViewById(R.id.alarm_threshold);
         if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.alarm_threshold, mService.alarmThreshold));
+            voltageSensorStatusView.setText(getString(R.string.alarm_threshold, threshold));
         }
     }
 }

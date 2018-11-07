@@ -36,6 +36,7 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainActivity;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
+import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 
 public class AccelerationSensorGraphs extends AppCompatActivity {
 
@@ -204,18 +205,12 @@ public class AccelerationSensorGraphs extends AppCompatActivity {
         }
     };
 
+    public int batteryLevel;
     //create custom intent filter for broadcasting messages from the bluetooth service to this activity
     private static IntentFilter createIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_ALARM_THRESHOLD);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_BATTERY_LEVEL);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_HUMIDITY);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_SPO2_SENSOR_STATUS);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_TEMPERATURE);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_VOC);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_VOLTAGE_LEVEL);
-        intentFilter.addAction(BluetoothService.ACTION_UPDATE_VOLTAGE_SENSOR_STATUS);
+        intentFilter.addAction(BluetoothService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothService.ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
 
@@ -226,32 +221,16 @@ public class AccelerationSensorGraphs extends AppCompatActivity {
             final String action = intent.getAction();
             if(action != null){
                 switch(action){
-                    case BluetoothService.ACTION_SHOW_CONNECTED_MESSAGE:
-
+                    case BluetoothService.ACTION_GATT_SERVICES_DISCOVERED:
+                        Log.d(TAG, "ACTION_GATT_SERVICES_DISCOVERED broadcast received");
+                        mService.setNotifyOnCharacteristics();
                         break;
-                    case BluetoothService.ACTION_UPDATE_VOLTAGE_SENSOR_STATUS:
-
-                        break;
-                    case BluetoothService.ACTION_UPDATE_BATTERY_LEVEL:
-                        updateGraph();
-                        break;
-                    case BluetoothService.ACTION_UPDATE_TEMPERATURE:
-
-                        break;
-                    case BluetoothService.ACTION_UPDATE_HUMIDITY:
-
-                        break;
-                    case BluetoothService.ACTION_UPDATE_VOC:
-
-                        break;
-                    case BluetoothService.ACTION_UPDATE_SPO2_SENSOR_STATUS:
-
-                        break;
-                    case BluetoothService.ACTION_UPDATE_VOLTAGE_LEVEL:
-
-                        break;
-                    case BluetoothService.ACTION_UPDATE_ALARM_THRESHOLD:
-
+                    case BluetoothService.ACTION_DATA_AVAILABLE:
+                        int extraType = intent.getIntExtra(BluetoothService.EXTRA_TYPE, -1);
+                        if(extraType == BLEQueue.ITEM_TYPE_READ){
+                            batteryLevel = intent.getIntExtra(BluetoothService.EXTRA_INT_DATA, 0);
+                            updateGraph();
+                        }
                         break;
                 }
             }
@@ -278,9 +257,9 @@ public class AccelerationSensorGraphs extends AppCompatActivity {
 
     // add random data to graph
     private void addEntry() {
-        series1.appendData(new DataPoint(lastX++, mService.batteryLevel), false, 100);
-        series2.appendData(new DataPoint(lastX++, mService.batteryLevel), false, 100);
-        series3.appendData(new DataPoint(lastX++, mService.batteryLevel), false, 100);
+        series1.appendData(new DataPoint(lastX++, batteryLevel), false, 100);
+        series2.appendData(new DataPoint(lastX++, batteryLevel), false, 100);
+        series3.appendData(new DataPoint(lastX++, batteryLevel), false, 100);
     }
 
 }
