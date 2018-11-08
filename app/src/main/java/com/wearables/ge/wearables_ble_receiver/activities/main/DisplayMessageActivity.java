@@ -195,6 +195,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
                 return true;
             case R.id.device_id:
                 Log.d(TAG, "device_id button pushed");
+                mService.showDeviceID(this);
                 //action for device_id
                 return true;
             case R.id.rename:

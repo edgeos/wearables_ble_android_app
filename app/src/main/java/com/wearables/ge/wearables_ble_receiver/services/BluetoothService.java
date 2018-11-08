@@ -18,11 +18,15 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
+import com.wearables.ge.wearables_ble_receiver.R;
+import com.wearables.ge.wearables_ble_receiver.activities.main.MainActivity;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.QueueItem;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
@@ -38,6 +42,9 @@ public class BluetoothService extends Service {
     public static String deviceName;
 
     private final IBinder mBinder = new LocalBinder();
+
+    private BLEQueue bleQueue = new BLEQueue();
+    private boolean bleQueueIsFree = true;
 
     public final static String ACTION_GATT_SERVICES_DISCOVERED =        "com.wearables.ge.ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE =                  "com.wearables.ge.ACTION_DATA_AVAILABLE";
@@ -81,7 +88,7 @@ public class BluetoothService extends Service {
     }
 
     public void disconnectGattServer() {
-        //disconnect;
+        //disconnect
         Log.d(TAG, "Attempting to disconnect " + deviceName);
         if (connectedGatt != null) {
             connectedGatt.disconnect();
@@ -101,7 +108,6 @@ public class BluetoothService extends Service {
         } catch (UnsupportedEncodingException e) {
             Log.d(TAG, "Unable to convert message to bytes" + e.getMessage());
         }
-        //alarmThreshChar.setValue(messageBytes);
         writeCharacteristic(alarmThreshChar, messageBytes);
     }
 
@@ -195,6 +201,12 @@ public class BluetoothService extends Service {
         }
     }
 
+    public void showDeviceID(Context context){
+        AlertDialog.Builder alert = new AlertDialog.Builder(context);
+        alert.setMessage(getString(R.string.show_device_id, MainActivity.connectedDevice.getAddress()));
+        alert.show();
+    }
+
     /**
      * Request a read on a given BluetoothGattCharacteristic. The read result is reported
      * asynchronously through the BluetoothGattCallback.onCharacteristicRead(BluetoothGatt, BluetoothGattCharacteristic, int
@@ -250,10 +262,6 @@ public class BluetoothService extends Service {
 
         return connectedGatt.getServices();
     }
-
-
-    private BLEQueue bleQueue = new BLEQueue();
-    private boolean bleQueueIsFree = true;
 
     /**
      * Function that is handling the request queue.
