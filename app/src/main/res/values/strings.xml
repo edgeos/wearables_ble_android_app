@@ -41,4 +41,5 @@
     <string name="title_activity_temp_humidity_sensor_graph">TempHumiditySensorGraph</string>
     <string name="title_activity_voc_graphs">VocGraphs</string>
     <string name="show_device_id">Device ID: %1$s</string>
+    <string name="rename_device_modal_message">Rename Bluetooth Device</string>
 </resources>
