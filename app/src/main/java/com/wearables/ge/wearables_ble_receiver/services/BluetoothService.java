@@ -23,7 +23,9 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
+import android.text.InputType;
 import android.util.Log;
+import android.widget.EditText;
 
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainActivity;
@@ -32,6 +34,7 @@ import com.wearables.ge.wearables_ble_receiver.utils.QueueItem;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.UUID;
 
@@ -161,7 +164,6 @@ public class BluetoothService extends Service {
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            Log.d(TAG, "Characteristic changed: " + characteristic.getUuid());
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic, BLEQueue.ITEM_TYPE_READ);
         }
 
@@ -204,6 +206,32 @@ public class BluetoothService extends Service {
     public void showDeviceID(Context context){
         AlertDialog.Builder alert = new AlertDialog.Builder(context);
         alert.setMessage(getString(R.string.show_device_id, MainActivity.connectedDevice.getAddress()));
+        alert.show();
+    }
+
+
+    public void renameDevice(Context context){
+        AlertDialog.Builder alert = new AlertDialog.Builder(context);
+
+        alert.setMessage(R.string.rename_device_modal_message);
+
+        final EditText input = new EditText(context);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+
+        alert.setView(input);
+
+        alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
+            try{
+                Method m = connectedGatt.getDevice().getClass().getMethod("setAlias", String.class);
+                m.invoke(connectedGatt.getDevice(), input.getText().toString());
+            } catch (Exception e){
+                Log.d(TAG, "Yeah, nice try");
+                e.printStackTrace();
+            }
+        });
+
+        alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Alarm Threshold dialog closed"));
+
         alert.show();
     }
 

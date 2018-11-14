@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBar;
@@ -34,6 +35,11 @@ import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainActivity;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
+import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
+import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
+
+import java.util.Random;
+import java.util.UUID;
 
 public class VoltageSensorGraphsActivity extends AppCompatActivity {
     public static String TAG = "Voltage sensor graphs";
@@ -46,6 +52,9 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
     private LineGraphSeries<DataPoint> series1;
     private LineGraphSeries<DataPoint> series2;
     private LineGraphSeries<DataPoint> series3;
+    GraphView graph1;
+    GraphView graph2;
+    GraphView graph3;
     private int lastX = 0;
 
     BluetoothService mService;
@@ -72,31 +81,23 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
         // get graph view instance
-        GraphView graph1 = findViewById(R.id.voltage_sensor_graph_1);
-        // data
-        series1 = new LineGraphSeries<>();
-        graph1.addSeries(series1);
-        // customize viewport
+        graph1 = findViewById(R.id.voltage_sensor_graph_1);
         Viewport viewport1 = graph1.getViewport();
         viewport1.setYAxisBoundsManual(true);
         viewport1.setMinY(0);
-        viewport1.setMaxY(100);
+        viewport1.setMaxY(260);
         viewport1.setScrollable(true);
 
         // second graph
-        GraphView graph2 = findViewById(R.id.voltage_sensor_graph_2);
-        series2 = new LineGraphSeries<>();
-        graph2.addSeries(series2);
+        graph2 = findViewById(R.id.voltage_sensor_graph_2);
         Viewport viewport2 = graph2.getViewport();
         viewport2.setYAxisBoundsManual(true);
         viewport2.setMinY(0);
-        viewport2.setMaxY(100);
+        viewport2.setMaxY(200);
         viewport2.setScrollable(true);
 
         // third graph
-        GraphView graph3 = findViewById(R.id.voltage_sensor_graph_3);
-        series3 = new LineGraphSeries<>();
-        graph3.addSeries(series3);
+        graph3 = findViewById(R.id.voltage_sensor_graph_3);
         Viewport viewport3 = graph3.getViewport();
         viewport3.setYAxisBoundsManual(true);
         viewport3.setMinY(0);
@@ -201,7 +202,6 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
         }
     };
 
-    public int batteryLevel;
     //create custom intent filter for broadcasting messages from the bluetooth service to this activity
     private static IntentFilter createIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
@@ -224,8 +224,7 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
                     case BluetoothService.ACTION_DATA_AVAILABLE:
                         int extraType = intent.getIntExtra(BluetoothService.EXTRA_TYPE, -1);
                         if(extraType == BLEQueue.ITEM_TYPE_READ){
-                            batteryLevel = intent.getIntExtra(BluetoothService.EXTRA_INT_DATA, 0);
-                            updateGraph();
+                            readAvailableData(intent);
                         }
                         break;
                 }
@@ -233,29 +232,66 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
         }
     };
 
-    protected void updateGraph() {
-        super.onResume();
-        // simulate real time with thread that appends data to the graph
-        new Thread(() -> {
-            // add 100 new entries
-            for (int i = 0; i < 100; i++) {
-                runOnUiThread(this::addEntry);
+    public void readAvailableData(Intent intent){
+        UUID extraUuid = UUID.fromString(intent.getStringExtra(BluetoothService.EXTRA_UUID));
+        byte[] extraData = intent.getByteArrayExtra(BluetoothService.EXTRA_DATA);
 
-                // sleep to slow down the add of entries
-                try {
-                    Thread.sleep(600);
-                } catch (InterruptedException e) {
-                    // manage error ...
-                }
+        if(extraData == null){
+            Log.d(TAG, "No message parsed on characteristic.");
+            return;
+        }
+        String value = null;
+        try {
+            final StringBuilder stringBuilder = new StringBuilder(extraData.length);
+            for(byte byteChar : extraData){
+                stringBuilder.append(String.format("%02x ", byteChar));
             }
-        }).start();
+            //TODO: send this data to AWS for storage
+            value = stringBuilder.toString();
+        } catch (Exception e) {
+            Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
+        }
+
+        if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
+            Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
+            VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
+            updateGraph(voltageAlarmState);
+        }
+
     }
 
-    // add random data to graph
+    public int y1;
+    public int y2;
+    public int y3;
+
+    protected void updateGraph(VoltageAlarmStateChar voltageAlarmState) {
+        super.onResume();
+
+        series1 = new LineGraphSeries<>();
+        series2 = new LineGraphSeries<>();
+        series3 = new LineGraphSeries<>();
+
+        for (int i = 0; i < voltageAlarmState.getNum_fft_bins(); i++) {
+            y1 = voltageAlarmState.getCh1_fft_results().get(i);
+            y2 = voltageAlarmState.getCh2_fft_results().get(i);
+            y3 = voltageAlarmState.getCh3_fft_results().get(i);
+            addEntry();
+        }
+        addGraphSeries();
+    }
+
     private void addEntry() {
-        series1.appendData(new DataPoint(lastX++, batteryLevel), false, 100);
-        series2.appendData(new DataPoint(lastX++, batteryLevel), false, 100);
-        series3.appendData(new DataPoint(lastX++, batteryLevel), false, 100);
+        lastX = lastX + 8;
+        series1.appendData(new DataPoint(lastX, y1), false, 600);
+        series2.appendData(new DataPoint(lastX, y2), false, 600);
+        series3.appendData(new DataPoint(lastX, y3), false, 600);
+    }
+
+    private void addGraphSeries(){
+        graph1.addSeries(series1);
+        graph2.addSeries(series2);
+        graph3.addSeries(series3);
+        lastX = 0;
     }
 
 }
