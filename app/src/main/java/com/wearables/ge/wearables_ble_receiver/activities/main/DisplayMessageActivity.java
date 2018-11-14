@@ -257,9 +257,11 @@ public class DisplayMessageActivity extends AppCompatActivity {
             Log.d(TAG, "Battery level: " + extraIntData + "%");
         } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
-            VoltageAlarmStateChar obj = new VoltageAlarmStateChar(value);
-            Log.d(TAG, "VOLTAGE_ALARM_STATE got obj bin size: " + obj.getFft_bin_size() + " fft bins: " + obj.getNum_fft_bins());
-            updateVOC(obj.getFft_bin_size() + obj.getNum_fft_bins());
+            if(value != null){
+                VoltageAlarmStateChar obj = new VoltageAlarmStateChar(value);
+                Log.d(TAG, "VOLTAGE_ALARM_STATE got obj bin size: " + obj.getFft_bin_size() + " fft bins: " + obj.getNum_fft_bins());
+                updateVoltageLevel(obj.getFft_bin_size() + obj.getNum_fft_bins());
+            }
         } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
         } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
@@ -268,7 +270,6 @@ public class DisplayMessageActivity extends AppCompatActivity {
         } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
             updateHumidity(extraIntData);
             updateTemperature(extraIntData);
-
             Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
         } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
             Log.d(TAG, "GAS_SENSOR_DATA value: " + value);
