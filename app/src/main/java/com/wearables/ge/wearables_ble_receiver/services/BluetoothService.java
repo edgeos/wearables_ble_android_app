@@ -222,15 +222,17 @@ public class BluetoothService extends Service {
 
         alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
             try{
+                //try reflection to find a "setAlias" method but this probably won't work
+                //likely will need to add functionality to Nordic device and write to a characteristic
                 Method m = connectedGatt.getDevice().getClass().getMethod("setAlias", String.class);
                 m.invoke(connectedGatt.getDevice(), input.getText().toString());
             } catch (Exception e){
-                Log.d(TAG, "Yeah, nice try");
+                Log.d(TAG, "Unable to rename device: " + e.getMessage());
                 e.printStackTrace();
             }
         });
 
-        alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Alarm Threshold dialog closed"));
+        alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Rename Device dialog closed"));
 
         alert.show();
     }
