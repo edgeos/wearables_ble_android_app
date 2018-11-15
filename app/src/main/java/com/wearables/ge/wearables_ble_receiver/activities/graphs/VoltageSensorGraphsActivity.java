@@ -17,7 +17,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBar;
@@ -28,6 +27,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -38,7 +38,6 @@ import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 
-import java.util.Random;
 import java.util.UUID;
 
 public class VoltageSensorGraphsActivity extends AppCompatActivity {
@@ -46,8 +45,6 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
 
     public static String deviceName = MainActivity.deviceName;
     public BluetoothDevice connectedDevice = MainActivity.connectedDevice;
-
-    private Menu menu;
 
     private LineGraphSeries<DataPoint> series1;
     private LineGraphSeries<DataPoint> series2;
@@ -82,27 +79,48 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
 
         // get graph view instance
         graph1 = findViewById(R.id.voltage_sensor_graph_1);
+        graph1.setTitle(getString(R.string.voltage_channel_one_graph_title));
         Viewport viewport1 = graph1.getViewport();
         viewport1.setYAxisBoundsManual(true);
+        viewport1.setXAxisBoundsManual(true);
         viewport1.setMinY(0);
-        viewport1.setMaxY(260);
         viewport1.setScrollable(true);
+        viewport1.setScrollableY(true);
+        viewport1.setScalable(true);
+        viewport1.setScalableY(true);
+        GridLabelRenderer gridLabel1 = graph1.getGridLabelRenderer();
+        gridLabel1.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
+        gridLabel1.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
 
         // second graph
         graph2 = findViewById(R.id.voltage_sensor_graph_2);
+        graph2.setTitle(getString(R.string.voltage_channel_two_graph_title));
         Viewport viewport2 = graph2.getViewport();
         viewport2.setYAxisBoundsManual(true);
+        viewport2.setXAxisBoundsManual(true);
         viewport2.setMinY(0);
-        viewport2.setMaxY(200);
         viewport2.setScrollable(true);
+        viewport2.setScrollableY(true);
+        viewport2.setScalable(true);
+        viewport2.setScalableY(true);
+        GridLabelRenderer gridLabel2 = graph2.getGridLabelRenderer();
+        gridLabel2.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
+        gridLabel2.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
 
         // third graph
         graph3 = findViewById(R.id.voltage_sensor_graph_3);
+        graph3.setTitle(getString(R.string.voltage_channel_three_graph_title));
         Viewport viewport3 = graph3.getViewport();
         viewport3.setYAxisBoundsManual(true);
+        viewport3.setXAxisBoundsManual(true);
         viewport3.setMinY(0);
-        viewport3.setMaxY(100);
         viewport3.setScrollable(true);
+        viewport3.setScrollableY(true);
+        viewport3.setScalable(true);
+        viewport3.setScalableY(true);
+        GridLabelRenderer gridLabel3 = graph3.getGridLabelRenderer();
+        gridLabel3.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
+        gridLabel3.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
     }
 
     @Override
@@ -134,7 +152,7 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_items, menu);
-        this.menu = menu;
+        //Menu menu1 = menu;
         return true;
     }
 
@@ -254,8 +272,12 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
 
         if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
-            VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
-            updateGraph(voltageAlarmState);
+            if(value != null){
+                VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
+                updateGraph(voltageAlarmState);
+            } else {
+                Log.d(TAG, "Parsed message value was null");
+            }
         }
 
     }
@@ -263,35 +285,83 @@ public class VoltageSensorGraphsActivity extends AppCompatActivity {
     public int y1;
     public int y2;
     public int y3;
+    public int increment;
+    public int maxYvalue = 0;
+    public int maxXvalue;
 
     protected void updateGraph(VoltageAlarmStateChar voltageAlarmState) {
         super.onResume();
+
+        int maxXvalueCheck = ((voltageAlarmState.getNum_fft_bins() - 1) * voltageAlarmState.getFft_bin_size()) + 20;
 
         series1 = new LineGraphSeries<>();
         series2 = new LineGraphSeries<>();
         series3 = new LineGraphSeries<>();
 
+        increment = voltageAlarmState.getFft_bin_size();
+
         for (int i = 0; i < voltageAlarmState.getNum_fft_bins(); i++) {
             y1 = voltageAlarmState.getCh1_fft_results().get(i);
             y2 = voltageAlarmState.getCh2_fft_results().get(i);
             y3 = voltageAlarmState.getCh3_fft_results().get(i);
+            if(y1 > maxYvalue){
+                roundMaxY(y1);
+            }
+            if(y2 > maxYvalue){
+                roundMaxY(y2);
+            }
+            if(y3 > maxYvalue){
+                roundMaxY(y3);
+            }
             addEntry();
+        }
+        if(maxXvalueCheck != maxXvalue){
+            maxXvalue = maxXvalueCheck;
+            updateBounds();
         }
         addGraphSeries();
     }
 
     private void addEntry() {
-        lastX = lastX + 8;
-        series1.appendData(new DataPoint(lastX, y1), false, 600);
-        series2.appendData(new DataPoint(lastX, y2), false, 600);
-        series3.appendData(new DataPoint(lastX, y3), false, 600);
+        lastX = lastX + increment;
+        series1.appendData(new DataPoint(lastX, y1), false, 70);
+        series2.appendData(new DataPoint(lastX, y2), false, 70);
+        series3.appendData(new DataPoint(lastX, y3), false, 70);
     }
 
     private void addGraphSeries(){
+        graph1.removeAllSeries();
+        graph2.removeAllSeries();
+        graph3.removeAllSeries();
+
         graph1.addSeries(series1);
         graph2.addSeries(series2);
         graph3.addSeries(series3);
         lastX = 0;
+    }
+
+    private void roundMaxY(int num){
+        int newNum = ((num + 5) / 10) * 10;
+        if(newNum < num){
+            maxYvalue = newNum + 10;
+        } else {
+            maxYvalue = newNum;
+        }
+        Log.d(TAG, "Rounded: " + num + " to: " + maxYvalue);
+    }
+
+    private void updateBounds(){
+        Log.d(TAG, "Max Y value: " + maxYvalue);
+        Log.d(TAG, "Max X value: " + maxXvalue);
+
+        graph1.getViewport().setMaxY(maxYvalue);
+        graph1.getViewport().setMaxX(maxXvalue);
+
+        graph2.getViewport().setMaxY(maxYvalue);
+        graph2.getViewport().setMaxX(maxXvalue);
+
+        graph3.getViewport().setMaxY(maxYvalue);
+        graph3.getViewport().setMaxX(maxXvalue);
     }
 
 }

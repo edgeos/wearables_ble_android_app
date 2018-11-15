@@ -42,4 +42,9 @@
     <string name="title_activity_voc_graphs">VocGraphs</string>
     <string name="show_device_id">Device ID: %1$s</string>
     <string name="rename_device_modal_message">Rename Bluetooth Device</string>
+    <string name="voltage_channel_one_graph_title">Channel 1</string>
+    <string name="voltage_channel_two_graph_title">Channel 2</string>
+    <string name="voltage_channel_three_graph_title">Channel 3</string>
+    <string name="voltage_channel_graph_x_axis_label">Frequency (Hz)</string>
+    <string name="voltage_channel_graph_y_axis_label">Magnitude</string>
 </resources>
