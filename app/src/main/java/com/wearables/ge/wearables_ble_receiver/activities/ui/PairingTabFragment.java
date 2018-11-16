@@ -31,7 +31,7 @@ public class PairingTabFragment extends Fragment {
         */
 
         //TODO: obtain this from bluetooth, etc....
-        String blueToothDevices[] = {"Device1", "Device2", "Device3"};
+        String blueToothDevices[] = {"Device Name 1 \nDevice ID", "Device Name 2 \nDevice ID", "Device Name 3 \nDevice ID"};
 
         LinearLayout linLayout = rootView.findViewById(R.id.device_list);
         for (String deviceName: blueToothDevices) {
