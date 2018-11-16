@@ -35,15 +35,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.wearables.ge.wearables_ble_receiver.R;
-import com.wearables.ge.wearables_ble_receiver.activities.graphs.VoltageSensorGraphsActivity;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
