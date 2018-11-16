@@ -14,25 +14,8 @@
         android:id="@+id/device_list"
         android:orientation="vertical">
 
-        <!--
-        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@android:id/text1"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:textSize="24sp"
-            android:padding="32dp" />
-        -->
 
-        <!-- We include devices programattically instead -->
-
-        <!--
-        <include
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            layout="@layout/fragment_tab_pairing_row" />
-        -->
-
+        <!-- We include devices programmatically -->
 
     </LinearLayout>
 

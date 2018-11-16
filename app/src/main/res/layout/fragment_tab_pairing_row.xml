@@ -14,7 +14,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginLeft="16dp"
-            android:text="This is a TextView" />
+            android:textStyle="bold"
+            android:text="Device name" />
 
 
         <LinearLayout

@@ -27,7 +27,7 @@ public class EventsTabFragment extends Fragment {
                 getString(R.string.dummy_section_text, args.getInt(ARG_SECTION_NUMBER)));
         */
 
-        // programmatically ade events to the list...
+        // programmatically adds events to the list...
         LinearLayout logEventsList = rootView.findViewById(R.id.logEventList);
         String[] eventsArray = {
                 "-- 10/10/2018 3:57 PM \n Level 1024, lasted 5 seconds \n (42.830507, -73.880557)",
@@ -42,9 +42,7 @@ public class EventsTabFragment extends Fragment {
 
             textView.setLayoutParams(params);
             logEventsList.addView(textView);
-
         }
-
 
         return rootView;
     }
