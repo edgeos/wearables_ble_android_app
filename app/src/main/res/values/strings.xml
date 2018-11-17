@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">wearables_ble_receiver</string>
+    <string name="app_name"> Wearable Sensors Monitor </string>
     <string name="edit_message">Enter a message</string>
     <string name="button_send">Scan for Bluetooth Devices</string>
     <string name="connect_button">Connect</string>

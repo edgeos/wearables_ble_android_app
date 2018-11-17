@@ -39,6 +39,20 @@ public class DeviceTabFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_tab_device, container, false);
         Bundle args = getArguments();
 
+        // Initial gauge config using https://github.com/anastr/SpeedView
+        //TODO: add Bluetooth listeners and update these dynamically.
+        speedometer = rootView.findViewById(R.id.speedView);
+        speedometer.setWithTremble(false);
+        speedometer.speedTo(75);
+        speedometer.setMaxSpeed(100);
+        speedometer.setMinSpeed(0);
+        speedometer.setUnit(" ppm");
+
+        //TODO: change the yellow and red areas of the speedometer according to user threshold e.g. yellow event, red event...
+        speedometer.setLowSpeedPercent(25);
+        speedometer.setMediumSpeedPercent(75);
+
+
         int sampleRateStepSize = 25; // from 0 - 100 with increments of 25 points each
 
         /*
@@ -87,17 +101,13 @@ public class DeviceTabFragment extends Fragment {
             public void onStopTrackingTouch(SeekBar seekBar) {
                 // called after the user finishes moving the SeekBar
                 logThresholdView.setText("Event Log Threshold: " + seekBar.getProgress());
+
+                //TODO: change yellow and red areas of speedometer to reflect change
+                // depends on the min and max readings for the sensor, normal, elevated and high values...
+
             }
         });
 
-
-        // Initial gauge config.
-        //TODO: add Bluetooth listeners and update these dynamically.
-        speedometer = rootView.findViewById(R.id.speedView);
-        speedometer.speedTo(75);
-        speedometer.setMaxSpeed(100);
-        speedometer.setMinSpeed(0);
-        speedometer.setUnit(" ppm");
 
 
         // Device name shown at the top of the page
