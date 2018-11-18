@@ -88,6 +88,7 @@ public class BluetoothService extends Service {
     public void connectDevice(BluetoothDevice device) {
         BluetoothService.GattClientCallback gattClientCallback = new BluetoothService.GattClientCallback();
         connectedGatt = device.connectGatt(this, false, gattClientCallback);
+        Log.d(TAG, "Device " + deviceName + " connected");
     }
 
     public void disconnectGattServer() {

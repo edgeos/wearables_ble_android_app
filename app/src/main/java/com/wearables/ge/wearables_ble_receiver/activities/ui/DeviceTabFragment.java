@@ -2,6 +2,7 @@ package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ public class DeviceTabFragment extends Fragment {
     private GraphView logGraph = null;
     private LineGraphSeries<DataPoint> logSeries = null;
 
+    public int fragmentId;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -127,7 +129,14 @@ public class DeviceTabFragment extends Fragment {
         viewport1.setMaxY(100);
         viewport1.setScrollable(true);
 
+        fragmentId = this.getId();
+        Log.d("Device Tab Fragment", "fragment ID: " + fragmentId);
+        ((MainTabbedActivity)getActivity()).getDeviceTabFragment(fragmentId);
 
         return rootView;
+    }
+
+    public void updateVOCGauge(int value){
+        speedometer.speedTo(value);
     }
 }
