@@ -35,10 +35,12 @@ public class DeviceTabFragment extends Fragment {
 
     public int fragmentId;
 
+    View rootView;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_tab_device, container, false);
+        rootView = inflater.inflate(R.layout.fragment_tab_device, container, false);
         Bundle args = getArguments();
 
         // Initial gauge config using https://github.com/anastr/SpeedView
@@ -110,13 +112,9 @@ public class DeviceTabFragment extends Fragment {
             }
         });
 
-
-
         // Device name shown at the top of the page
         deviceName = rootView.findViewById(R.id.deviceNameView);
-        String connectedDeviceName = ((MainTabbedActivity)getActivity()).getDeviceName();
-        deviceName.setText(connectedDeviceName);
-
+        deviceName.setText(MainTabbedActivity.connectedDeviceName);
 
         // log graphic
         GraphView logGraph = rootView.findViewById(R.id.sensor_log_graph);
@@ -130,11 +128,16 @@ public class DeviceTabFragment extends Fragment {
         viewport1.setMaxY(100);
         viewport1.setScrollable(true);
 
-        fragmentId = this.getId();
+        /*fragmentId = this.getId();
         Log.d("Device Tab Fragment", "fragment ID: " + fragmentId);
-        ((MainTabbedActivity)getActivity()).getDeviceTabFragment(fragmentId);
+        ((MainTabbedActivity)getActivity()).getDeviceTabFragment(fragmentId);*/
 
         return rootView;
+    }
+
+    public void displayDeviceName(String name){
+        deviceName = rootView.findViewById(R.id.deviceNameView);
+        deviceName.setText(name);
     }
 
     public void updateVOCGauge(int value){

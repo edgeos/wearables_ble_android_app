@@ -59,7 +59,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     BluetoothService mService;
     public BluetoothDevice connectedDevice;
 
-    public String connectedDeviceName;
+    public static String connectedDeviceName;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,12 +112,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     public void connectDevice(BluetoothDevice device, String deviceName){
         Log.d(TAG, "Attempting to connect to: " + deviceName);
-        this.connectedDeviceName = deviceName;
+        connectedDeviceName = deviceName;
         mService.connectDevice(device);
-    }
-
-    public String getDeviceName(){
-        return this.connectedDeviceName;
+        mDeviceTabFragment.displayDeviceName(deviceName);
     }
 
     public void disconnectDevice(){
@@ -254,12 +251,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }
     }
 
-    DeviceTabFragment deviceTabFragment;
-    public void getDeviceTabFragment(int id){
-        FragmentManager fm = getSupportFragmentManager();
-        deviceTabFragment = (DeviceTabFragment)fm.findFragmentById(id);
-    }
-
     public void readAvailableData(Intent intent){
         UUID extraUuid = UUID.fromString(intent.getStringExtra(BluetoothService.EXTRA_UUID));
         byte[] extraData = intent.getByteArrayExtra(BluetoothService.EXTRA_DATA);
@@ -286,11 +277,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             Log.d(TAG, "Battery level: " + extraIntData + "%");
         } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
-            if(value != null){
-                VoltageAlarmStateChar obj = new VoltageAlarmStateChar(value);
-                Log.d(TAG, "VOLTAGE_ALARM_STATE got obj bin size: " + obj.getFft_bin_size() + " fft bins: " + obj.getNum_fft_bins());
-                //updateVoltageLevel(obj.getFft_bin_size() + obj.getNum_fft_bins());
-            }
+            VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
+            mHistoryTabFragment.updateGraph(voltageAlarmState);
         } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
         } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
@@ -299,9 +287,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
             //updateHumidity(extraIntData);
             //updateTemperature(extraIntData);
-            if(deviceTabFragment != null){
-                deviceTabFragment.updateVOCGauge(extraIntData);
-            }
+            mDeviceTabFragment.updateVOCGauge(extraIntData);
             Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
         } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
             Log.d(TAG, "GAS_SENSOR_DATA value: " + value);

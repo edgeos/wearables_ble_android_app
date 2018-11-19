@@ -1,5 +1,6 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -142,6 +143,7 @@ public class PairingTabFragment extends Fragment {
             return;
         }
 
+        Boolean grey = true;
         for (BluetoothDevice obj : mScanResults.values()){
 
             //grab device name or address if it doesn't have a defined name
@@ -152,6 +154,13 @@ public class PairingTabFragment extends Fragment {
             linLayout.addView(view);
 
             ((TextView) view.findViewById(R.id.text)).setText(objName);
+
+            if(grey){
+                view.setBackgroundColor(Color.parseColor("#f5f5f5"));
+                grey = false;
+            } else {
+                grey = true;
+            }
 
             Switch switchButton = (Switch) view.findViewById(R.id.button);
             switchButton.setChecked(false);
