@@ -114,7 +114,8 @@ public class DeviceTabFragment extends Fragment {
 
         // Device name shown at the top of the page
         deviceName = rootView.findViewById(R.id.deviceNameView);
-        deviceName.setText("Selected Device Name");
+        String connectedDeviceName = ((MainTabbedActivity)getActivity()).getDeviceName();
+        deviceName.setText(connectedDeviceName);
 
 
         // log graphic

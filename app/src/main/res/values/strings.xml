@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name"> Wearable Sensors Monitor </string>
     <string name="edit_message">Enter a message</string>
-    <string name="button_send">Scan for Bluetooth Devices</string>
+    <string name="scan_button">Scan Again</string>
     <string name="connect_button">Connect</string>
     <string name="menu_title">Options</string>
     <string name="update_rate">Set Update Rate</string>

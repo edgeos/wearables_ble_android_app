@@ -59,6 +59,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     BluetoothService mService;
     public BluetoothDevice connectedDevice;
 
+    public String connectedDeviceName;
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tabbed_main);
@@ -108,9 +110,14 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         mBound = true;
     }
 
-    public void connectDevice(BluetoothDevice device){
-        Log.d(TAG, "Attempting to connect to: " + device.getName());
+    public void connectDevice(BluetoothDevice device, String deviceName){
+        Log.d(TAG, "Attempting to connect to: " + deviceName);
+        this.connectedDeviceName = deviceName;
         mService.connectDevice(device);
+    }
+
+    public String getDeviceName(){
+        return this.connectedDeviceName;
     }
 
     public void disconnectDevice(){

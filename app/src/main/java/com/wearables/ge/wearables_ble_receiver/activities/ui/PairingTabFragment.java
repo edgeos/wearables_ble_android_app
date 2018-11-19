@@ -7,9 +7,11 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.wearables.ge.wearables_ble_receiver.R;
+import com.wearables.ge.wearables_ble_receiver.activities.main.MainActivity;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -66,8 +68,6 @@ public class PairingTabFragment extends Fragment {
     LinearLayout linLayout;
     LayoutInflater inflater;
 
-    boolean mBound;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -85,19 +85,19 @@ public class PairingTabFragment extends Fragment {
         spinner = Objects.requireNonNull(getView()).findViewById(R.id.progressBar2);
         spinner.setVisibility(View.VISIBLE);
 
-        startScan();
+        startScan(null);
     }
 
     private void connectDevice() {
         Log.d(TAG, "Attempting to connect to: " + deviceName);
-        ((MainTabbedActivity)getActivity()).connectDevice(connectedDevice);
+        ((MainTabbedActivity)getActivity()).connectDevice(connectedDevice, deviceName);
     }
 
     private void disconnectDevice(CharSequence text) {
         ((MainTabbedActivity)getActivity()).disconnectDevice();
     }
 
-    public void startScan() {
+    public void startScan(View view) {
         //add spinner to view
         spinner.setVisibility(View.VISIBLE);
 
@@ -167,6 +167,17 @@ public class PairingTabFragment extends Fragment {
                 }
             });
         }
+
+        Button scanAgainButton = new Button(this.getContext());
+        scanAgainButton.setText(R.string.scan_button);
+        scanAgainButton.setId(R.id.scan_button);
+        scanAgainButton.setOnClickListener(v -> {
+            linLayout.removeAllViews();
+            linLayout.addView(spinner);
+            startScan(null);
+            Log.d(TAG, "Scan again button pressed");
+        });
+        linLayout.addView(scanAgainButton);
     }
 
     private boolean hasPermissions() {
