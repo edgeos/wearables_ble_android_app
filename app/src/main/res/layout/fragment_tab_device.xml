@@ -51,7 +51,6 @@
 
             </LinearLayout>
 
-
             <com.github.anastr.speedviewlib.SpeedView
                 android:id="@+id/speedView"
                 android:layout_width="wrap_content"

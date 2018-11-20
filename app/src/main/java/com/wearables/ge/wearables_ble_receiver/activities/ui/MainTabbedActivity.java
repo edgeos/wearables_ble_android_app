@@ -251,12 +251,63 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }
     }
 
+    public boolean voltage;
     public void readAvailableData(Intent intent){
-        UUID extraUuid = UUID.fromString(intent.getStringExtra(BluetoothService.EXTRA_UUID));
-        byte[] extraData = intent.getByteArrayExtra(BluetoothService.EXTRA_DATA);
-        int extraIntData = intent.getIntExtra(BluetoothService.EXTRA_INT_DATA, 0);
+        //BEGIN SIMULATOR CODE CHUNK
+        UUID extraUuid;
+        byte[] extraData = null;
+        int extraIntData = 0;
+        if(intent == null){
+            //switch between voltage and temp/humid/pressure for simulator
+            if(voltage){
+                extraUuid = GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID;
+                voltage = false;
+            } else {
+                extraUuid = GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID;
+                voltage = true;
+            }
 
-        if(extraData == null){
+        } else {
+            extraUuid = UUID.fromString(intent.getStringExtra(BluetoothService.EXTRA_UUID));
+            extraData = intent.getByteArrayExtra(BluetoothService.EXTRA_DATA);
+            extraIntData = intent.getIntExtra(BluetoothService.EXTRA_INT_DATA, 0);
+        }
+        //END SIMULATOR CODE CHUNK
+
+        //CODE COMMENTED FOR SIMULATOR, REPLACED BY ABOVE CODE CHUNK
+        /*UUID extraUuid = UUID.fromString(intent.getStringExtra(BluetoothService.EXTRA_UUID));
+        byte[] extraData = intent.getByteArrayExtra(BluetoothService.EXTRA_DATA);
+        int extraIntData = intent.getIntExtra(BluetoothService.EXTRA_INT_DATA, 0);*/
+
+        //BEGIN SIMULATOR CODE CHUNK
+        String value = null;
+        if(intent == null){
+            if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
+                value = "00 00 00 00 40 08 ff 07 07 05 05 04 03 03 03 02 02 02 02 02 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 c5 07 06 05 04 03 02 03 03 01 01 01 01 01 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 5d 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ";
+            } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
+                extraIntData = 45;
+            }
+        } else {
+            if(extraData == null){
+                Log.d(TAG, "No message parsed on characteristic.");
+                return;
+            }
+            value = null;
+            try {
+                final StringBuilder stringBuilder = new StringBuilder(extraData.length);
+                for(byte byteChar : extraData){
+                    stringBuilder.append(String.format("%02x ", byteChar));
+                }
+                //TODO: send this data to AWS for storage
+                value = stringBuilder.toString();
+            } catch (Exception e) {
+                Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
+            }
+        }
+        //END SIMULATOR CODE CHUNK
+
+        //CODE COMMENTED FOR SIMULATOR, REPLACED BY ABOVE CHUNK
+        /*if(extraData == null){
             Log.d(TAG, "No message parsed on characteristic.");
             return;
         }
@@ -270,7 +321,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             value = stringBuilder.toString();
         } catch (Exception e) {
             Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
-        }
+        }*/
 
         if(extraUuid.equals(GattAttributes.BATT_LEVEL_CHAR_UUID)){
             //updateBatteryLevel(extraIntData);

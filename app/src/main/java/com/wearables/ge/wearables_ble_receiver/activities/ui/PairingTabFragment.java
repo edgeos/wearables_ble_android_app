@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static android.content.Context.BLUETOOTH_SERVICE;
 
@@ -79,14 +81,16 @@ public class PairingTabFragment extends Fragment {
         BluetoothManager bluetoothManager = (BluetoothManager) getActivity().getSystemService(BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
+        if(connectedDevice == null){
+            Log.d(TAG, "ConnectedDevice object is null StartScan");
+            startScan(null);
+        }
+
         return rootView;
     }
 
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        spinner = Objects.requireNonNull(getView()).findViewById(R.id.progressBar2);
-        spinner.setVisibility(View.VISIBLE);
 
-        startScan(null);
     }
 
     private void connectDevice() {
@@ -99,7 +103,9 @@ public class PairingTabFragment extends Fragment {
     }
 
     public void startScan(View view) {
+        Log.d(TAG, "StartScan called");
         //add spinner to view
+        spinner = rootView.findViewById(R.id.progressBar2);
         spinner.setVisibility(View.VISIBLE);
 
         //if the user hasn't allowed BT scanning  or if a scan is currently happening then stop here
@@ -177,6 +183,27 @@ public class PairingTabFragment extends Fragment {
             });
         }
 
+        //BEGIN SIMULATOR CODE CHUNK
+        View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
+        linLayout.addView(view);
+
+        ((TextView) view.findViewById(R.id.text)).setText("Simulator");
+
+        Switch switchButton = (Switch) view.findViewById(R.id.button);
+        switchButton.setChecked(false);
+        switchButton.setOnClickListener( v -> {
+            if (switchButton.isChecked()) {
+                deviceName = "Simulator";
+                connectedDevice = null;
+                startSimulator();
+                Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
+                disconnectDevice(switchButton.getText());
+            }
+        });
+        //END SIMULATOR CODE CHUNK
+
         Button scanAgainButton = new Button(this.getContext());
         scanAgainButton.setText(R.string.scan_button);
         scanAgainButton.setId(R.id.scan_button);
@@ -188,6 +215,19 @@ public class PairingTabFragment extends Fragment {
         });
         linLayout.addView(scanAgainButton);
     }
+
+    //BEGIN SIMULATOR CODE CHUNK
+    private void startSimulator(){
+        for(int i = 0; i < 10000; i++){
+            ((MainTabbedActivity)Objects.requireNonNull(getActivity())).readAvailableData(null);
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    //END SIMULATOR CODE CHUNK
 
     private boolean hasPermissions() {
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {

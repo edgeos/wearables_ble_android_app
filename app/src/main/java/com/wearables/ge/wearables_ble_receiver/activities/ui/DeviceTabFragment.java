@@ -47,7 +47,7 @@ public class DeviceTabFragment extends Fragment {
         //TODO: add Bluetooth listeners and update these dynamically.
         speedometer = rootView.findViewById(R.id.speedView);
         speedometer.setWithTremble(false);
-        speedometer.speedTo(75);
+        speedometer.speedTo(71);
         speedometer.setMaxSpeed(100);
         speedometer.setMinSpeed(0);
         speedometer.setUnit(" ppm");
@@ -55,7 +55,6 @@ public class DeviceTabFragment extends Fragment {
         //TODO: change the yellow and red areas of the speedometer according to user threshold e.g. yellow event, red event...
         speedometer.setLowSpeedPercent(25);
         speedometer.setMediumSpeedPercent(75);
-
 
         int sampleRateStepSize = 25; // from 0 - 100 with increments of 25 points each
 

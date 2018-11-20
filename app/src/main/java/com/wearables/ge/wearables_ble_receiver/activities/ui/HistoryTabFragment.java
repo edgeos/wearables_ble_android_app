@@ -14,6 +14,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.Viewport;
@@ -229,9 +230,9 @@ public class HistoryTabFragment extends Fragment {
 
     private void addEntry() {
         lastX = lastX + increment;
-        series1.appendData(new DataPoint(lastX, y1), false, 70);
-        series2.appendData(new DataPoint(lastX, y2), false, 70);
-        series3.appendData(new DataPoint(lastX, y3), false, 70);
+        series1.appendData(new DataPoint(lastX - increment, y1), false, 70);
+        series2.appendData(new DataPoint(lastX - increment, y2), false, 70);
+        series3.appendData(new DataPoint(lastX - increment, y3), false, 70);
     }
 
     private void addGraphSeries(){
@@ -264,13 +265,26 @@ public class HistoryTabFragment extends Fragment {
     }
 
     private void roundMaxY(int num){
-        int newNum = ((num + 5) / 10) * 10;
-        if(newNum < num){
-            maxYvalue = newNum + 10;
+        double value = num;
+        double roundTo = 10;
+        value = roundTo * Math.round(value / roundTo);
+        if(value < num){
+            maxYvalue = (int) value + 10;
         } else {
-            maxYvalue = newNum;
+            maxYvalue = (int) value;
         }
         Log.d(TAG, "Rounded: " + num + " to: " + maxYvalue);
+    }
+
+    private int round(int num){
+        double value = num;
+        double roundTo = 50;
+        value = roundTo * Math.round(value / roundTo);
+        if(value < num){
+            return (int) (value + 50);
+        } else {
+            return (int) value;
+        }
     }
 
     private void updateBounds(){
@@ -285,5 +299,9 @@ public class HistoryTabFragment extends Fragment {
 
         graph3.getViewport().setMaxY(maxYvalue);
         graph3.getViewport().setMaxX(maxXvalue);
+
+        graph1.getGridLabelRenderer().setNumHorizontalLabels(round(maxXvalue)/50);
+        graph2.getGridLabelRenderer().setNumHorizontalLabels(round(maxXvalue)/50);
+        graph3.getGridLabelRenderer().setNumHorizontalLabels(round(maxXvalue)/50);
     }
 }
