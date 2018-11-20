@@ -51,13 +51,21 @@
 
             </LinearLayout>
 
-            <com.github.anastr.speedviewlib.SpeedView
+            <!--<com.github.anastr.speedviewlib.SpeedView
                 android:id="@+id/speedView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:minWidth="50dp"
-                android:minHeight="50dp" />
+                android:minHeight="50dp" />-->
+        <LinearLayout
+            android:id="@+id/main_information_display"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:orientation="vertical">
+
+        </LinearLayout>
 
 
             <LinearLayout

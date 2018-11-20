@@ -324,7 +324,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }*/
 
         if(extraUuid.equals(GattAttributes.BATT_LEVEL_CHAR_UUID)){
-            //updateBatteryLevel(extraIntData);
+            mDeviceTabFragment.updateBatteryLevel(extraIntData);
             Log.d(TAG, "Battery level: " + extraIntData + "%");
         } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
@@ -333,14 +333,16 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
         } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
-            //updateVoltageSensorStatus(String.valueOf(extraIntData));
+            mDeviceTabFragment.updateVoltageSensorStatus(String.valueOf(extraIntData));
             Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
         } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
-            //updateHumidity(extraIntData);
-            //updateTemperature(extraIntData);
-            mDeviceTabFragment.updateVOCGauge(extraIntData);
+            mDeviceTabFragment.updateHumidity(extraIntData);
+            mDeviceTabFragment.updateTemperature(extraIntData);
+            mDeviceTabFragment.updateVOC(extraIntData);
+            //mDeviceTabFragment.updateVOCGauge(extraIntData);
             Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
         } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
+            mDeviceTabFragment.updateSpo2Sensor(value);
             Log.d(TAG, "GAS_SENSOR_DATA value: " + value);
         } else if(extraUuid.equals(GattAttributes.OPTICAL_SENSOR_DATA_CHARACTERISTIC_UUID)){
             Log.d(TAG, "OPTICAL_SENSOR_DATA value: " + value);

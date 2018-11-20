@@ -3,9 +3,11 @@ package com.wearables.ge.wearables_ble_receiver.activities.ui;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -43,7 +45,8 @@ public class DeviceTabFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_tab_device, container, false);
         Bundle args = getArguments();
 
-        // Initial gauge config using https://github.com/anastr/SpeedView
+        showConnectedMessage();
+        /*// Initial gauge config using https://github.com/anastr/SpeedView
         //TODO: add Bluetooth listeners and update these dynamically.
         speedometer = rootView.findViewById(R.id.speedView);
         speedometer.setWithTremble(false);
@@ -54,14 +57,9 @@ public class DeviceTabFragment extends Fragment {
 
         //TODO: change the yellow and red areas of the speedometer according to user threshold e.g. yellow event, red event...
         speedometer.setLowSpeedPercent(25);
-        speedometer.setMediumSpeedPercent(75);
+        speedometer.setMediumSpeedPercent(75);*/
 
         int sampleRateStepSize = 25; // from 0 - 100 with increments of 25 points each
-
-        /*
-        ((TextView) rootView.findViewById(android.R.id.text1)).setText(
-                getString(R.string.dummy_section_text, args.getInt(ARG_SECTION_NUMBER)));
-        */
 
         sampleRateBar = rootView.findViewById(R.id.sampleRateBar);
         sampleRateView = rootView.findViewById(R.id.sampleRateView);
@@ -134,12 +132,129 @@ public class DeviceTabFragment extends Fragment {
         return rootView;
     }
 
+    public void showConnectedMessage() {
+        LinearLayout linLayout = rootView.findViewById(R.id.main_information_display);
+        if (linLayout != null) {
+            linLayout.removeAllViews();
+
+            TextView textView = new TextView(rootView.getContext());
+            textView.setText(getString(R.string.connected_device_message, deviceName));
+            textView.setGravity(Gravity.CENTER);
+            linLayout.addView(textView);
+
+
+            TextView voltageSensorStatusView = new TextView(rootView.getContext());
+            voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, "undefined"));
+            voltageSensorStatusView.setGravity(Gravity.CENTER);
+            voltageSensorStatusView.setId(R.id.voltage_sensor_status);
+            linLayout.addView(voltageSensorStatusView);
+
+            TextView batteryLevelView = new TextView(rootView.getContext());
+            batteryLevelView.setText(getString(R.string.battery_level, 0));
+            batteryLevelView.setGravity(Gravity.CENTER);
+            batteryLevelView.setId(R.id.battery_level);
+            linLayout.addView(batteryLevelView);
+
+            TextView temperatureView = new TextView(rootView.getContext());
+            temperatureView.setText(getString(R.string.temperature, "undefined"));
+            temperatureView.setGravity(Gravity.CENTER);
+            temperatureView.setId(R.id.temperature);
+            linLayout.addView(temperatureView);
+
+            TextView humidityView = new TextView(rootView.getContext());
+            humidityView.setText(getString(R.string.humidity, "undefined"));
+            humidityView.setGravity(Gravity.CENTER);
+            humidityView.setId(R.id.humidity);
+            linLayout.addView(humidityView);
+
+            TextView VOCView = new TextView(rootView.getContext());
+            VOCView.setText(getString(R.string.VOC, "undefined"));
+            VOCView.setGravity(Gravity.CENTER);
+            VOCView.setId(R.id.VOC);
+            linLayout.addView(VOCView);
+
+            TextView spo2SensorView = new TextView(rootView.getContext());
+            spo2SensorView.setText(getString(R.string.spo2, "undefined"));
+            spo2SensorView.setGravity(Gravity.CENTER);
+            spo2SensorView.setId(R.id.spo2_sensor);
+            linLayout.addView(spo2SensorView);
+
+            TextView voltageLevelView = new TextView(rootView.getContext());
+            voltageLevelView.setText(getString(R.string.voltage_level, 0));
+            voltageLevelView.setGravity(Gravity.CENTER);
+            voltageLevelView.setId(R.id.voltage_level);
+            linLayout.addView(voltageLevelView);
+
+            TextView alarmThresholdView = new TextView(rootView.getContext());
+            alarmThresholdView.setText(getString(R.string.alarm_threshold, 0));
+            alarmThresholdView.setGravity(Gravity.CENTER);
+            alarmThresholdView.setId(R.id.alarm_threshold);
+            linLayout.addView(alarmThresholdView);
+        }
+    }
+
     public void displayDeviceName(String name){
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(name);
     }
 
-    public void updateVOCGauge(int value){
+    /*public void updateVOCGauge(int value){
         speedometer.speedTo(value);
+    }*/
+
+    public void updateVoltageSensorStatus(String sensorStatus){
+        TextView voltageSensorStatusView = rootView.findViewById(R.id.voltage_sensor_status);
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, sensorStatus));
+        }
+    }
+
+    public void updateBatteryLevel(int batteryLevel){
+        TextView batteryLevelView = rootView.findViewById(R.id.battery_level);
+        if(batteryLevelView != null){
+            batteryLevelView.setText(getString(R.string.battery_level, batteryLevel));
+        }
+    }
+
+    public void updateTemperature(int temp){
+        TextView voltageSensorStatusView = rootView.findViewById(R.id.temperature);
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.temperature, String.valueOf(temp)));
+        }
+    }
+
+    public void updateHumidity(int humidity){
+        TextView voltageSensorStatusView = rootView.findViewById(R.id.humidity);
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.humidity, String.valueOf(humidity)));
+        }
+    }
+
+    public void updateVOC(int VOC){
+        TextView voltageSensorStatusView = rootView.findViewById(R.id.VOC);
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.VOC, String.valueOf(VOC)));
+        }
+    }
+
+    public void updateSpo2Sensor(String spo2SensorStatus){
+        TextView voltageSensorStatusView = rootView.findViewById(R.id.spo2_sensor);
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.spo2, spo2SensorStatus));
+        }
+    }
+
+    public void updateVoltageLevel(int voltageLevel){
+        TextView voltageSensorStatusView = rootView.findViewById(R.id.voltage_level);
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.voltage_level, voltageLevel));
+        }
+    }
+
+    public void updateAlarmThreshold(int threshold){
+        TextView voltageSensorStatusView = rootView.findViewById(R.id.alarm_threshold);
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.alarm_threshold, threshold));
+        }
     }
 }
