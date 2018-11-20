@@ -45,17 +45,12 @@ public class HistoryTabFragment extends Fragment {
 
     View rootView;
 
-    public int fragmentId;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG, "History Tab opened");
         rootView = inflater.inflate(R.layout.fragment_tab_history, container, false);
         Bundle args = getArguments();
-        /*
-        ((TextView) rootView.findViewById(android.R.id.text1)).setText(
-                getString(R.string.dummy_section_text, args.getInt(ARG_SECTION_NUMBER)));
-        */
 
         LinearLayout expanableLayout1 = (LinearLayout) rootView.findViewById(R.id.collapsibleContainer1);
         Switch switchButton1 = (Switch) rootView.findViewById(R.id.expand1);
@@ -71,16 +66,16 @@ public class HistoryTabFragment extends Fragment {
             }
         });
 
-        LinearLayout expanableLayout2 = (LinearLayout) rootView.findViewById(R.id.collapsibleContainer2);
+        LinearLayout expandableLayout2 = (LinearLayout) rootView.findViewById(R.id.collapsibleContainer2);
         Switch switchButton2 = (Switch) rootView.findViewById(R.id.expand2);
         switchButton2.setChecked(true);
         switchButton2.setOnClickListener( v -> {
             if (switchButton2.isChecked()) {
                 Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
-                expandView(expanableLayout2, 500);
+                expandView(expandableLayout2, 500);
             } else {
                 Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
-                collapseView(expanableLayout2, 500 );
+                collapseView(expandableLayout2, 500 );
             }
         });
 
@@ -91,10 +86,6 @@ public class HistoryTabFragment extends Fragment {
         viewport1.setYAxisBoundsManual(true);
         viewport1.setXAxisBoundsManual(true);
         viewport1.setMinY(0);
-        //viewport1.setScrollable(true);
-        //viewport1.setScrollableY(true);
-        //viewport1.setScalable(true);
-        //viewport1.setScalableY(true);
         GridLabelRenderer gridLabel1 = graph1.getGridLabelRenderer();
         gridLabel1.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
         gridLabel1.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
@@ -105,10 +96,6 @@ public class HistoryTabFragment extends Fragment {
         viewport2.setYAxisBoundsManual(true);
         viewport2.setXAxisBoundsManual(true);
         viewport2.setMinY(0);
-        //viewport2.setScrollable(true);
-        //viewport2.setScrollableY(true);
-        //viewport2.setScalable(true);
-        //viewport2.setScalableY(true);
         GridLabelRenderer gridLabel2 = graph2.getGridLabelRenderer();
         gridLabel2.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
         gridLabel2.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
@@ -119,18 +106,13 @@ public class HistoryTabFragment extends Fragment {
         viewport3.setYAxisBoundsManual(true);
         viewport3.setXAxisBoundsManual(true);
         viewport3.setMinY(0);
-        //viewport3.setScrollable(true);
-        //viewport3.setScrollableY(true);
-        //viewport3.setScalable(true);
-        //viewport3.setScalableY(true);
         GridLabelRenderer gridLabel3 = graph3.getGridLabelRenderer();
         gridLabel3.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
         gridLabel3.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
 
-        /*StaticLabelsFormatter staticLabelsFormatter = new StaticLabelsFormatter(graph1);
-        staticLabelsFormatter.setHorizontalLabels(new String[] {"50 HZ", "60 HZ"});
-        graph1.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter);*/
-
+        if(maxXvalue > 0 && maxYvalue > 0){
+            updateBounds();
+        }
         return rootView;
     }
 
@@ -188,10 +170,11 @@ public class HistoryTabFragment extends Fragment {
     public int y2;
     public int y3;
     public int increment;
-    public int maxYvalue = 0;
+    public int maxYvalue;
     public int maxXvalue;
 
     protected void updateGraph(VoltageAlarmStateChar voltageAlarmState) {
+        Log.d(TAG, "UpdateGraph called");
         super.onResume();
 
         if(graph1 == null || graph2 == null || graph3 == null){

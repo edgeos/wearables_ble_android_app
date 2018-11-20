@@ -81,7 +81,7 @@ public class PairingTabFragment extends Fragment {
         BluetoothManager bluetoothManager = (BluetoothManager) getActivity().getSystemService(BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
-        startScan(null);
+        startScan();
 
         return rootView;
     }
@@ -99,7 +99,7 @@ public class PairingTabFragment extends Fragment {
         ((MainTabbedActivity)getActivity()).disconnectDevice();
     }
 
-    public void startScan(View view) {
+    public void startScan() {
         Log.d(TAG, "StartScan called");
         //add spinner to view
         spinner = rootView.findViewById(R.id.progressBar2);
@@ -146,12 +146,12 @@ public class PairingTabFragment extends Fragment {
             return;
         }
 
-        if(((MainTabbedActivity)getActivity()).connectedDevice != null){
+        if(MainTabbedActivity.connectedDevice != null){
             View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
             linLayout.addView(view);
             String objName = connectedDevice.getName() == null ? connectedDevice.getAddress() : connectedDevice.getName();
             ((TextView) view.findViewById(R.id.text)).setText(objName);
-            Switch switchButton = (Switch) view.findViewById(R.id.button);
+            Switch switchButton = view.findViewById(R.id.button);
             switchButton.setChecked(true);
             switchButton.setOnClickListener( v -> {
                 if (switchButton.isChecked()) {
@@ -171,7 +171,7 @@ public class PairingTabFragment extends Fragment {
         linLayout.addView(view);
         ((TextView) view.findViewById(R.id.text)).setText("Simulator");
 
-        Switch switchButton = (Switch) view.findViewById(R.id.button);
+        Switch switchButton = view.findViewById(R.id.button);
         switchButton.setChecked(false);
         switchButton.setOnClickListener( v -> {
             if (switchButton.isChecked()) {
@@ -192,7 +192,7 @@ public class PairingTabFragment extends Fragment {
         scanAgainButton.setOnClickListener(v -> {
             linLayout.removeAllViews();
             linLayout.addView(spinner);
-            startScan(null);
+            startScan();
             Log.d(TAG, "Scan again button pressed");
         });
         linLayout.addView(scanAgainButton);
@@ -282,7 +282,7 @@ public class PairingTabFragment extends Fragment {
                     grey = true;
                 }
 
-                Switch switchButton = (Switch) view.findViewById(R.id.button);
+                Switch switchButton = view.findViewById(R.id.button);
                 switchButton.setChecked(false);
                 switchButton.setOnClickListener( v -> {
                     if (switchButton.isChecked()) {

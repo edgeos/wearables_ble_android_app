@@ -58,5 +58,8 @@ dependencies {
     // speedometer
     implementation 'com.github.anastr:speedviewlib:1.3.0'
 
+    //Custom Guage
+    implementation 'pl.pawelkleczkowski.customgauge:CustomGauge:1.0.3'
+
 
 }

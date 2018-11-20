@@ -1,5 +1,6 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -17,6 +18,8 @@ import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.wearables.ge.wearables_ble_receiver.R;
+
+import pl.pawelkleczkowski.customgauge.CustomGauge;
 
 public class DeviceTabFragment extends Fragment {
 
@@ -44,8 +47,6 @@ public class DeviceTabFragment extends Fragment {
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_tab_device, container, false);
         Bundle args = getArguments();
-
-        showConnectedMessage();
 
         /*// Initial gauge config using https://github.com/anastr/SpeedView
         //TODO: add Bluetooth listeners and update these dynamically.
@@ -128,63 +129,7 @@ public class DeviceTabFragment extends Fragment {
         return rootView;
     }
 
-    public void showConnectedMessage() {
-        LinearLayout linLayout = rootView.findViewById(R.id.main_information_display);
-        if (linLayout != null) {
-            linLayout.removeAllViews();
-
-            TextView voltageSensorStatusView = new TextView(rootView.getContext());
-            voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, "undefined"));
-            voltageSensorStatusView.setGravity(Gravity.CENTER);
-            voltageSensorStatusView.setId(R.id.voltage_sensor_status);
-            linLayout.addView(voltageSensorStatusView);
-
-            TextView batteryLevelView = new TextView(rootView.getContext());
-            batteryLevelView.setText(getString(R.string.battery_level, 0));
-            batteryLevelView.setGravity(Gravity.CENTER);
-            batteryLevelView.setId(R.id.battery_level);
-            linLayout.addView(batteryLevelView);
-
-            TextView temperatureView = new TextView(rootView.getContext());
-            temperatureView.setText(getString(R.string.temperature, "undefined"));
-            temperatureView.setGravity(Gravity.CENTER);
-            temperatureView.setId(R.id.temperature);
-            linLayout.addView(temperatureView);
-
-            TextView humidityView = new TextView(rootView.getContext());
-            humidityView.setText(getString(R.string.humidity, "undefined"));
-            humidityView.setGravity(Gravity.CENTER);
-            humidityView.setId(R.id.humidity);
-            linLayout.addView(humidityView);
-
-            TextView VOCView = new TextView(rootView.getContext());
-            VOCView.setText(getString(R.string.VOC, "undefined"));
-            VOCView.setGravity(Gravity.CENTER);
-            VOCView.setId(R.id.VOC);
-            linLayout.addView(VOCView);
-
-            TextView spo2SensorView = new TextView(rootView.getContext());
-            spo2SensorView.setText(getString(R.string.spo2, "undefined"));
-            spo2SensorView.setGravity(Gravity.CENTER);
-            spo2SensorView.setId(R.id.spo2_sensor);
-            linLayout.addView(spo2SensorView);
-
-            TextView voltageLevelView = new TextView(rootView.getContext());
-            voltageLevelView.setText(getString(R.string.voltage_level, 0));
-            voltageLevelView.setGravity(Gravity.CENTER);
-            voltageLevelView.setId(R.id.voltage_level);
-            linLayout.addView(voltageLevelView);
-
-            TextView alarmThresholdView = new TextView(rootView.getContext());
-            alarmThresholdView.setText(getString(R.string.alarm_threshold, 0));
-            alarmThresholdView.setGravity(Gravity.CENTER);
-            alarmThresholdView.setId(R.id.alarm_threshold);
-            linLayout.addView(alarmThresholdView);
-        }
-    }
-
     public void displayDeviceName(String name){
-        String connectedDevice = name;
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(name);
     }
@@ -204,6 +149,10 @@ public class DeviceTabFragment extends Fragment {
         TextView batteryLevelView = rootView.findViewById(R.id.battery_level);
         if(batteryLevelView != null){
             batteryLevelView.setText(getString(R.string.battery_level, batteryLevel));
+        }
+        CustomGauge batteryGauge = rootView.findViewById(R.id.battery_gauge);
+        if(batteryGauge != null){
+            batteryGauge.setValue(batteryLevel);
         }
     }
 
