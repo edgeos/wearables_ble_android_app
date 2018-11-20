@@ -46,6 +46,7 @@ public class DeviceTabFragment extends Fragment {
         Bundle args = getArguments();
 
         showConnectedMessage();
+
         /*// Initial gauge config using https://github.com/anastr/SpeedView
         //TODO: add Bluetooth listeners and update these dynamically.
         speedometer = rootView.findViewById(R.id.speedView);
@@ -86,7 +87,6 @@ public class DeviceTabFragment extends Fragment {
             }
         });
 
-
         logThresholdBar = rootView.findViewById(R.id.logThresholdBar);
         logThresholdView = rootView.findViewById(R.id.logThresholdView);
         logThresholdBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -125,10 +125,6 @@ public class DeviceTabFragment extends Fragment {
         viewport1.setMaxY(100);
         viewport1.setScrollable(true);
 
-        /*fragmentId = this.getId();
-        Log.d("Device Tab Fragment", "fragment ID: " + fragmentId);
-        ((MainTabbedActivity)getActivity()).getDeviceTabFragment(fragmentId);*/
-
         return rootView;
     }
 
@@ -140,6 +136,7 @@ public class DeviceTabFragment extends Fragment {
             TextView textView = new TextView(rootView.getContext());
             textView.setText(getString(R.string.connected_device_message, deviceName));
             textView.setGravity(Gravity.CENTER);
+            textView.setId(R.id.connected_message);
             linLayout.addView(textView);
 
 
@@ -196,6 +193,11 @@ public class DeviceTabFragment extends Fragment {
     public void displayDeviceName(String name){
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(name);
+
+        TextView connectedMessage = rootView.findViewById(R.id.connected_message);
+        if(connectedMessage != null){
+            connectedMessage.setText(getString(R.string.connected_device_message, name));
+        }
     }
 
     /*public void updateVOCGauge(int value){

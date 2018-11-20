@@ -25,4 +25,5 @@
     <item type="id" name="temp_humid_sensor_graph_2" />
     <item type="id" name="voc_sensor_graph_1" />
     <item type="id" name="scan_button" />
+    <item type="id" name="connected_message" />
 </resources>

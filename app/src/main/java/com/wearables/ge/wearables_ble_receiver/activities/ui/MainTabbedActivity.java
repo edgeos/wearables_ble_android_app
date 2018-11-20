@@ -23,6 +23,7 @@ import android.util.Log;
 
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
+import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
@@ -108,6 +109,12 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         Intent intent = new Intent(this, BluetoothService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         mBound = true;
+
+        //start location service
+        //Location service is not an extension of the service class and doesn't need to be bound to.
+        //This is because we don't need the location service to send updates to the UI.
+        //We only need to grab the latest coordinates from the location service.
+        LocationService.startLocationService(this);
     }
 
     public void connectDevice(BluetoothDevice device, String deviceName){
@@ -333,7 +340,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
         } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
-            mDeviceTabFragment.updateVoltageSensorStatus(String.valueOf(extraIntData));
+            mDeviceTabFragment.updateVoltageLevel(extraIntData);
             Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
         } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
             mDeviceTabFragment.updateHumidity(extraIntData);

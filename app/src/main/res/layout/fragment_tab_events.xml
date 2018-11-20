@@ -1,5 +1,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/collapsibleContainer1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -23,13 +25,36 @@
         android:layout_marginTop="8dp" />
 
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="10dp"
-        android:text="Detected Events"
-        android:textStyle="bold" />
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="Detected Events"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="Refresh"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </android.support.constraint.ConstraintLayout>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -40,30 +65,9 @@
         <LinearLayout
             android:id="@+id/logEventList"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:background="@android:color/background_light"
             android:orientation="vertical">
-
-            <TextView
-                android:layout_margin="5dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="10/10/2018 3:57 PM \n Level 1024, lasted 5 seconds \n (42.830507, -73.880557)
-                " />
-
-            <TextView
-                android:layout_margin="5dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="10/10/2018 3:42 PM \n Level 352, lasted 2 seconds \n (42.830468, -73.879822)
-            " />
-
-            <TextView
-                android:layout_margin="5dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="10/10/2018 3:34 PM \n Level 452, lasted 6 seconds \n (45.836478, -76.879822)
-            " />
 
 
         </LinearLayout>

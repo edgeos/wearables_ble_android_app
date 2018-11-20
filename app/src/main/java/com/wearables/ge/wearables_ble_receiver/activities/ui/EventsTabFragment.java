@@ -1,49 +1,74 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.wearables.ge.wearables_ble_receiver.R;
+import com.wearables.ge.wearables_ble_receiver.services.LocationService;
+
+import java.util.Random;
 
 public class EventsTabFragment extends Fragment {
+    private static final String TAG = "Events Tab Fragment";
 
     public static final String ARG_SECTION_NUMBER = "section_number";
 
     public static final String TAB_NAME = "Events";
 
+    View rootView;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_tab_events, container, false);
+        rootView = inflater.inflate(R.layout.fragment_tab_events, container, false);
         Bundle args = getArguments();
 
-        /*
-        ((TextView) rootView.findViewById(android.R.id.text1)).setText(
-                getString(R.string.dummy_section_text, args.getInt(ARG_SECTION_NUMBER)));
-        */
-
-        // programmatically adds events to the list...
-        LinearLayout logEventsList = rootView.findViewById(R.id.logEventList);
-        String[] eventsArray = {
-                "-- 10/10/2018 3:57 PM \n Level 1024, lasted 5 seconds \n (42.830507, -73.880557)",
-                "-- 10/10/2018 3:42 PM \n Level 352, lasted 2 seconds \n (42.830468, -73.879822)",
-                "-- 10/10/2018 3:34 PM \n Level 452, lasted 6 seconds \n (45.836478, -76.879822)"
-        };
-        for (String event: eventsArray) {
-            TextView textView = new TextView(this.getContext());
-            textView.setText(event);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            params.setMargins(5,5,5,5);
-
-            textView.setLayoutParams(params);
-            logEventsList.addView(textView);
-        }
+        Button refreshButton = rootView.findViewById(R.id.button3);
+        refreshButton.setOnClickListener(v -> {
+            refreshEventsLog();
+            Log.d(TAG, "Refresh button pressed");
+        });
 
         return rootView;
+    }
+
+    public void refreshEventsLog(){
+        LinearLayout logEventsList = rootView.findViewById(R.id.logEventList);
+        logEventsList.removeAllViews();
+
+        for(Location location : LocationService.locations){
+            Double latitude = location.getLatitude();
+            Double longitude = location.getLongitude();
+
+            //mostly just filler data for voltage events
+            String date = new java.util.Date().toString();
+            TextView dateTimeTextView = new TextView(rootView.getContext());
+            dateTimeTextView.setText(date);
+            dateTimeTextView.setGravity(Gravity.CENTER);
+            logEventsList.addView(dateTimeTextView);
+
+            Random rand = new Random();
+            String message = "Level " + rand.nextInt(1000) + ", lasted " + rand.nextInt(20) + " seconds";
+            TextView messageTextView = new TextView(rootView.getContext());
+            messageTextView.setText(message);
+            messageTextView.setGravity(Gravity.CENTER);
+            logEventsList.addView(messageTextView);
+
+            String coordinates = "(" + latitude.toString() + "," + longitude.toString() + ")";
+            TextView locationTextView = new TextView(rootView.getContext());
+            locationTextView.setText(coordinates);
+            locationTextView.setGravity(Gravity.CENTER);
+            locationTextView.setPadding(0,0,0,30);
+            logEventsList.addView(locationTextView);
+        }
     }
 }
