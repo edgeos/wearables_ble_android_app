@@ -58,7 +58,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     boolean mBound;
     BluetoothService mService;
-    public BluetoothDevice connectedDevice;
+    public static BluetoothDevice connectedDevice;
 
     public static String connectedDeviceName;
 
@@ -120,14 +120,16 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     public void connectDevice(BluetoothDevice device, String deviceName){
         Log.d(TAG, "Attempting to connect to: " + deviceName);
         connectedDeviceName = deviceName;
+        connectedDevice = device;
         mService.connectDevice(device);
         mDeviceTabFragment.displayDeviceName(deviceName);
     }
 
     public void disconnectDevice(){
         mService.disconnectGattServer();
+        connectedDevice = null;
+        connectedDeviceName = null;
     }
-
 
     //connection callback for bluetooth service
     private ServiceConnection mConnection = new ServiceConnection() {

@@ -133,13 +133,6 @@ public class DeviceTabFragment extends Fragment {
         if (linLayout != null) {
             linLayout.removeAllViews();
 
-            TextView textView = new TextView(rootView.getContext());
-            textView.setText(getString(R.string.connected_device_message, deviceName));
-            textView.setGravity(Gravity.CENTER);
-            textView.setId(R.id.connected_message);
-            linLayout.addView(textView);
-
-
             TextView voltageSensorStatusView = new TextView(rootView.getContext());
             voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, "undefined"));
             voltageSensorStatusView.setGravity(Gravity.CENTER);
@@ -191,13 +184,9 @@ public class DeviceTabFragment extends Fragment {
     }
 
     public void displayDeviceName(String name){
+        String connectedDevice = name;
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(name);
-
-        TextView connectedMessage = rootView.findViewById(R.id.connected_message);
-        if(connectedMessage != null){
-            connectedMessage.setText(getString(R.string.connected_device_message, name));
-        }
     }
 
     /*public void updateVOCGauge(int value){

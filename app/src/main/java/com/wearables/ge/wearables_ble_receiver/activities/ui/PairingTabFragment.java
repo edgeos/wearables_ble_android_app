@@ -81,10 +81,7 @@ public class PairingTabFragment extends Fragment {
         BluetoothManager bluetoothManager = (BluetoothManager) getActivity().getSystemService(BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
-        if(connectedDevice == null){
-            Log.d(TAG, "ConnectedDevice object is null StartScan");
-            startScan(null);
-        }
+        startScan(null);
 
         return rootView;
     }
@@ -149,31 +146,15 @@ public class PairingTabFragment extends Fragment {
             return;
         }
 
-        Boolean grey = true;
-        for (BluetoothDevice obj : mScanResults.values()){
-
-            //grab device name or address if it doesn't have a defined name
-            String objName = obj.getName() == null ? obj.getAddress() : obj.getName();
-            Log.d(TAG, "Found device: " + objName);
-
+        if(((MainTabbedActivity)getActivity()).connectedDevice != null){
             View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
             linLayout.addView(view);
-
+            String objName = connectedDevice.getName() == null ? connectedDevice.getAddress() : connectedDevice.getName();
             ((TextView) view.findViewById(R.id.text)).setText(objName);
-
-            if(grey){
-                view.setBackgroundColor(Color.parseColor("#f5f5f5"));
-                grey = false;
-            } else {
-                grey = true;
-            }
-
             Switch switchButton = (Switch) view.findViewById(R.id.button);
-            switchButton.setChecked(false);
+            switchButton.setChecked(true);
             switchButton.setOnClickListener( v -> {
                 if (switchButton.isChecked()) {
-                    deviceName = objName;
-                    connectedDevice = obj;
                     connectDevice();
                     Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_LONG).show();
                 } else {
@@ -181,12 +162,13 @@ public class PairingTabFragment extends Fragment {
                     disconnectDevice(switchButton.getText());
                 }
             });
+        } else {
+            Log.d(TAG, "No connected device found");
         }
 
         //BEGIN SIMULATOR CODE CHUNK
         View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
         linLayout.addView(view);
-
         ((TextView) view.findViewById(R.id.text)).setText("Simulator");
 
         Switch switchButton = (Switch) view.findViewById(R.id.button);
@@ -279,10 +261,43 @@ public class PairingTabFragment extends Fragment {
             Log.e(TAG, "BLE Scan Failed with code " + errorCode);
         }
 
+        Boolean grey = true;
+
         private void addScanResult(ScanResult result) {
-            BluetoothDevice device = result.getDevice();
-            String deviceAddress = device.getAddress();
-            mScanResults.put(deviceAddress, device);
+            BluetoothDevice obj = result.getDevice();
+            String deviceAddress = obj.getAddress();
+            if(!mScanResults.containsKey(deviceAddress)){
+                String objName = obj.getName() == null ? obj.getAddress() : obj.getName();
+                Log.d(TAG, "Found device: " + objName);
+
+                View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
+                linLayout.addView(view);
+
+                ((TextView) view.findViewById(R.id.text)).setText(objName);
+
+                if(grey){
+                    view.setBackgroundColor(Color.parseColor("#f5f5f5"));
+                    grey = false;
+                } else {
+                    grey = true;
+                }
+
+                Switch switchButton = (Switch) view.findViewById(R.id.button);
+                switchButton.setChecked(false);
+                switchButton.setOnClickListener( v -> {
+                    if (switchButton.isChecked()) {
+                        deviceName = objName;
+                        connectedDevice = obj;
+                        connectDevice();
+                        Toast.makeText(rootView.getContext(), "connecting...", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(rootView.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
+                        disconnectDevice(switchButton.getText());
+                    }
+                });
+
+                mScanResults.put(deviceAddress, obj);
+            }
         }
     }
 }
