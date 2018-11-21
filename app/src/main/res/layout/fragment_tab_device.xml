@@ -65,7 +65,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="Status: undefined" />
+                    android:text="Status: undefined"
+                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@id/battery_level"
@@ -73,7 +74,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="Battery level: undefined" />
+                    android:text="Battery level: undefined"
+                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@id/temperature"
@@ -81,7 +83,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="Temperature: undefined" />
+                    android:text="Temperature: undefined"
+                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@id/humidity"
@@ -89,7 +92,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="Humidity: undefined" />
+                    android:text="Humidity: undefined"
+                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@id/VOC"
@@ -97,7 +101,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="VOC: undefined" />
+                    android:text="VOC: undefined"
+                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@id/spo2_sensor"
@@ -105,7 +110,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="SpO2 Sensor: undefined" />
+                    android:text="SpO2 Sensor: undefined"
+                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@id/voltage_level"
@@ -113,7 +119,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="Voltage Level: undefined" />
+                    android:text="Voltage Level: undefined"
+                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@id/alarm_threshold"
@@ -121,7 +128,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="Alarm Threshold: undefined" />
+                    android:text="Alarm Threshold: undefined"
+                    android:textSize="18sp" />
             </LinearLayout>
 
 
