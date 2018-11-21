@@ -1,8 +1,8 @@
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:gauge="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -52,77 +52,78 @@
 
             </LinearLayout>
 
-            <!--<com.github.anastr.speedviewlib.SpeedView
-                android:id="@+id/speedView"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/main_information_display"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:minWidth="50dp"
-                android:minHeight="50dp" />-->
-        <LinearLayout
-            android:id="@+id/main_information_display"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:orientation="vertical">
+                android:layout_margin="10dp"
+                android:orientation="vertical">
 
 
-            <TextView
-                android:id="@id/voltage_sensor_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Status: undefined" />
+                <TextView
+                    android:id="@id/voltage_sensor_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="Status: undefined" />
 
-            <TextView
-                android:id="@id/battery_level"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Battery level: undefined"/>
+                <TextView
+                    android:id="@id/battery_level"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="Battery level: undefined" />
 
-            <TextView
-                android:id="@id/temperature"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Temperature: undefined" />
+                <TextView
+                    android:id="@id/temperature"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="Temperature: undefined" />
 
-            <TextView
-                android:id="@id/humidity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Humidity: undefined" />
+                <TextView
+                    android:id="@id/humidity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="Humidity: undefined" />
 
-            <TextView
-                android:id="@id/VOC"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="VOC: undefined" />
+                <TextView
+                    android:id="@id/VOC"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="VOC: undefined" />
 
-            <TextView
-                android:id="@id/spo2_sensor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="SpO2 Sensor: undefined" />
+                <TextView
+                    android:id="@id/spo2_sensor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="SpO2 Sensor: undefined" />
 
-            <TextView
-                android:id="@id/voltage_level"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Voltage Level: undefined" />
+                <TextView
+                    android:id="@id/voltage_level"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="Voltage Level: undefined" />
 
-            <TextView
-                android:id="@id/alarm_threshold"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Alarm Threshold: undefined" />
-        </LinearLayout>
+                <TextView
+                    android:id="@id/alarm_threshold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="Alarm Threshold: undefined" />
+            </LinearLayout>
 
 
             <LinearLayout
