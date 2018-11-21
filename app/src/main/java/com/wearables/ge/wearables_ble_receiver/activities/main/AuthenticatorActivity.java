@@ -15,7 +15,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import com.wearables.ge.wearables_ble_receiver.R;
-import com.wearables.ge.wearables_ble_receiver.activities.ui.MainTabbedActivity;
 
 public class AuthenticatorActivity extends AppCompatActivity {
 

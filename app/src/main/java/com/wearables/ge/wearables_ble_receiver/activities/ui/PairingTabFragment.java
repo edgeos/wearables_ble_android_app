@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.wearables.ge.wearables_ble_receiver.R;
-import com.wearables.ge.wearables_ble_receiver.activities.main.MainActivity;
+import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static android.content.Context.BLUETOOTH_SERVICE;

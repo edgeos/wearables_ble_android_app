@@ -1,5 +1,5 @@
 
-package com.wearables.ge.wearables_ble_receiver.activities.ui;
+package com.wearables.ge.wearables_ble_receiver.activities.main;
 
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
@@ -22,6 +22,10 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 
 import com.wearables.ge.wearables_ble_receiver.R;
+import com.wearables.ge.wearables_ble_receiver.activities.ui.DeviceTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.ui.EventsTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.ui.HistoryTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.ui.PairingTabFragment;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;

@@ -173,7 +173,7 @@ public class HistoryTabFragment extends Fragment {
     public int maxYvalue;
     public int maxXvalue;
 
-    protected void updateGraph(VoltageAlarmStateChar voltageAlarmState) {
+    public void updateGraph(VoltageAlarmStateChar voltageAlarmState) {
         Log.d(TAG, "UpdateGraph called");
         super.onResume();
 

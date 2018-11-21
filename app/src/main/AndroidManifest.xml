@@ -20,7 +20,7 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <activity
-            android:name=".activities.ui.MainTabbedActivity"
+            android:name=".activities.main.MainTabbedActivity"
             android:label="@string/app_name"/>
 
         <activity android:name=".activities.main.MainActivity" />

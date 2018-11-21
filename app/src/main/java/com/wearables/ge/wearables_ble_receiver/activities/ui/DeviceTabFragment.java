@@ -1,14 +1,10 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -18,6 +14,7 @@ import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.wearables.ge.wearables_ble_receiver.R;
+import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 
 import pl.pawelkleczkowski.customgauge.CustomGauge;
 
