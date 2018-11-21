@@ -243,7 +243,7 @@ public class HistoryTabFragment extends Fragment {
         Log.d(TAG, "Rounded: " + num + " to: " + maxYvalue);
     }
 
-    private int round(int num){
+    private int roundX(int num){
         double value = num;
         double roundTo = 50;
         value = roundTo * Math.round(value / roundTo);
@@ -267,8 +267,8 @@ public class HistoryTabFragment extends Fragment {
         graph3.getViewport().setMaxY(maxYvalue);
         graph3.getViewport().setMaxX(maxXvalue);
 
-        graph1.getGridLabelRenderer().setNumHorizontalLabels(round(maxXvalue)/50);
-        graph2.getGridLabelRenderer().setNumHorizontalLabels(round(maxXvalue)/50);
-        graph3.getGridLabelRenderer().setNumHorizontalLabels(round(maxXvalue)/50);
+        graph1.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
+        graph2.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
+        graph3.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
     }
 }

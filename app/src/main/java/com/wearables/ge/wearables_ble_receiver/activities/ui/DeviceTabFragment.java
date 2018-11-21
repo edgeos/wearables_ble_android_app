@@ -88,13 +88,14 @@ public class DeviceTabFragment extends Fragment {
                 if(MainTabbedActivity.connectedDevice != null){
                     alert.setMessage("Are you sure you would like to set the voltage alarm threshold to " + seekBar.getProgress() + "?");
 
-                    alert.setPositiveButton("Yes", (dialog, whichButton) ->
-                            ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.sendAlarmThresholdMessage(String.valueOf(seekBar.getProgress())));
+                    alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
+                        ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.sendAlarmThresholdMessage(String.valueOf(seekBar.getProgress()));
+                    });
 
-                    alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) ->
-                            logThresholdBar.refreshDrawableState());
-
-                    Log.d(TAG, "Alarm Threshold dialog closed");
+                    alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> {
+                        logThresholdBar.refreshDrawableState();
+                        Log.d(TAG, "Alarm Threshold dialog closed");
+                    });
 
                 } else {
                     alert.setMessage("No device connected");
@@ -128,13 +129,6 @@ public class DeviceTabFragment extends Fragment {
     public void displayDeviceName(String name){
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(name);
-    }
-
-    public void updateVoltageSensorStatus(String sensorStatus){
-        TextView voltageSensorStatusView = rootView.findViewById(R.id.voltage_sensor_status);
-        if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.voltage_sensor_status, sensorStatus));
-        }
     }
 
     public void updateBatteryLevel(int batteryLevel){
@@ -176,13 +170,6 @@ public class DeviceTabFragment extends Fragment {
         TextView voltageSensorStatusView = rootView.findViewById(R.id.voltage_level);
         if(voltageSensorStatusView != null){
             voltageSensorStatusView.setText(getString(R.string.voltage_level, voltageLevel));
-        }
-    }
-
-    public void updateAlarmThreshold(int threshold){
-        TextView voltageSensorStatusView = rootView.findViewById(R.id.alarm_threshold);
-        if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.alarm_threshold, threshold));
         }
     }
 }
