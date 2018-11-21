@@ -25,6 +25,8 @@
     <string name="spo2">SpO2 Sensor: %1$s</string>
     <string name="voltage_level">Voltage level: %1$d</string>
     <string name="alarm_threshold">Alarm threshold: %1$d</string>
+    <string name="update_rate_value">Update Rate: %1$d</string>
+    <string name="auto_sample_off_message">Auto Sampling: OFF</string>
     <string name="title_activity_developer_mode">DeveloperModeActivity</string>
     <string name="show_real_time_data_button">View real time data</string>
     <string name="normal_mode_menu_item">Normal mode</string>

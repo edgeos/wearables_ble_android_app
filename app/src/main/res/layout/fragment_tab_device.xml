@@ -47,8 +47,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="5dp"
-                    android:textStyle="bold"
-                    android:text="Sample Rate: 50" />
+                    android:textStyle="bold" />
 
             </LinearLayout>
 
@@ -144,8 +143,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="5dp"
-                    android:textStyle="bold"
-                    android:text="event log threshold: 50" />
+                    android:textStyle="bold"/>
 
             </LinearLayout>
 

@@ -219,25 +219,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         return intentFilter;
     }
 
-    /*private void showAlarmThresholdDialog() {
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
-        alert.setMessage(R.string.alert_threshold_dialog_message);
-
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-
-        alert.setView(input);
-
-        alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
-            mService.sendAlarmThresholdMessage(input.getText().toString());
-        });
-
-        alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Alarm Threshold dialog closed"));
-
-        alert.show();
-    }*/
-
     //this method handles broadcasts sent from the bluetooth service
     public final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -428,7 +409,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             mDeviceTabFragment.updateHumidity(extraIntData);
             mDeviceTabFragment.updateTemperature(extraIntData);
             mDeviceTabFragment.updateVOC(extraIntData);
-            //mDeviceTabFragment.updateVOCGauge(extraIntData);
             Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
         } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
             mDeviceTabFragment.updateSpo2Sensor(value);

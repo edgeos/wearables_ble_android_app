@@ -3,9 +3,14 @@ package com.wearables.ge.wearables_ble_receiver.activities.ui;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
+import android.text.InputType;
+import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -19,15 +24,13 @@ import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivit
 import java.util.Objects;
 
 public class DeviceTabFragment extends Fragment {
+    private static final String TAG = "Device Tab Fragment";
 
     public static final String TAB_NAME = "Device";
 
     private TextView sampleRateView = null;
     private TextView logThresholdView = null;
     private TextView deviceName = null;
-
-
-    private GraphView logGraph = null;
 
     View rootView;
 
@@ -40,6 +43,7 @@ public class DeviceTabFragment extends Fragment {
 
         SeekBar sampleRateBar = rootView.findViewById(R.id.sampleRateBar);
         sampleRateView = rootView.findViewById(R.id.sampleRateView);
+        sampleRateView.setText(getString(R.string.update_rate_value, sampleRateBar.getProgress()));
         sampleRateBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -47,9 +51,9 @@ public class DeviceTabFragment extends Fragment {
                 int stepProgress = ((int)Math.round(progress/sampleRateStepSize))*sampleRateStepSize;
                 seekBar.setProgress(stepProgress);
                 if (seekBar.getProgress() > 0) {
-                    sampleRateView.setText("Sample Rate: " + seekBar.getProgress() + " ms");
+                    sampleRateView.setText(getString(R.string.update_rate_value, seekBar.getProgress()));
                 } else {
-                    sampleRateView.setText("Auto Sampling OFF");
+                    sampleRateView.setText(getString(R.string.auto_sample_off_message));
                 }
             }
             @Override
@@ -65,10 +69,12 @@ public class DeviceTabFragment extends Fragment {
 
         SeekBar logThresholdBar = rootView.findViewById(R.id.logThresholdBar);
         logThresholdView = rootView.findViewById(R.id.logThresholdView);
+        logThresholdView.setText(getString(R.string.alarm_threshold, logThresholdBar.getProgress()));
         logThresholdBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // updated continuously as the user slides the thumb
+                logThresholdView.setText(getString(R.string.alarm_threshold, progress));
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
@@ -77,11 +83,25 @@ public class DeviceTabFragment extends Fragment {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 // called after the user finishes moving the SeekBar
-                ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.sendAlarmThresholdMessage(String.valueOf(seekBar.getProgress()));
-                logThresholdView.setText("Event Log Threshold: " + seekBar.getProgress());
+                AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(rootView.getContext(), R.style.AlertDialogCustom));
 
-                //TODO: change yellow and red areas of speedometer to reflect change
-                // depends on the min and max readings for the sensor, normal, elevated and high values...
+                if(MainTabbedActivity.connectedDevice != null){
+                    alert.setMessage("Are you sure you would like to set the voltage alarm threshold to " + seekBar.getProgress() + "?");
+
+                    alert.setPositiveButton("Yes", (dialog, whichButton) ->
+                            ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.sendAlarmThresholdMessage(String.valueOf(seekBar.getProgress())));
+
+                    alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) ->
+                            logThresholdBar.refreshDrawableState());
+
+                    Log.d(TAG, "Alarm Threshold dialog closed");
+
+                } else {
+                    alert.setMessage("No device connected");
+                }
+
+                alert.show();
+                logThresholdView.setText(getString(R.string.alarm_threshold, seekBar.getProgress()));
 
             }
         });
