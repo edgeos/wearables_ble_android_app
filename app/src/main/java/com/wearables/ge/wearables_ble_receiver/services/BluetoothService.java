@@ -28,7 +28,6 @@ import android.util.Log;
 import android.widget.EditText;
 
 import com.wearables.ge.wearables_ble_receiver.R;
-import com.wearables.ge.wearables_ble_receiver.activities.main.MainActivity;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.QueueItem;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
@@ -88,6 +87,7 @@ public class BluetoothService extends Service {
     public void connectDevice(BluetoothDevice device) {
         BluetoothService.GattClientCallback gattClientCallback = new BluetoothService.GattClientCallback();
         connectedGatt = device.connectGatt(this, false, gattClientCallback);
+        Log.d(TAG, "Device " + deviceName + " connected");
     }
 
     public void disconnectGattServer() {
@@ -201,40 +201,6 @@ public class BluetoothService extends Service {
                 }
             }
         }
-    }
-
-    public void showDeviceID(Context context){
-        AlertDialog.Builder alert = new AlertDialog.Builder(context);
-        alert.setMessage(getString(R.string.show_device_id, MainActivity.connectedDevice.getAddress()));
-        alert.show();
-    }
-
-
-    public void renameDevice(Context context){
-        AlertDialog.Builder alert = new AlertDialog.Builder(context);
-
-        alert.setMessage(R.string.rename_device_modal_message);
-
-        final EditText input = new EditText(context);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-
-        alert.setView(input);
-
-        alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
-            try{
-                //try reflection to find a "setAlias" method but this probably won't work
-                //likely will need to add functionality to Nordic device and write to a characteristic
-                Method m = connectedGatt.getDevice().getClass().getMethod("setAlias", String.class);
-                m.invoke(connectedGatt.getDevice(), input.getText().toString());
-            } catch (Exception e){
-                Log.d(TAG, "Unable to rename device: " + e.getMessage());
-                e.printStackTrace();
-            }
-        });
-
-        alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Rename Device dialog closed"));
-
-        alert.show();
     }
 
     /**

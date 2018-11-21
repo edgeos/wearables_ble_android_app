@@ -35,7 +35,8 @@ public class AuthenticatorActivity extends AppCompatActivity {
             }
         }).execute();*/
 
-        Intent intent = new Intent(this, MainActivity.class);
+        //Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, MainTabbedActivity.class);
         startActivity(intent);
     }
 }
