@@ -216,16 +216,7 @@ public class HistoryTabFragment extends Fragment {
         graph2.removeAllSeries();
         graph3.removeAllSeries();
 
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
-        series.appendData(new DataPoint(50, 0), false, 100);
-        series.appendData(new DataPoint(50, maxYvalue), false, 100);
-        series.setThickness(2);
-        series.setColor(Color.parseColor("#808080"));
-        graph1.addSeries(series);
-        graph2.addSeries(series);
-        graph3.addSeries(series);
-
-        series = new LineGraphSeries<>();
+        LineGraphSeries<DataPoint>  series = new LineGraphSeries<>();
         series.appendData(new DataPoint(60, 0), false, 100);
         series.appendData(new DataPoint(60, maxYvalue), false, 100);
         series.setThickness(2);

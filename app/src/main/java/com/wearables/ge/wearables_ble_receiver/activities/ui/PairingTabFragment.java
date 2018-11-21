@@ -146,7 +146,7 @@ public class PairingTabFragment extends Fragment {
 
         if(MainTabbedActivity.connectedDevice != null){
             View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
-            linLayout.addView(view);
+            linLayout.addView(view, 0);
             String objName = connectedDevice.getName() == null ? connectedDevice.getAddress() : connectedDevice.getName();
             ((TextView) view.findViewById(R.id.text)).setText(objName);
             Switch switchButton = view.findViewById(R.id.button);
@@ -269,7 +269,7 @@ public class PairingTabFragment extends Fragment {
                 Log.d(TAG, "Found device: " + objName);
 
                 View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
-                linLayout.addView(view);
+                linLayout.addView(view, 0);
 
                 ((TextView) view.findViewById(R.id.text)).setText(objName);
 
