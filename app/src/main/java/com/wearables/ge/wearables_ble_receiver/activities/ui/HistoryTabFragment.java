@@ -2,6 +2,7 @@ package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,14 +12,11 @@ import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
 import android.widget.LinearLayout;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.Viewport;
-import com.jjoe64.graphview.helper.StaticLabelsFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.wearables.ge.wearables_ble_receiver.R;
@@ -27,8 +25,6 @@ import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 
 public class HistoryTabFragment extends Fragment {
     private static final String TAG = "History Tab Fragment";
-
-    public static final String ARG_SECTION_NUMBER = "section_number";
 
     public static final String TAB_NAME = "History";
 
@@ -46,28 +42,27 @@ public class HistoryTabFragment extends Fragment {
     View rootView;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.d(TAG, "History Tab opened");
         rootView = inflater.inflate(R.layout.fragment_tab_history, container, false);
-        Bundle args = getArguments();
 
-        LinearLayout expanableLayout1 = (LinearLayout) rootView.findViewById(R.id.collapsibleContainer1);
-        Switch switchButton1 = (Switch) rootView.findViewById(R.id.expand1);
+        LinearLayout expandableLayout1 = rootView.findViewById(R.id.collapsibleContainer1);
+        Switch switchButton1 = rootView.findViewById(R.id.expand1);
         switchButton1.setChecked(true);
         switchButton1.setOnClickListener( v -> {
             if (switchButton1.isChecked()) {
                 Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
-                expandView(expanableLayout1, 500);
+                expandView(expandableLayout1, 500);
 
             } else {
                 Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
-                collapseView(expanableLayout1, 500);
+                collapseView(expandableLayout1, 500);
             }
         });
 
-        LinearLayout expandableLayout2 = (LinearLayout) rootView.findViewById(R.id.collapsibleContainer2);
-        Switch switchButton2 = (Switch) rootView.findViewById(R.id.expand2);
+        LinearLayout expandableLayout2 = rootView.findViewById(R.id.collapsibleContainer2);
+        Switch switchButton2 = rootView.findViewById(R.id.expand2);
         switchButton2.setChecked(true);
         switchButton2.setOnClickListener( v -> {
             if (switchButton2.isChecked()) {
@@ -136,7 +131,6 @@ public class HistoryTabFragment extends Fragment {
         });
         expandAnimation.setDuration(duration);
 
-        //expanableLayout1.animate().scaleY(1);
         view.startAnimation(expandAnimation);
     }
 
@@ -161,8 +155,7 @@ public class HistoryTabFragment extends Fragment {
             }
         });
 
-        collapseAnimation.setDuration(500);
-        //expanableLayout1.animate().scaleY(0);
+        collapseAnimation.setDuration(duration);
         view.startAnimation(collapseAnimation);
     }
 

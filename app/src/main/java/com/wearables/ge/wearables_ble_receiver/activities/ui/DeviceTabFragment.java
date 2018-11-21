@@ -1,6 +1,7 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,47 +21,25 @@ import pl.pawelkleczkowski.customgauge.CustomGauge;
 
 public class DeviceTabFragment extends Fragment {
 
-    public static final String ARG_SECTION_NUMBER = "section_number";
-
     public static final String TAB_NAME = "Device";
 
-    private SeekBar sampleRateBar = null;
     private TextView sampleRateView = null;
-    private SeekBar logThresholdBar = null;
     private TextView logThresholdView = null;
-    private SpeedView speedometer = null;
     private TextView deviceName = null;
 
 
     private GraphView logGraph = null;
-    private LineGraphSeries<DataPoint> logSeries = null;
-
-    public int fragmentId;
 
     View rootView;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_tab_device, container, false);
-        Bundle args = getArguments();
-
-        /*// Initial gauge config using https://github.com/anastr/SpeedView
-        //TODO: add Bluetooth listeners and update these dynamically.
-        speedometer = rootView.findViewById(R.id.speedView);
-        speedometer.setWithTremble(false);
-        speedometer.speedTo(71);
-        speedometer.setMaxSpeed(100);
-        speedometer.setMinSpeed(0);
-        speedometer.setUnit(" ppm");
-
-        //TODO: change the yellow and red areas of the speedometer according to user threshold e.g. yellow event, red event...
-        speedometer.setLowSpeedPercent(25);
-        speedometer.setMediumSpeedPercent(75);*/
 
         int sampleRateStepSize = 25; // from 0 - 100 with increments of 25 points each
 
-        sampleRateBar = rootView.findViewById(R.id.sampleRateBar);
+        SeekBar sampleRateBar = rootView.findViewById(R.id.sampleRateBar);
         sampleRateView = rootView.findViewById(R.id.sampleRateView);
         sampleRateBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -85,7 +64,7 @@ public class DeviceTabFragment extends Fragment {
             }
         });
 
-        logThresholdBar = rootView.findViewById(R.id.logThresholdBar);
+        SeekBar logThresholdBar = rootView.findViewById(R.id.logThresholdBar);
         logThresholdView = rootView.findViewById(R.id.logThresholdView);
         logThresholdBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -113,7 +92,7 @@ public class DeviceTabFragment extends Fragment {
 
         // log graphic
         GraphView logGraph = rootView.findViewById(R.id.sensor_log_graph);
-        logSeries = new LineGraphSeries<>();
+        LineGraphSeries<DataPoint> logSeries = new LineGraphSeries<>();
         // data
         logGraph.addSeries(logSeries);
         // customize viewport
@@ -130,10 +109,6 @@ public class DeviceTabFragment extends Fragment {
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(name);
     }
-
-    /*public void updateVOCGauge(int value){
-        speedometer.speedTo(value);
-    }*/
 
     public void updateVoltageSensorStatus(String sensorStatus){
         TextView voltageSensorStatusView = rootView.findViewById(R.id.voltage_sensor_status);

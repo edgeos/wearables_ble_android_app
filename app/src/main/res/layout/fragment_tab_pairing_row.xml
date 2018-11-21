@@ -15,6 +15,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginLeft="16dp"
             android:textStyle="bold"
+            android:fontFamily="@font/geinspirasansfamily"
             android:text="Device name" />
 
 

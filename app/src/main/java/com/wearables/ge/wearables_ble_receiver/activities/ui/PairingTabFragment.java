@@ -2,6 +2,7 @@ package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -45,8 +46,6 @@ import static android.content.Context.BLUETOOTH_SERVICE;
 public class PairingTabFragment extends Fragment {
     private static final String TAG = "Pairing Tab Fragment";
 
-    public static final String ARG_SECTION_NUMBER = "section_number";
-
     public static final String TAB_NAME = "Pairing";
 
     private static final int REQUEST_ENABLE_BT = 1;
@@ -71,13 +70,13 @@ public class PairingTabFragment extends Fragment {
     LayoutInflater inflater;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_tab_pairing, container, false);
         linLayout = rootView.findViewById(R.id.device_list);
         this.inflater = inflater;
 
-        BluetoothManager bluetoothManager = (BluetoothManager) getActivity().getSystemService(BLUETOOTH_SERVICE);
+        BluetoothManager bluetoothManager = (BluetoothManager) Objects.requireNonNull(getActivity()).getSystemService(BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
         startScan();
@@ -85,17 +84,17 @@ public class PairingTabFragment extends Fragment {
         return rootView;
     }
 
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
     }
 
     private void connectDevice() {
         Log.d(TAG, "Attempting to connect to: " + deviceName);
-        ((MainTabbedActivity)getActivity()).connectDevice(connectedDevice, deviceName);
+        ((MainTabbedActivity)Objects.requireNonNull(getActivity())).connectDevice(connectedDevice, deviceName);
     }
 
-    private void disconnectDevice(CharSequence text) {
-        ((MainTabbedActivity)getActivity()).disconnectDevice();
+    private void disconnectDevice() {
+        ((MainTabbedActivity)Objects.requireNonNull(getActivity())).disconnectDevice();
     }
 
     public void startScan() {
@@ -158,7 +157,7 @@ public class PairingTabFragment extends Fragment {
                     Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(this.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
-                    disconnectDevice(switchButton.getText());
+                    disconnectDevice();
                 }
             });
         } else {
@@ -180,7 +179,7 @@ public class PairingTabFragment extends Fragment {
                 Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(this.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
-                disconnectDevice(switchButton.getText());
+                disconnectDevice();
             }
         });
         //END SIMULATOR CODE CHUNK
@@ -291,7 +290,7 @@ public class PairingTabFragment extends Fragment {
                         Toast.makeText(rootView.getContext(), "connecting...", Toast.LENGTH_LONG).show();
                     } else {
                         Toast.makeText(rootView.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
-                        disconnectDevice(switchButton.getText());
+                        disconnectDevice();
                     }
                 });
 

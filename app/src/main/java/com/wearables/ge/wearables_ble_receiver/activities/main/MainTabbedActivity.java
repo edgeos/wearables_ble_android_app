@@ -4,8 +4,6 @@ package com.wearables.ge.wearables_ble_receiver.activities.main;
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -32,8 +30,6 @@ import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class MainTabbedActivity extends FragmentActivity implements ActionBar.TabListener {
@@ -210,7 +206,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     public static class AppSectionsPagerAdapter extends FragmentPagerAdapter {
 
 
-        public AppSectionsPagerAdapter(FragmentManager fm) {
+        AppSectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
@@ -341,7 +337,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             Log.d(TAG, "Battery level: " + extraIntData + "%");
         } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
-            VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
+            VoltageAlarmStateChar voltageAlarmState = null;
+            if (value != null) {
+                voltageAlarmState = new VoltageAlarmStateChar(value);
+            }
             mHistoryTabFragment.updateGraph(voltageAlarmState);
         } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
