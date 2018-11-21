@@ -23,16 +23,7 @@
             android:name=".activities.main.MainTabbedActivity"
             android:label="@string/app_name"/>
 
-        <activity android:name=".activities.main.MainActivity" />
-        <activity
-            android:name=".activities.main.DisplayMessageActivity"
-            android:parentActivityName=".activities.main.MainActivity">
 
-            <!-- The meta-data tag is required if you support API level 15 and lower -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.main.MainActivity" />
-        </activity>
         <activity
             android:name=".activities.main.AuthenticatorActivity"
             android:label="@string/title_activity_authenticator"
@@ -46,54 +37,6 @@
 
         <service android:name=".services.BluetoothService" />
 
-        <activity
-            android:name=".activities.main.RealTimeDataSelectionActivity"
-            android:label="@string/title_activity_real_time_data_selection"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.main.DisplayMessageActivity" />
-        </activity>
-        <activity
-            android:name=".activities.graphs.VoltageSensorGraphsActivity"
-            android:label="@string/title_activity_voltage_sensor_graphs"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.main.RealTimeDataSelectionActivity" />
-        </activity>
-        <activity
-            android:name=".activities.graphs.AccelerationSensorGraphs"
-            android:label="@string/title_activity_acceleration_sensor_graphs"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.main.RealTimeDataSelectionActivity" />
-        </activity>
-        <activity
-            android:name=".activities.graphs.SpO2SensorGraphs"
-            android:label="@string/title_activity_sp_o2_sensor_graphs"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.main.RealTimeDataSelectionActivity" />
-        </activity>
-        <activity
-            android:name=".activities.graphs.TempHumiditySensorGraph"
-            android:label="@string/title_activity_temp_humidity_sensor_graph"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.main.RealTimeDataSelectionActivity" />
-        </activity>
-        <activity
-            android:name=".activities.graphs.VocGraphs"
-            android:label="@string/title_activity_voc_graphs"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.main.RealTimeDataSelectionActivity" />
-        </activity>
     </application>
 
 </manifest>

@@ -17,7 +17,15 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.ui.DeviceTabFragment;
@@ -57,7 +65,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     public static String ARG_SECTION_NUMBER = "section_number";
 
     boolean mBound;
-    BluetoothService mService;
+    public BluetoothService mService;
     public static BluetoothDevice connectedDevice;
 
     public static String connectedDeviceName;
@@ -117,6 +125,45 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         LocationService.startLocationService(this);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_items, menu);
+        return true;
+    }
+
+    //switch case logic for menu button
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.update_rate:
+                Log.d(TAG, "update_rate button pushed");
+                //action for update_rate click
+                return true;
+            case R.id.device_id:
+                Log.d(TAG, "device_id button pushed");
+                showDeviceID();
+                return true;
+            case R.id.rename:
+                Log.d(TAG, "rename button pushed");
+                //action for rename
+                return true;
+            case R.id.disconnect:
+                //action for disconnect
+                Log.d(TAG, "Disconnect button pushed");
+                if(connectedDevice != null){
+                    disconnectDevice();
+                }
+                return true;
+            case R.id.dev_mode:
+                Log.d(TAG, "dev_mode button pushed");
+                //dev mode action
+                return true;
+            default:
+                Log.d(TAG, "No menu item found for " + item.getItemId());
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     public void connectDevice(BluetoothDevice device, String deviceName){
         Log.d(TAG, "Attempting to connect to: " + deviceName);
         connectedDeviceName = deviceName;
@@ -129,6 +176,16 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         mService.disconnectGattServer();
         connectedDevice = null;
         connectedDeviceName = null;
+    }
+
+    public void showDeviceID(){
+        AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
+        if(connectedDevice != null){
+            alert.setMessage(getString(R.string.show_device_id, connectedDevice.getAddress()));
+        } else {
+            alert.setMessage(getString(R.string.show_device_id, "No device connected"));
+        }
+        alert.show();
     }
 
     //connection callback for bluetooth service
@@ -162,21 +219,41 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         return intentFilter;
     }
 
+    /*private void showAlarmThresholdDialog() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+        alert.setMessage(R.string.alert_threshold_dialog_message);
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        alert.setView(input);
+
+        alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
+            mService.sendAlarmThresholdMessage(input.getText().toString());
+        });
+
+        alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Alarm Threshold dialog closed"));
+
+        alert.show();
+    }*/
+
     //this method handles broadcasts sent from the bluetooth service
     public final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            if(action != null){
-                switch(action){
+            if (action != null) {
+                switch (action) {
                     case BluetoothService.ACTION_GATT_SERVICES_DISCOVERED:
                         Log.d(TAG, "ACTION_GATT_SERVICES_DISCOVERED broadcast received");
-                        //showConnectedMessage();
+                        //good indication that the device is successfully connected
+                        Toast.makeText(mPairingTabFragment.getContext(), "Device Connected", Toast.LENGTH_LONG).show();
                         mService.setNotifyOnCharacteristics();
                         break;
                     case BluetoothService.ACTION_DATA_AVAILABLE:
                         int extraType = intent.getIntExtra(BluetoothService.EXTRA_TYPE, -1);
-                        if(extraType == BLEQueue.ITEM_TYPE_READ){
+                        if (extraType == BLEQueue.ITEM_TYPE_READ) {
                             readAvailableData(intent);
                         }
                         break;

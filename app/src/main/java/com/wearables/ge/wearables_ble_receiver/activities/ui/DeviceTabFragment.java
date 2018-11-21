@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.github.anastr.speedviewlib.SpeedView;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
@@ -17,7 +16,7 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 
-import pl.pawelkleczkowski.customgauge.CustomGauge;
+import java.util.Objects;
 
 public class DeviceTabFragment extends Fragment {
 
@@ -78,6 +77,7 @@ public class DeviceTabFragment extends Fragment {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 // called after the user finishes moving the SeekBar
+                ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.sendAlarmThresholdMessage(String.valueOf(seekBar.getProgress()));
                 logThresholdView.setText("Event Log Threshold: " + seekBar.getProgress());
 
                 //TODO: change yellow and red areas of speedometer to reflect change
@@ -121,10 +121,6 @@ public class DeviceTabFragment extends Fragment {
         TextView batteryLevelView = rootView.findViewById(R.id.battery_level);
         if(batteryLevelView != null){
             batteryLevelView.setText(getString(R.string.battery_level, batteryLevel));
-        }
-        CustomGauge batteryGauge = rootView.findViewById(R.id.battery_gauge);
-        if(batteryGauge != null){
-            batteryGauge.setValue(batteryLevel);
         }
     }
 

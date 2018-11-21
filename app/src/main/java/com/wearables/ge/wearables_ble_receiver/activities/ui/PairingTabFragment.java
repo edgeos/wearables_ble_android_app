@@ -154,7 +154,7 @@ public class PairingTabFragment extends Fragment {
             switchButton.setOnClickListener( v -> {
                 if (switchButton.isChecked()) {
                     connectDevice();
-                    Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
                     disconnectDevice();
@@ -176,7 +176,7 @@ public class PairingTabFragment extends Fragment {
                 deviceName = "Simulator";
                 connectedDevice = null;
                 startSimulator();
-                Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_LONG).show();
+                Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
                 disconnectDevice();
@@ -287,7 +287,7 @@ public class PairingTabFragment extends Fragment {
                         deviceName = objName;
                         connectedDevice = obj;
                         connectDevice();
-                        Toast.makeText(rootView.getContext(), "connecting...", Toast.LENGTH_LONG).show();
+                        Toast.makeText(rootView.getContext(), "connecting...", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(rootView.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
                         disconnectDevice();
