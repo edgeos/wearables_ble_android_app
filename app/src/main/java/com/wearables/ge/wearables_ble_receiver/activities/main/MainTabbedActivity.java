@@ -38,6 +38,9 @@ import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.UUID;
 
 public class MainTabbedActivity extends FragmentActivity implements ActionBar.TabListener {
@@ -69,6 +72,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     public static BluetoothDevice connectedDevice;
 
     public static String connectedDeviceName;
+
+    public boolean devMode;
+    public Menu menuBar;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,6 +134,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_items, menu);
+        this.menuBar = menu;
         return true;
     }
 
@@ -157,6 +164,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             case R.id.dev_mode:
                 Log.d(TAG, "dev_mode button pushed");
                 //dev mode action
+                switchModes();
                 return true;
             default:
                 Log.d(TAG, "No menu item found for " + item.getItemId());
@@ -188,6 +196,17 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         alert.show();
     }
 
+    public void switchModes() {
+        MenuItem devModeItem = menuBar.findItem(R.id.dev_mode);
+        if(!devMode){
+            devModeItem.setTitle(R.string.normal_mode_menu_item);
+            devMode = true;
+        } else {
+            devModeItem.setTitle(R.string.dev_mode_menu_item);
+            devMode = false;
+        }
+
+    }
     //connection callback for bluetooth service
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -404,6 +423,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
         } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
             mDeviceTabFragment.updateVoltageLevel(extraIntData);
+            //Timestamp date = new Timestamp(System.currentTimeMillis());
+            //Calendar date = Calendar.getInstance();
+            //mDeviceTabFragment.updateGraph(date.getTime(), extraIntData);
             Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
         } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
             mDeviceTabFragment.updateHumidity(extraIntData);

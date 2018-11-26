@@ -1,5 +1,6 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -15,12 +16,18 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.LabelFormatter;
 import com.jjoe64.graphview.Viewport;
+import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
+import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Objects;
 
 public class DeviceTabFragment extends Fragment {
@@ -33,6 +40,9 @@ public class DeviceTabFragment extends Fragment {
     private TextView deviceName = null;
 
     View rootView;
+
+    LineGraphSeries<DataPoint> alarmLevelSeries;
+    GraphView logGraph;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -90,6 +100,7 @@ public class DeviceTabFragment extends Fragment {
 
                     alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
                         ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.sendAlarmThresholdMessage(String.valueOf(seekBar.getProgress()));
+                        addAlarmLevelLine(seekBar.getProgress());
                     });
 
                     alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> {
@@ -113,17 +124,79 @@ public class DeviceTabFragment extends Fragment {
 
         // log graphic
         GraphView logGraph = rootView.findViewById(R.id.sensor_log_graph);
-        LineGraphSeries<DataPoint> logSeries = new LineGraphSeries<>();
-        // data
-        logGraph.addSeries(logSeries);
-        // customize viewport
+        logGraph.getGridLabelRenderer().setHumanRounding(false);
+        //logGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getActivity()));
+        logGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                if(isValueX){
+                    Date d = new Date((long) value);
+                    return (dateFormat.format(d));
+                }
+                return "" + (int) value;
+            }
+
+            @Override
+            public void setViewport(Viewport viewport) {
+
+            }
+        });
+
         Viewport viewport1 = logGraph.getViewport();
         viewport1.setYAxisBoundsManual(true);
+        viewport1.setXAxisBoundsManual(true);
         viewport1.setMinY(0);
         viewport1.setMaxY(100);
-        viewport1.setScrollable(true);
+        updateGraph(null,0);
 
         return rootView;
+    }
+
+    private static Long L9;
+    private static Long L1;
+    public void updateGraph(Date xValue, int yValue){
+        logGraph = rootView.findViewById(R.id.sensor_log_graph);
+        Calendar date = Calendar.getInstance();
+        L1 = date.getTimeInMillis();
+        //dummy data for now
+        Long L2 = L1 - 10000;
+        Long L3 = L2 - 10000;
+        Long L4 = L3 - 10000;
+        Long L5 = L4 - 10000;
+        Long L6 = L5 - 10000;
+        Long L7 = L6 - 10000;
+        Long L8 = L7 - 10000;
+        L9 = L8 - 10000;
+        BarGraphSeries<DataPoint> logSeries = new BarGraphSeries<>(new DataPoint[] {
+                new DataPoint(L9, 20),
+                new DataPoint(L8, 55),
+                new DataPoint(L7, 15),
+                new DataPoint(L6, 70),
+                new DataPoint(L5, 30),
+                new DataPoint(L4, 80),
+                new DataPoint(L3, 10),
+                new DataPoint(L2, 40),
+                new DataPoint(L1, 90)
+        });
+        logGraph.addSeries(logSeries);
+
+        logSeries.setSpacing(50);
+
+        logGraph.getViewport().setMinX(L9);
+        logGraph.getViewport().setMaxX(L1);
+
+        addAlarmLevelLine(50);
+    }
+
+    public void addAlarmLevelLine(int level){
+        logGraph.removeSeries(alarmLevelSeries);
+        alarmLevelSeries = new LineGraphSeries<>(new DataPoint[] {
+                new DataPoint(L9, level),
+                new DataPoint(L1, level)
+        });
+        logGraph.addSeries(alarmLevelSeries);
+        alarmLevelSeries.setColor(Color.RED);
     }
 
     public void displayDeviceName(String name){
