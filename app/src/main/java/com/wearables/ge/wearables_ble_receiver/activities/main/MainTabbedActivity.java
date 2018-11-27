@@ -37,6 +37,7 @@ import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerData;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
+import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 
 import java.sql.Timestamp;
@@ -410,40 +411,48 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
         }*/
 
-        if(extraUuid.equals(GattAttributes.BATT_LEVEL_CHAR_UUID)){
-            mDeviceTabFragment.updateBatteryLevel(extraIntData);
-            Log.d(TAG, "Battery level: " + extraIntData + "%");
-        } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
-            Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
-            VoltageAlarmStateChar voltageAlarmState = null;
-            if (value != null) {
-                voltageAlarmState = new VoltageAlarmStateChar(value);
+        if(value != null){
+            if(extraUuid.equals(GattAttributes.BATT_LEVEL_CHAR_UUID)){
+                if(mDeviceTabFragment.isVisible()){
+                    mDeviceTabFragment.updateBatteryLevel(extraIntData);
+                }
+                Log.d(TAG, "Battery level: " + extraIntData + "%");
+            } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
+                Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
+                VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
+                if(mHistoryTabFragment.isVisible()){
+                    mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
+                }
+                mDeviceTabFragment.updateGraph(Calendar.getInstance(), voltageAlarmState.getCh1_fft_results().get(8) + 20);
+            } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
+                Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
+            } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
+                if(mHistoryTabFragment.isVisible()){
+                    AccelerometerData accelerometerData = new AccelerometerData(value);
+                    mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
+                }
+                Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
+            } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
+                TempHumidPressure tempHumidPressure = new TempHumidPressure(value);
+                if(mDeviceTabFragment.isVisible()){
+                    mDeviceTabFragment.updateHumidity(tempHumidPressure.getHumid());
+                    mDeviceTabFragment.updateTemperature(tempHumidPressure.getTemp());
+                    mDeviceTabFragment.updateVOC(tempHumidPressure.getPres());
+                }
+                if(mHistoryTabFragment.isVisible()){
+                    mHistoryTabFragment.updateTempHumidityGraph(tempHumidPressure);
+                }
+                Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
+            } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
+                mDeviceTabFragment.updateSpo2Sensor(value);
+                Log.d(TAG, "GAS_SENSOR_DATA value: " + value);
+            } else if(extraUuid.equals(GattAttributes.OPTICAL_SENSOR_DATA_CHARACTERISTIC_UUID)){
+                Log.d(TAG, "OPTICAL_SENSOR_DATA value: " + value);
+            } else if(extraUuid.equals(GattAttributes.STREAMING_DATA_CHARACTERISTIC_UUID)){
+                Log.d(TAG, "STREAMING_DATA value: " + value);
+            } else {
+                Log.d(TAG, "Received message: " + value + " with UUID: " + extraUuid);
             }
-            mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
-            mDeviceTabFragment.updateGraph(Calendar.getInstance(), voltageAlarmState.getCh1_fft_results().get(8) + 20);
-        } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
-            Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
-        } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
-            mDeviceTabFragment.updateVoltageLevel(extraIntData);
-            AccelerometerData accelerometerData = new AccelerometerData(value);
-            mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
-            Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
-        } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
-            mDeviceTabFragment.updateHumidity(extraIntData);
-            mDeviceTabFragment.updateTemperature(extraIntData);
-            mDeviceTabFragment.updateVOC(extraIntData);
-            Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
-        } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
-            mDeviceTabFragment.updateSpo2Sensor(value);
-            Log.d(TAG, "GAS_SENSOR_DATA value: " + value);
-        } else if(extraUuid.equals(GattAttributes.OPTICAL_SENSOR_DATA_CHARACTERISTIC_UUID)){
-            Log.d(TAG, "OPTICAL_SENSOR_DATA value: " + value);
-        } else if(extraUuid.equals(GattAttributes.STREAMING_DATA_CHARACTERISTIC_UUID)){
-            Log.d(TAG, "STREAMING_DATA value: " + value);
-        } else {
-            Log.d(TAG, "Received message: " + value + " with UUID: " + extraUuid);
         }
-
     }
-
 }

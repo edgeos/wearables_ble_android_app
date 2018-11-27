@@ -54,4 +54,15 @@
     <string name="acceleration_z_graph_title">Z</string>
     <string name="acceleration_graph_x_axis_label">Time</string>
     <string name="acceleration_graph_y_axis_label">Value</string>
+    <string name="spo2_red_graph_title">Red</string>
+    <string name="spo2_ir_graph_title">IR</string>
+    <string name="spo2_green_graph_title">Green</string>
+    <string name="spo2_graph_x_axis_label">x-axis</string>
+    <string name="spo2_graph_y_axis_label">y-axis</string>
+    <string name="temperature_graph_title">Temperature</string>
+    <string name="humidity_graph_title">Humidity</string>
+    <string name="temperature_graph_x_axis_label">Time</string>
+    <string name="temperature_graph_y_axis_label">Temp</string>
+    <string name="humidity_graph_x_axis_label">Time</string>
+    <string name="humidity_graph_y_axis_label">Humidity</string>
 </resources>

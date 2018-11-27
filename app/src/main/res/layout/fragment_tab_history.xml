@@ -217,7 +217,7 @@
                 android:layout_marginLeft="10dp"
                 android:textSize="16dp"
                 android:textStyle="bold"
-                android:text="Device Name and Type" />
+                android:text="@string/temp_humidity_sensor_button" />
 
         </LinearLayout>
 
@@ -234,11 +234,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:text="Sensor Name"
+                android:text="@string/temperature_graph_title"
                 android:textStyle="bold" />
 
             <com.jjoe64.graphview.GraphView
-                android:id="@+id/spo2_sensor_graph_b1"
+                android:id="@+id/temperature_graph"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_marginBottom="8dp"
@@ -250,28 +250,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:text="Sensor Name"
+                android:text="@string/humidity_graph_title"
                 android:textStyle="bold" />
 
             <com.jjoe64.graphview.GraphView
-                android:id="@+id/spo2_sensor_graph_b2"
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                />
-
-
-            <TextView
-                android:id="@+id/sensor_name_c3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:textStyle="bold"
-                android:text="Sensor Name" />
-
-            <com.jjoe64.graphview.GraphView
-                android:id="@+id/spo2_sensor_graph_b3"
+                android:id="@+id/humidity_graph"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_marginTop="8dp"

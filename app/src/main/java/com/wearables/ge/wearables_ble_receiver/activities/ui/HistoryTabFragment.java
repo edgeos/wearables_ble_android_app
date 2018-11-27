@@ -22,6 +22,7 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerData;
+import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 
 import java.text.SimpleDateFormat;
@@ -45,6 +46,8 @@ public class HistoryTabFragment extends Fragment {
     GraphView accelerationGraph1;
     GraphView accelerationGraph2;
     GraphView accelerationGraph3;
+    GraphView tempGraph;
+    GraphView humidityGraph;
     private int lastX = 0;
 
     View rootView;
@@ -52,6 +55,9 @@ public class HistoryTabFragment extends Fragment {
     LineGraphSeries<DataPoint>  accelerometerXseries = new LineGraphSeries<>();
     LineGraphSeries<DataPoint>  accelerometerYseries = new LineGraphSeries<>();
     LineGraphSeries<DataPoint>  accelerometerZseries = new LineGraphSeries<>();
+
+    LineGraphSeries<DataPoint>  temperatureSeries = new LineGraphSeries<>();
+    LineGraphSeries<DataPoint>  humiditySeries = new LineGraphSeries<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -192,6 +198,56 @@ public class HistoryTabFragment extends Fragment {
         accelerationGridLabel3.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
         accelerationGridLabel3.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
         accelerationGraph3.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                if(isValueX){
+                    Date d = new Date((long) value);
+                    return (dateFormat.format(d));
+                }
+                return "" + (int) value;
+            }
+
+            @Override
+            public void setViewport(Viewport viewport) {
+
+            }
+        });
+
+        tempGraph = rootView.findViewById(R.id.temperature_graph);
+        Viewport tempGraphViewport = tempGraph.getViewport();
+        tempGraphViewport.setYAxisBoundsManual(true);
+        tempGraphViewport.setXAxisBoundsManual(true);
+        tempGraph.addSeries(temperatureSeries);
+        GridLabelRenderer tempGridLabel = tempGraph.getGridLabelRenderer();
+        tempGridLabel.setHorizontalAxisTitle(getString(R.string.temperature_graph_x_axis_label));
+        tempGridLabel.setVerticalAxisTitle(getString(R.string.temperature_graph_y_axis_label));
+        tempGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                if(isValueX){
+                    Date d = new Date((long) value);
+                    return (dateFormat.format(d));
+                }
+                return "" + (int) value;
+            }
+
+            @Override
+            public void setViewport(Viewport viewport) {
+
+            }
+        });
+
+        humidityGraph = rootView.findViewById(R.id.humidity_graph);
+        Viewport humidityGraphViewport = humidityGraph.getViewport();
+        humidityGraphViewport.setYAxisBoundsManual(true);
+        humidityGraphViewport.setXAxisBoundsManual(true);
+        humidityGraph.addSeries(humiditySeries);
+        GridLabelRenderer humidityGridLabel = humidityGraph.getGridLabelRenderer();
+        humidityGridLabel.setHorizontalAxisTitle(getString(R.string.humidity_graph_x_axis_label));
+        humidityGridLabel.setVerticalAxisTitle(getString(R.string.humidity_graph_y_axis_label));
+        humidityGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
             @Override
             public String formatLabel(double value, boolean isValueX) {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -395,6 +451,23 @@ public class HistoryTabFragment extends Fragment {
             accelerationGraph3.getViewport().setMaxX(accelerometerZseries.getHighestValueX());
             accelerationGraph3.getViewport().setMinY(accelerometerZseries.getLowestValueY());
             accelerationGraph3.getViewport().setMaxY(accelerometerZseries.getHighestValueY());
+        }
+    }
+
+    public void updateTempHumidityGraph(TempHumidPressure tempHumidPressure){
+        temperatureSeries.appendData(new DataPoint(tempHumidPressure.getDate(), tempHumidPressure.getTemp()), false, 300);
+        humiditySeries.appendData(new DataPoint(tempHumidPressure.getDate(), tempHumidPressure.getHumid()), false, 300);
+
+        if(tempGraph != null && humidityGraph != null){
+            tempGraph.getViewport().setMinX(temperatureSeries.getLowestValueX());
+            tempGraph.getViewport().setMaxX(temperatureSeries.getHighestValueX());
+            tempGraph.getViewport().setMinY(temperatureSeries.getLowestValueY());
+            tempGraph.getViewport().setMaxY(temperatureSeries.getHighestValueY());
+
+            humidityGraph.getViewport().setMinX(humiditySeries.getLowestValueX());
+            humidityGraph.getViewport().setMaxX(humiditySeries.getHighestValueX());
+            humidityGraph.getViewport().setMinY(humiditySeries.getLowestValueY());
+            humidityGraph.getViewport().setMaxY(humiditySeries.getHighestValueY());
         }
     }
 }
