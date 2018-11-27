@@ -2,7 +2,6 @@ package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
 import android.location.Location;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.Gravity;
@@ -26,7 +25,7 @@ public class EventsTabFragment extends Fragment {
     View rootView;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_tab_events, container, false);
 

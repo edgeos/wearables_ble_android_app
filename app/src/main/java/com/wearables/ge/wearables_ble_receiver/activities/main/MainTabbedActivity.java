@@ -18,13 +18,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.Toolbar;
-import android.text.InputType;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.wearables.ge.wearables_ble_receiver.R;
@@ -40,9 +37,7 @@ import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 
-import java.sql.Timestamp;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.UUID;
 
 public class MainTabbedActivity extends FragmentActivity implements ActionBar.TabListener {
@@ -207,8 +202,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             devModeItem.setTitle(R.string.dev_mode_menu_item);
             devMode = false;
         }
-
     }
+
     //connection callback for bluetooth service
     private ServiceConnection mConnection = new ServiceConnection() {
 

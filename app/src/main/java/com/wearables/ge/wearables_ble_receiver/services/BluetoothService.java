@@ -18,22 +18,17 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
-import com.wearables.ge.wearables_ble_receiver.R;
-import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.QueueItem;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class BluetoothService extends Service {

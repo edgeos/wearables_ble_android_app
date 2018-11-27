@@ -2,7 +2,6 @@ package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -60,7 +59,7 @@ public class HistoryTabFragment extends Fragment {
     LineGraphSeries<DataPoint>  humiditySeries = new LineGraphSeries<>();
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.d(TAG, "History Tab opened");
         rootView = inflater.inflate(R.layout.fragment_tab_history, container, false);
