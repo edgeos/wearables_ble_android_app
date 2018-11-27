@@ -16,6 +16,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.LabelFormatter;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
@@ -26,8 +27,10 @@ import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 public class DeviceTabFragment extends Fragment {
@@ -43,6 +46,13 @@ public class DeviceTabFragment extends Fragment {
 
     LineGraphSeries<DataPoint> alarmLevelSeries;
     GraphView logGraph;
+
+    SeekBar logThresholdBar;
+
+    public int alarmLevel;
+    private static Double minX;
+    private static Double maxX;
+    List<DataPoint> dataPoints = new ArrayList<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -77,9 +87,10 @@ public class DeviceTabFragment extends Fragment {
             }
         });
 
-        SeekBar logThresholdBar = rootView.findViewById(R.id.logThresholdBar);
+        logThresholdBar = rootView.findViewById(R.id.logThresholdBar);
         logThresholdView = rootView.findViewById(R.id.logThresholdView);
         logThresholdView.setText(getString(R.string.alarm_threshold, logThresholdBar.getProgress()));
+        alarmLevel = logThresholdBar.getProgress();
         logThresholdBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -100,11 +111,12 @@ public class DeviceTabFragment extends Fragment {
 
                     alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
                         ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.sendAlarmThresholdMessage(String.valueOf(seekBar.getProgress()));
-                        addAlarmLevelLine(seekBar.getProgress());
+                        alarmLevel = seekBar.getProgress();
+                        addAlarmLevelLine();
                     });
 
                     alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> {
-                        logThresholdBar.refreshDrawableState();
+                        logThresholdBar.setProgress(alarmLevel);
                         Log.d(TAG, "Alarm Threshold dialog closed");
                     });
 
@@ -127,12 +139,17 @@ public class DeviceTabFragment extends Fragment {
         logGraph.getGridLabelRenderer().setHumanRounding(false);
         //logGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getActivity()));
         logGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
+            int i = 0;
             @Override
             public String formatLabel(double value, boolean isValueX) {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                if(isValueX){
+                if(isValueX && i == 100){
                     Date d = new Date((long) value);
+                    i = 0;
                     return (dateFormat.format(d));
+                } else if (isValueX){
+                    i++;
+                    return "";
                 }
                 return "" + (int) value;
             }
@@ -148,52 +165,42 @@ public class DeviceTabFragment extends Fragment {
         viewport1.setXAxisBoundsManual(true);
         viewport1.setMinY(0);
         viewport1.setMaxY(100);
-        updateGraph(null,0);
 
         return rootView;
     }
 
-    private static Long L9;
-    private static Long L1;
-    public void updateGraph(Date xValue, int yValue){
+    public void updateGraph(Calendar xValueDate, int yValue){
         logGraph = rootView.findViewById(R.id.sensor_log_graph);
-        Calendar date = Calendar.getInstance();
-        L1 = date.getTimeInMillis();
-        //dummy data for now
-        Long L2 = L1 - 10000;
-        Long L3 = L2 - 10000;
-        Long L4 = L3 - 10000;
-        Long L5 = L4 - 10000;
-        Long L6 = L5 - 10000;
-        Long L7 = L6 - 10000;
-        Long L8 = L7 - 10000;
-        L9 = L8 - 10000;
-        BarGraphSeries<DataPoint> logSeries = new BarGraphSeries<>(new DataPoint[] {
-                new DataPoint(L9, 20),
-                new DataPoint(L8, 55),
-                new DataPoint(L7, 15),
-                new DataPoint(L6, 70),
-                new DataPoint(L5, 30),
-                new DataPoint(L4, 80),
-                new DataPoint(L3, 10),
-                new DataPoint(L2, 40),
-                new DataPoint(L1, 90)
-        });
+        BarGraphSeries<DataPoint> logSeries = new BarGraphSeries<>();
+        logGraph.removeAllSeries();
+        Long xValue = xValueDate.getTimeInMillis();
+        int dataPointsListSize = dataPoints.size();
+        if(dataPointsListSize < 10){
+            dataPoints.add(new DataPoint(xValue, yValue));
+        } else {
+            dataPoints.remove(0);
+            dataPoints.add(new DataPoint(xValue, yValue));
+        }
+        for(DataPoint dataPoint : dataPoints){
+            logSeries.appendData(dataPoint, false, 20);
+        }
+        dataPointsListSize = dataPoints.size();
+        logSeries.setSpacing(10);
+        minX = dataPoints.get(0).getX() - 500;
+        maxX = dataPoints.get(dataPointsListSize - 1).getX() + 500;
+        logGraph.getViewport().setMinX(minX);
+        logGraph.getViewport().setMaxX(maxX);
+        logGraph.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
         logGraph.addSeries(logSeries);
 
-        logSeries.setSpacing(50);
-
-        logGraph.getViewport().setMinX(L9);
-        logGraph.getViewport().setMaxX(L1);
-
-        addAlarmLevelLine(50);
+        addAlarmLevelLine();
     }
 
-    public void addAlarmLevelLine(int level){
+    public void addAlarmLevelLine(){
         logGraph.removeSeries(alarmLevelSeries);
         alarmLevelSeries = new LineGraphSeries<>(new DataPoint[] {
-                new DataPoint(L9, level),
-                new DataPoint(L1, level)
+                new DataPoint(minX, logThresholdBar.getProgress()),
+                new DataPoint(maxX, logThresholdBar.getProgress())
         });
         logGraph.addSeries(alarmLevelSeries);
         alarmLevelSeries.setColor(Color.RED);

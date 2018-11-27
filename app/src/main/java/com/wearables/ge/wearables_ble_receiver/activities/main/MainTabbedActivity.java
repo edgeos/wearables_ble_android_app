@@ -419,13 +419,11 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 voltageAlarmState = new VoltageAlarmStateChar(value);
             }
             mHistoryTabFragment.updateGraph(voltageAlarmState);
+            mDeviceTabFragment.updateGraph(Calendar.getInstance(), voltageAlarmState.getCh1_fft_results().get(8) + 20);
         } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
             Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
         } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
             mDeviceTabFragment.updateVoltageLevel(extraIntData);
-            //Timestamp date = new Timestamp(System.currentTimeMillis());
-            //Calendar date = Calendar.getInstance();
-            //mDeviceTabFragment.updateGraph(date.getTime(), extraIntData);
             Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
         } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
             mDeviceTabFragment.updateHumidity(extraIntData);
