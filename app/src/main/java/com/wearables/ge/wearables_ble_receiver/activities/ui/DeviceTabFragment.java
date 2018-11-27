@@ -227,20 +227,6 @@ public class DeviceTabFragment extends Fragment {
         }
     }
 
-    public void updateVOC(int VOC){
-        TextView voltageSensorStatusView = rootView.findViewById(R.id.VOC);
-        if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.VOC, String.valueOf(VOC)));
-        }
-    }
-
-    public void updateSpo2Sensor(String spo2SensorStatus){
-        TextView voltageSensorStatusView = rootView.findViewById(R.id.spo2_sensor);
-        if(voltageSensorStatusView != null){
-            voltageSensorStatusView.setText(getString(R.string.spo2, spo2SensorStatus));
-        }
-    }
-
     public void updateVoltageLevel(int voltageLevel){
         TextView voltageSensorStatusView = rootView.findViewById(R.id.voltage_level);
         if(voltageSensorStatusView != null){
