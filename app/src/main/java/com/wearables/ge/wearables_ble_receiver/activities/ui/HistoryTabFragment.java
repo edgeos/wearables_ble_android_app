@@ -16,11 +16,16 @@ import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
+import com.jjoe64.graphview.LabelFormatter;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.wearables.ge.wearables_ble_receiver.R;
+import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerData;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 public class HistoryTabFragment extends Fragment {
@@ -34,12 +39,19 @@ public class HistoryTabFragment extends Fragment {
     private LineGraphSeries<DataPoint> series1;
     private LineGraphSeries<DataPoint> series2;
     private LineGraphSeries<DataPoint> series3;
-    GraphView graph1;
-    GraphView graph2;
-    GraphView graph3;
+    GraphView voltageGraph1;
+    GraphView voltageGraph2;
+    GraphView voltageGraph3;
+    GraphView accelerationGraph1;
+    GraphView accelerationGraph2;
+    GraphView accelerationGraph3;
     private int lastX = 0;
 
     View rootView;
+
+    LineGraphSeries<DataPoint>  accelerometerXseries = new LineGraphSeries<>();
+    LineGraphSeries<DataPoint>  accelerometerYseries = new LineGraphSeries<>();
+    LineGraphSeries<DataPoint>  accelerometerZseries = new LineGraphSeries<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -74,39 +86,130 @@ public class HistoryTabFragment extends Fragment {
             }
         });
 
+        LinearLayout expandableLayout3 = rootView.findViewById(R.id.collapsibleContainer3);
+        Switch switchButton3 = rootView.findViewById(R.id.expand3);
+        switchButton3.setChecked(true);
+        switchButton3.setOnClickListener( v -> {
+            if (switchButton3.isChecked()) {
+                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
+                expandView(expandableLayout3, 500);
+            } else {
+                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
+                collapseView(expandableLayout3, 500 );
+            }
+        });
+
         // get graph view instance
         Log.d(TAG, "Getting graph objects");
-        graph1 = rootView.findViewById(R.id.voltage_sensor_graph_1);
-        Viewport viewport1 = graph1.getViewport();
-        viewport1.setYAxisBoundsManual(true);
-        viewport1.setXAxisBoundsManual(true);
-        viewport1.setMinY(0);
-        GridLabelRenderer gridLabel1 = graph1.getGridLabelRenderer();
+        voltageGraph1 = rootView.findViewById(R.id.voltage_sensor_graph_1);
+        Viewport voltageGraphViewport1 = voltageGraph1.getViewport();
+        voltageGraphViewport1.setYAxisBoundsManual(true);
+        voltageGraphViewport1.setXAxisBoundsManual(true);
+        voltageGraphViewport1.setMinY(0);
+        GridLabelRenderer gridLabel1 = voltageGraph1.getGridLabelRenderer();
         gridLabel1.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
         gridLabel1.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
 
         // second graph
-        graph2 = rootView.findViewById(R.id.voltage_sensor_graph_2);
-        Viewport viewport2 = graph2.getViewport();
-        viewport2.setYAxisBoundsManual(true);
-        viewport2.setXAxisBoundsManual(true);
-        viewport2.setMinY(0);
-        GridLabelRenderer gridLabel2 = graph2.getGridLabelRenderer();
+        voltageGraph2 = rootView.findViewById(R.id.voltage_sensor_graph_2);
+        Viewport voltageGraphViewport2 = voltageGraph2.getViewport();
+        voltageGraphViewport2.setYAxisBoundsManual(true);
+        voltageGraphViewport2.setXAxisBoundsManual(true);
+        voltageGraphViewport2.setMinY(0);
+        GridLabelRenderer gridLabel2 = voltageGraph2.getGridLabelRenderer();
         gridLabel2.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
         gridLabel2.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
 
         // third graph
-        graph3 = rootView.findViewById(R.id.voltage_sensor_graph_3);
-        Viewport viewport3 = graph3.getViewport();
-        viewport3.setYAxisBoundsManual(true);
-        viewport3.setXAxisBoundsManual(true);
-        viewport3.setMinY(0);
-        GridLabelRenderer gridLabel3 = graph3.getGridLabelRenderer();
+        voltageGraph3 = rootView.findViewById(R.id.voltage_sensor_graph_3);
+        Viewport voltageGraphViewport3 = voltageGraph3.getViewport();
+        voltageGraphViewport3.setYAxisBoundsManual(true);
+        voltageGraphViewport3.setXAxisBoundsManual(true);
+        voltageGraphViewport3.setMinY(0);
+        GridLabelRenderer gridLabel3 = voltageGraph3.getGridLabelRenderer();
         gridLabel3.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
         gridLabel3.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
 
+        //Acceleration Graphs
+        accelerationGraph1 = rootView.findViewById(R.id.acceleration_sensor_graph_1);
+        Viewport accelerationGraphViewport1 = accelerationGraph1.getViewport();
+        accelerationGraphViewport1.setYAxisBoundsManual(true);
+        accelerationGraphViewport1.setXAxisBoundsManual(true);
+        accelerationGraph1.addSeries(accelerometerXseries);
+        GridLabelRenderer accelerationGridLabel1 = accelerationGraph1.getGridLabelRenderer();
+        accelerationGridLabel1.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
+        accelerationGridLabel1.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
+        accelerationGraph1.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                if(isValueX){
+                    Date d = new Date((long) value);
+                    return (dateFormat.format(d));
+                }
+                return "" + (int) value;
+            }
+
+            @Override
+            public void setViewport(Viewport viewport) {
+
+            }
+        });
+
+        // second acceleration graph
+        accelerationGraph2 = rootView.findViewById(R.id.acceleration_sensor_graph_2);
+        Viewport accelerationGraphViewport2 = accelerationGraph2.getViewport();
+        accelerationGraphViewport2.setYAxisBoundsManual(true);
+        accelerationGraphViewport2.setXAxisBoundsManual(true);
+        accelerationGraph2.addSeries(accelerometerYseries);
+        GridLabelRenderer accelerationGridLabel2 = accelerationGraph2.getGridLabelRenderer();
+        accelerationGridLabel2.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
+        accelerationGridLabel2.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
+        accelerationGraph2.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                if(isValueX){
+                    Date d = new Date((long) value);
+                    return (dateFormat.format(d));
+                }
+                return "" + (int) value;
+            }
+
+            @Override
+            public void setViewport(Viewport viewport) {
+
+            }
+        });
+
+        // third acceleration graph
+        accelerationGraph3 = rootView.findViewById(R.id.acceleration_sensor_graph_3);
+        Viewport accelerationGraphViewport3 = accelerationGraph3.getViewport();
+        accelerationGraphViewport3.setYAxisBoundsManual(true);
+        accelerationGraphViewport3.setXAxisBoundsManual(true);
+        accelerationGraph3.addSeries(accelerometerZseries);
+        GridLabelRenderer accelerationGridLabel3 = accelerationGraph3.getGridLabelRenderer();
+        accelerationGridLabel3.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
+        accelerationGridLabel3.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
+        accelerationGraph3.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                if(isValueX){
+                    Date d = new Date((long) value);
+                    return (dateFormat.format(d));
+                }
+                return "" + (int) value;
+            }
+
+            @Override
+            public void setViewport(Viewport viewport) {
+
+            }
+        });
+
         if(maxXvalue > 0 && maxYvalue > 0){
-            updateBounds();
+            updateVoltageGraphBounds();
         }
         return rootView;
     }
@@ -166,11 +269,11 @@ public class HistoryTabFragment extends Fragment {
     public int maxYvalue;
     public int maxXvalue;
 
-    public void updateGraph(VoltageAlarmStateChar voltageAlarmState) {
+    public void updateVoltageGraph(VoltageAlarmStateChar voltageAlarmState) {
         Log.d(TAG, "UpdateGraph called");
         super.onResume();
 
-        if(graph1 == null || graph2 == null || graph3 == null){
+        if(voltageGraph1 == null || voltageGraph2 == null || voltageGraph3 == null){
             return;
         }
 
@@ -195,39 +298,39 @@ public class HistoryTabFragment extends Fragment {
             if(y3 > maxYvalue){
                 roundMaxY(y3);
             }
-            addEntry();
+            addVoltageEntry();
         }
         if(maxXvalueCheck != maxXvalue){
             maxXvalue = maxXvalueCheck;
-            updateBounds();
+            updateVoltageGraphBounds();
         }
-        addGraphSeries();
+        addVoltageGraphSeries();
     }
 
-    private void addEntry() {
+    private void addVoltageEntry() {
         lastX = lastX + increment;
         series1.appendData(new DataPoint(lastX - increment, y1), false, 70);
         series2.appendData(new DataPoint(lastX - increment, y2), false, 70);
         series3.appendData(new DataPoint(lastX - increment, y3), false, 70);
     }
 
-    private void addGraphSeries(){
-        graph1.removeAllSeries();
-        graph2.removeAllSeries();
-        graph3.removeAllSeries();
+    private void addVoltageGraphSeries(){
+        voltageGraph1.removeAllSeries();
+        voltageGraph2.removeAllSeries();
+        voltageGraph3.removeAllSeries();
 
         LineGraphSeries<DataPoint>  series = new LineGraphSeries<>();
         series.appendData(new DataPoint(60, 0), false, 100);
         series.appendData(new DataPoint(60, maxYvalue), false, 100);
         series.setThickness(2);
         series.setColor(Color.parseColor("#808080"));
-        graph1.addSeries(series);
-        graph2.addSeries(series);
-        graph3.addSeries(series);
+        voltageGraph1.addSeries(series);
+        voltageGraph2.addSeries(series);
+        voltageGraph3.addSeries(series);
 
-        graph1.addSeries(series1);
-        graph2.addSeries(series2);
-        graph3.addSeries(series3);
+        voltageGraph1.addSeries(series1);
+        voltageGraph2.addSeries(series2);
+        voltageGraph3.addSeries(series3);
         lastX = 0;
     }
 
@@ -254,21 +357,44 @@ public class HistoryTabFragment extends Fragment {
         }
     }
 
-    private void updateBounds(){
+    private void updateVoltageGraphBounds(){
         Log.d(TAG, "Max Y value: " + maxYvalue);
         Log.d(TAG, "Max X value: " + maxXvalue);
 
-        graph1.getViewport().setMaxY(maxYvalue);
-        graph1.getViewport().setMaxX(maxXvalue);
+        voltageGraph1.getViewport().setMaxY(maxYvalue);
+        voltageGraph1.getViewport().setMaxX(maxXvalue);
 
-        graph2.getViewport().setMaxY(maxYvalue);
-        graph2.getViewport().setMaxX(maxXvalue);
+        voltageGraph2.getViewport().setMaxY(maxYvalue);
+        voltageGraph2.getViewport().setMaxX(maxXvalue);
 
-        graph3.getViewport().setMaxY(maxYvalue);
-        graph3.getViewport().setMaxX(maxXvalue);
+        voltageGraph3.getViewport().setMaxY(maxYvalue);
+        voltageGraph3.getViewport().setMaxX(maxXvalue);
 
-        graph1.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
-        graph2.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
-        graph3.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
+        voltageGraph1.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
+        voltageGraph2.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
+        voltageGraph3.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
+    }
+
+    public void updateAccelerometerGraph(AccelerometerData accelerometerData){
+        accelerometerXseries.appendData(new DataPoint(accelerometerData.getDate(), accelerometerData.getxValue()), false, 300);
+        accelerometerYseries.appendData(new DataPoint(accelerometerData.getDate(), accelerometerData.getyValue()), false, 300);
+        accelerometerZseries.appendData(new DataPoint(accelerometerData.getDate(), accelerometerData.getzValue()), false, 300);
+
+        if(accelerationGraph1 != null && accelerationGraph2 != null && accelerationGraph3 != null){
+            accelerationGraph1.getViewport().setMinX(accelerometerXseries.getLowestValueX());
+            accelerationGraph1.getViewport().setMaxX(accelerometerXseries.getHighestValueX());
+            accelerationGraph1.getViewport().setMinY(accelerometerXseries.getLowestValueY());
+            accelerationGraph1.getViewport().setMaxY(accelerometerXseries.getHighestValueY());
+
+            accelerationGraph2.getViewport().setMinX(accelerometerYseries.getLowestValueX());
+            accelerationGraph2.getViewport().setMaxX(accelerometerYseries.getHighestValueX());
+            accelerationGraph2.getViewport().setMinY(accelerometerYseries.getLowestValueY());
+            accelerationGraph2.getViewport().setMaxY(accelerometerYseries.getHighestValueY());
+
+            accelerationGraph3.getViewport().setMinX(accelerometerZseries.getLowestValueX());
+            accelerationGraph3.getViewport().setMaxX(accelerometerZseries.getHighestValueX());
+            accelerationGraph3.getViewport().setMinY(accelerometerZseries.getLowestValueY());
+            accelerationGraph3.getViewport().setMaxY(accelerometerZseries.getHighestValueY());
+        }
     }
 }

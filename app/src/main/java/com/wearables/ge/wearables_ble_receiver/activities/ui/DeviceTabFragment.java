@@ -137,7 +137,6 @@ public class DeviceTabFragment extends Fragment {
         // log graphic
         GraphView logGraph = rootView.findViewById(R.id.sensor_log_graph);
         logGraph.getGridLabelRenderer().setHumanRounding(false);
-        //logGraph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getActivity()));
         logGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
             int i = 0;
             @Override
