@@ -65,4 +65,7 @@
     <string name="temperature_graph_y_axis_label">Temp</string>
     <string name="humidity_graph_x_axis_label">Time</string>
     <string name="humidity_graph_y_axis_label">Humidity</string>
+    <string name="pressure_graph_title">Pressure</string>
+    <string name="pressure_graph_x_axis_label">Time</string>
+    <string name="pressure_graph_y_axis_label">Pressure</string>
 </resources>

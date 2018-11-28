@@ -418,7 +418,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 if(mHistoryTabFragment.isVisible()){
                     mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
                 }
-                mDeviceTabFragment.updateGraph(Calendar.getInstance(), voltageAlarmState.getCh1_fft_results().get(8) + 20);
+                mDeviceTabFragment.updateGraph(Calendar.getInstance(), voltageAlarmState.getCh1_fft_results().get(9) + 20);
+                if(mDeviceTabFragment.isVisible()){
+                    mDeviceTabFragment.updateVoltageLevel(voltageAlarmState.getCh1_fft_results().get(9) + 20);
+                }
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
             } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
@@ -434,7 +437,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                     mDeviceTabFragment.updateTemperature(tempHumidPressure.getTemp());
                 }
                 if(mHistoryTabFragment.isVisible()){
-                    mHistoryTabFragment.updateTempHumidityGraph(tempHumidPressure);
+                    mHistoryTabFragment.updateTempHumidityPressureGraph(tempHumidPressure);
                 }
                 Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
             } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){

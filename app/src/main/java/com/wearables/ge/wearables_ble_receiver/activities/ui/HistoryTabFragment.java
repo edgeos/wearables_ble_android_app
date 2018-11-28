@@ -47,6 +47,7 @@ public class HistoryTabFragment extends Fragment {
     GraphView accelerationGraph3;
     GraphView tempGraph;
     GraphView humidityGraph;
+    GraphView pressureGraph;
     private int lastX = 0;
 
     View rootView;
@@ -57,6 +58,7 @@ public class HistoryTabFragment extends Fragment {
 
     LineGraphSeries<DataPoint>  temperatureSeries = new LineGraphSeries<>();
     LineGraphSeries<DataPoint>  humiditySeries = new LineGraphSeries<>();
+    LineGraphSeries<DataPoint>  pressureSeries = new LineGraphSeries<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -263,6 +265,31 @@ public class HistoryTabFragment extends Fragment {
             }
         });
 
+        pressureGraph = rootView.findViewById(R.id.pressure_graph);
+        Viewport pressureGraphViewport = pressureGraph.getViewport();
+        pressureGraphViewport.setYAxisBoundsManual(true);
+        pressureGraphViewport.setXAxisBoundsManual(true);
+        pressureGraph.addSeries(pressureSeries);
+        GridLabelRenderer pressureGridLabel = pressureGraph.getGridLabelRenderer();
+        pressureGridLabel.setHorizontalAxisTitle(getString(R.string.pressure_graph_x_axis_label));
+        pressureGridLabel.setVerticalAxisTitle(getString(R.string.pressure_graph_y_axis_label));
+        pressureGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                if(isValueX){
+                    Date d = new Date((long) value);
+                    return (dateFormat.format(d));
+                }
+                return "" + (int) value;
+            }
+
+            @Override
+            public void setViewport(Viewport viewport) {
+
+            }
+        });
+
         if(maxXvalue > 0 && maxYvalue > 0){
             updateVoltageGraphBounds();
         }
@@ -453,9 +480,10 @@ public class HistoryTabFragment extends Fragment {
         }
     }
 
-    public void updateTempHumidityGraph(TempHumidPressure tempHumidPressure){
+    public void updateTempHumidityPressureGraph(TempHumidPressure tempHumidPressure){
         temperatureSeries.appendData(new DataPoint(tempHumidPressure.getDate(), tempHumidPressure.getTemp()), false, 300);
         humiditySeries.appendData(new DataPoint(tempHumidPressure.getDate(), tempHumidPressure.getHumid()), false, 300);
+        pressureSeries.appendData(new DataPoint(tempHumidPressure.getDate(), tempHumidPressure.getPres()), false, 300);
 
         if(tempGraph != null && humidityGraph != null){
             tempGraph.getViewport().setMinX(temperatureSeries.getLowestValueX());
@@ -467,6 +495,11 @@ public class HistoryTabFragment extends Fragment {
             humidityGraph.getViewport().setMaxX(humiditySeries.getHighestValueX());
             humidityGraph.getViewport().setMinY(humiditySeries.getLowestValueY());
             humidityGraph.getViewport().setMaxY(humiditySeries.getHighestValueY());
+
+            pressureGraph.getViewport().setMinX(pressureSeries.getLowestValueX());
+            pressureGraph.getViewport().setMaxX(pressureSeries.getHighestValueX());
+            pressureGraph.getViewport().setMinY(pressureSeries.getLowestValueY());
+            pressureGraph.getViewport().setMaxY(pressureSeries.getHighestValueY());
         }
     }
 }

@@ -261,6 +261,22 @@
                 android:layout_marginBottom="8dp"
                 />
 
+            <TextView
+                android:id="@+id/sensor_name_c3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="@string/pressure_graph_title"
+                android:textStyle="bold" />
+
+            <com.jjoe64.graphview.GraphView
+                android:id="@+id/pressure_graph"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                />
+
         </LinearLayout>
 
     </LinearLayout>

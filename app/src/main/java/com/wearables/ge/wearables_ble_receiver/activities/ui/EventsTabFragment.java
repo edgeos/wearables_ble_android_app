@@ -35,6 +35,7 @@ public class EventsTabFragment extends Fragment {
             Log.d(TAG, "Refresh button pressed");
         });
 
+        refreshEventsLog();
         return rootView;
     }
 

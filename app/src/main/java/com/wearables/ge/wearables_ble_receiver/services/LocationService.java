@@ -20,6 +20,8 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
+
 import java.util.ArrayList;
 import java.util.List;
 
