@@ -21,6 +21,7 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
+import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -164,17 +165,16 @@ public class DeviceTabFragment extends Fragment {
         return rootView;
     }
 
-    public void updateGraph(Calendar xValueDate, int yValue){
+    public void updateGraph(VoltageEvent voltageEvent){
         logGraph = rootView.findViewById(R.id.sensor_log_graph);
         BarGraphSeries<DataPoint> logSeries = new BarGraphSeries<>();
         logGraph.removeAllSeries();
-        Long xValue = xValueDate.getTimeInMillis();
         int dataPointsListSize = dataPoints.size();
         if(dataPointsListSize < 10){
-            dataPoints.add(new DataPoint(xValue, yValue));
+            dataPoints.add(new DataPoint(voltageEvent.getTime(), voltageEvent.getVoltage()));
         } else {
             dataPoints.remove(0);
-            dataPoints.add(new DataPoint(xValue, yValue));
+            dataPoints.add(new DataPoint(voltageEvent.getTime(), voltageEvent.getVoltage()));
         }
         for(DataPoint dataPoint : dataPoints){
             logSeries.appendData(dataPoint, false, 20);

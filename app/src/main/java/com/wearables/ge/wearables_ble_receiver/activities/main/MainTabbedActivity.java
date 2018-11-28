@@ -36,8 +36,13 @@ import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
+import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
 
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 public class MainTabbedActivity extends FragmentActivity implements ActionBar.TabListener {
@@ -72,6 +77,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     public boolean devMode;
     public Menu menuBar;
+
+    public int lastPeak;
+    public Long lastPeakTime;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -415,10 +423,41 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
                 VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
-                if(mHistoryTabFragment.isVisible()){
-                    mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
+                mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
+                //get peak between 50 and 60Hz bins
+                int peak = Collections.max(Arrays.asList(voltageAlarmState.getCh1_fft_results().get(6),
+                        voltageAlarmState.getCh1_fft_results().get(7),
+                        voltageAlarmState.getCh1_fft_results().get(8),
+                        voltageAlarmState.getCh1_fft_results().get(9),
+                        voltageAlarmState.getCh1_fft_results().get(10)));
+
+                //add for some simulated peaks
+                Long now = Calendar.getInstance().getTimeInMillis();
+                if((now % 10) == 0){
+                    Random rand = new Random();
+                    peak = rand.nextInt(100);
+                    Log.d(TAG, "simulated peak: " + peak);
                 }
-                mDeviceTabFragment.updateGraph(Calendar.getInstance(), voltageAlarmState.getCh1_fft_results().get(9) + 20);
+
+                if(peak != lastPeak && peak > 10){
+                    Long peakTime = Calendar.getInstance().getTimeInMillis();
+                    Long duration;
+                    if(lastPeakTime == null){
+                        duration = 0L;
+                    } else {
+                        duration = peakTime - lastPeakTime;
+                    }
+
+                    VoltageEvent voltageEvent = new VoltageEvent(lastPeak, duration);
+                    mEventsTabFragment.voltageEvents.add(voltageEvent);
+                    lastPeak = peak;
+                    lastPeakTime = peakTime;
+                    if(mEventsTabFragment.isVisible()){
+                        mEventsTabFragment.addEventItem(voltageEvent);
+                    }
+                }
+                VoltageEvent voltageEvent = new VoltageEvent(peak, 0L);
+                mDeviceTabFragment.updateGraph(voltageEvent);
                 if(mDeviceTabFragment.isVisible()){
                     mDeviceTabFragment.updateVoltageLevel(voltageAlarmState.getCh1_fft_results().get(9) + 20);
                 }
