@@ -1,5 +1,6 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
+import android.bluetooth.BluetoothGatt;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -12,6 +13,7 @@ import android.widget.ProgressBar;
 
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
+import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -31,6 +33,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,7 +55,7 @@ public class PairingTabFragment extends Fragment {
 
     private boolean mScanning;
     private Handler mHandler;
-    private Map<String, BluetoothDevice> mScanResults;
+    //private Map<String, BluetoothDevice> mScanResults;
 
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBluetoothLeScanner;
@@ -95,11 +98,27 @@ public class PairingTabFragment extends Fragment {
         ((MainTabbedActivity)Objects.requireNonNull(getActivity())).disconnectDevice();
     }
 
+    private void refreshDeviceCache(BluetoothGatt gatt) {
+        if(gatt == null){
+            Log.d(TAG, "No device connected");
+        }
+        try {
+            Method localMethod = gatt.getClass().getMethod("refresh");
+            if(localMethod != null) {
+                localMethod.invoke(gatt);
+            }
+        } catch(Exception localException) {
+            Log.d(TAG, "Exception refreshing BT cache: %s" + localException.toString());
+        }
+    }
+
     public void startScan() {
         Log.d(TAG, "StartScan called");
         //add spinner to view
         spinner = rootView.findViewById(R.id.progressBar2);
         spinner.setVisibility(View.VISIBLE);
+
+        //refreshDeviceCache(BluetoothService.connectedGatt);
 
         //if the user hasn't allowed BT scanning  or if a scan is currently happening then stop here
         if (!hasPermissions() || mScanning) {
@@ -107,14 +126,14 @@ public class PairingTabFragment extends Fragment {
         }
 
         //initialize result set
-        mScanResults = new HashMap<>();
+        //mScanResults = new HashMap<>();
 
         List<ScanFilter> filters = new ArrayList<>();
         ScanSettings settings = new ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
                 .build();
 
-        mScanCallback = new BtleScanCallback(mScanResults);
+        mScanCallback = new BtleScanCallback();
         mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
         mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
         mScanning = true;
@@ -138,9 +157,9 @@ public class PairingTabFragment extends Fragment {
         spinner.setVisibility(View.GONE);
 
         //if no results, stop here
-        if (mScanResults.isEmpty()) {
+        /*if (mScanResults.isEmpty()) {
             return;
-        }
+        }*/
 
         if(MainTabbedActivity.connectedDevice != null){
             View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
@@ -234,10 +253,10 @@ public class PairingTabFragment extends Fragment {
 
     private class BtleScanCallback extends ScanCallback {
 
-        private Map<String, BluetoothDevice> mScanResults;
+        private Map<String, BluetoothDevice> scanResults;
 
-        BtleScanCallback(Map<String, BluetoothDevice> scanResults) {
-            mScanResults = scanResults;
+        BtleScanCallback() {
+            scanResults = new HashMap<>();
         }
 
         @Override
@@ -262,10 +281,9 @@ public class PairingTabFragment extends Fragment {
         private void addScanResult(ScanResult result) {
             BluetoothDevice obj = result.getDevice();
             String deviceAddress = obj.getAddress();
-            if(!mScanResults.containsKey(deviceAddress)){
-                String objName = obj.getName() == null ? obj.getAddress() : obj.getName();
-                Log.d(TAG, "Found device: " + objName);
-
+            String objName = obj.getName() == null ? deviceAddress : obj.getName();
+            Log.d(TAG, "Found device: " + objName);
+            if(!scanResults.containsKey(objName)){
                 View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
                 linLayout.addView(view, 0);
 
@@ -292,7 +310,7 @@ public class PairingTabFragment extends Fragment {
                     }
                 });
 
-                mScanResults.put(deviceAddress, obj);
+                scanResults.put(objName, obj);
             }
         }
     }

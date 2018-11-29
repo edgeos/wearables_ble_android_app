@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
@@ -184,19 +185,24 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     public void renameDevice(){
         AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
 
-        alert.setMessage(R.string.rename_device_modal_message);
+        if(connectedDevice != null){
+            alert.setMessage(R.string.rename_device_modal_message);
 
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
+            final EditText input = new EditText(this);
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            input.setTextColor(Color.WHITE);
 
-        alert.setView(input);
+            alert.setView(input);
 
-        alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
-            mService.writeToVoltageAlarmConfigChar(input.getText().toString());
-        });
+            alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
+                mService.writeToVoltageAlarmConfigChar(input.getText().toString());
+            });
 
-        alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Rename Device dialog closed"));
+            alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Rename Device dialog closed"));
 
+        } else {
+            alert.setMessage("No device Connected");
+        }
         alert.show();
     }
 
@@ -217,7 +223,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     public void showDeviceID(){
         AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
         if(connectedDevice != null){
-            alert.setMessage(getString(R.string.show_device_id, connectedDevice.getAddress()));
+            alert.setMessage(getString(R.string.show_device_id, connectedDevice.getAddress() + connectedDevice.getName()));
         } else {
             alert.setMessage(getString(R.string.show_device_id, "No device connected"));
         }

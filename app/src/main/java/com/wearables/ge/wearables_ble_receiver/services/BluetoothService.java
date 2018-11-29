@@ -28,6 +28,8 @@ import com.wearables.ge.wearables_ble_receiver.utils.QueueItem;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -99,15 +101,32 @@ public class BluetoothService extends Service {
     public void writeToVoltageAlarmConfigChar(String message){
         BluetoothGattService voltageService = connectedGatt.getService(GattAttributes.VOLTAGE_WRISTBAND_SERVICE_UUID);
         BluetoothGattCharacteristic alarmThreshChar = voltageService.getCharacteristic(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID);
+        message = String.format("%1$-" + 16 + "s", message);
+        message = Character.toString((char) 01) + message;
         byte[] messageBytes = new byte[0];
         try {
             messageBytes = message.getBytes("UTF-8");
-            Log.d(TAG, "MessageBytes: " + messageBytes.toString());
         } catch (UnsupportedEncodingException e) {
             Log.d(TAG, "Unable to convert message to bytes" + e.getMessage());
         }
-        Log.d(TAG, "Writing value: " + message + " to Alarm Threshold characteristic");
+
+        //try to print message bytes as hex for debugging
+        final StringBuilder stringBuilder = new StringBuilder(messageBytes.length);
+        for(byte byteChar : messageBytes){
+            stringBuilder.append(String.format("%02x ", byteChar));
+        }
+        String value = stringBuilder.toString();
+
+        Log.d(TAG, "Writing value: " + value + " to Alarm config characteristic");
         writeCharacteristic(alarmThreshChar, messageBytes);
+
+        /*try {
+            Method localMethod = connectedGatt.getClass().getMethod("refresh");
+            localMethod.invoke(connectedGatt);
+            Log.d(TAG, "Cache refreshed");
+        } catch(Exception localException) {
+            Log.d(TAG, "Exception refreshing BT cache: %s" + localException.toString());
+        }*/
     }
 
     private class GattClientCallback extends BluetoothGattCallback {
@@ -144,7 +163,15 @@ public class BluetoothService extends Service {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             Log.d(TAG, "Services discovered: ");
             if (status != BluetoothGatt.GATT_SUCCESS) {
+                Log.d(TAG, "Problem with BLE connection, status not successful: " + status);
                 return;
+            }
+            List<UUID> serviceUUIDs = new ArrayList<>();
+            for(BluetoothGattService service : gatt.getServices()){
+                serviceUUIDs.add(service.getUuid());
+            }
+            if(serviceUUIDs.contains(GattAttributes.VOLTAGE_WRISTBAND_SERVICE_UUID)){
+                Log.d(TAG, "Voltage Band detected");
             }
             broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
         }
