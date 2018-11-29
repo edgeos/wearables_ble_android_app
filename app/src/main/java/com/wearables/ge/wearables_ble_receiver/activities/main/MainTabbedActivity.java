@@ -18,10 +18,12 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
+import android.text.InputType;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.wearables.ge.wearables_ble_receiver.R;
@@ -38,6 +40,8 @@ import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -157,7 +161,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 return true;
             case R.id.rename:
                 Log.d(TAG, "rename button pushed");
-                //action for rename
+                renameDevice();
                 return true;
             case R.id.disconnect:
                 //action for disconnect
@@ -175,6 +179,25 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 Log.d(TAG, "No menu item found for " + item.getItemId());
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void renameDevice(){
+        AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
+
+        alert.setMessage(R.string.rename_device_modal_message);
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+
+        alert.setView(input);
+
+        alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
+            mService.writeToVoltageAlarmConfigChar(input.getText().toString());
+        });
+
+        alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Rename Device dialog closed"));
+
+        alert.show();
     }
 
     public void connectDevice(BluetoothDevice device, String deviceName){
@@ -424,22 +447,24 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
                 VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
                 mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
-                //get peak between 50 and 60Hz bins
-                int peak = Collections.max(Arrays.asList(voltageAlarmState.getCh1_fft_results().get(6),
-                        voltageAlarmState.getCh1_fft_results().get(7),
-                        voltageAlarmState.getCh1_fft_results().get(8),
-                        voltageAlarmState.getCh1_fft_results().get(9),
-                        voltageAlarmState.getCh1_fft_results().get(10)));
+                //get peak between 40 and 70Hz bins
+                int start = Math.round(40/voltageAlarmState.getFft_bin_size()) + 1;
+                int end = Math.round(70/voltageAlarmState.getFft_bin_size()) + 1;
+                List<Integer> peakRange = new ArrayList<>();
+                for(int i = start; i <= end; i++){
+                    peakRange.add(voltageAlarmState.getCh1_fft_results().get(i));
+                }
+                int peak = Collections.max(peakRange);
 
                 //add for some simulated peaks
-                Long now = Calendar.getInstance().getTimeInMillis();
+                /*Long now = Calendar.getInstance().getTimeInMillis();
                 if((now % 10) == 0){
                     Random rand = new Random();
                     peak = rand.nextInt(100);
                     Log.d(TAG, "simulated peak: " + peak);
-                }
+                }*/
 
-                if(peak != lastPeak && peak > 10){
+                if(peak != lastPeak && peak > 20){
                     Long peakTime = Calendar.getInstance().getTimeInMillis();
                     Long duration;
                     if(lastPeakTime == null){
@@ -459,14 +484,16 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 VoltageEvent voltageEvent = new VoltageEvent(peak, 0L);
                 mDeviceTabFragment.updateGraph(voltageEvent);
                 if(mDeviceTabFragment.isVisible()){
-                    mDeviceTabFragment.updateVoltageLevel(voltageAlarmState.getCh1_fft_results().get(9) + 20);
+                    mDeviceTabFragment.updateVoltageLevel(peak);
                 }
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
             } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
                 if(mHistoryTabFragment.isVisible()){
                     AccelerometerData accelerometerData = new AccelerometerData(value);
-                    mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
+                    if(accelerometerData.getDate() != null){
+                        mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
+                    }
                 }
                 Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
             } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){

@@ -107,7 +107,7 @@ public class DeviceTabFragment extends Fragment {
                     alert.setMessage("Are you sure you would like to set the voltage alarm threshold to " + seekBar.getProgress() + "?");
 
                     alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
-                        ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.sendAlarmThresholdMessage(String.valueOf(seekBar.getProgress()));
+                        ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.writeToVoltageAlarmConfigChar(String.valueOf(seekBar.getProgress()));
                         alarmLevel = seekBar.getProgress();
                         addAlarmLevelLine();
                     });

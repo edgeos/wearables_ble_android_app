@@ -96,12 +96,13 @@ public class BluetoothService extends Service {
         }
     }
 
-    public void sendAlarmThresholdMessage(String message){
+    public void writeToVoltageAlarmConfigChar(String message){
         BluetoothGattService voltageService = connectedGatt.getService(GattAttributes.VOLTAGE_WRISTBAND_SERVICE_UUID);
         BluetoothGattCharacteristic alarmThreshChar = voltageService.getCharacteristic(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID);
         byte[] messageBytes = new byte[0];
         try {
             messageBytes = message.getBytes("UTF-8");
+            Log.d(TAG, "MessageBytes: " + messageBytes.toString());
         } catch (UnsupportedEncodingException e) {
             Log.d(TAG, "Unable to convert message to bytes" + e.getMessage());
         }

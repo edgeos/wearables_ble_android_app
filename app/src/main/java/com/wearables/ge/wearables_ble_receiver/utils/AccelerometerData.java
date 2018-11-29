@@ -16,7 +16,7 @@ public class AccelerometerData {
 
     public AccelerometerData(String hexString){
         List<String> hexSplit = Arrays.asList(hexString.split("\\s+"));
-        if(hexSplit.size() == 6){
+        if(hexSplit.size() >= 6){
             //switch values for little endian
             String xValueString = hexSplit.get(1) + hexSplit.get(0);
             String yValueString = hexSplit.get(3) + hexSplit.get(2);
