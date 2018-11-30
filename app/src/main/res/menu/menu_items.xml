@@ -16,4 +16,7 @@
     <item
         android:id="@+id/dev_mode"
         android:title="@string/dev_mode_menu_item" />
+    <item
+        android:id="@+id/gas_mode"
+        android:title="Enable Gas Sensor Mode" />
 </menu>

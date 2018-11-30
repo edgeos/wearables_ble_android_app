@@ -48,6 +48,9 @@ public class HistoryTabFragment extends Fragment {
     GraphView tempGraph;
     GraphView humidityGraph;
     GraphView pressureGraph;
+
+    GraphView gasGraph1;
+    GraphView gasGraph2;
     private int lastX = 0;
 
     View rootView;
@@ -60,10 +63,15 @@ public class HistoryTabFragment extends Fragment {
     LineGraphSeries<DataPoint>  humiditySeries = new LineGraphSeries<>();
     LineGraphSeries<DataPoint>  pressureSeries = new LineGraphSeries<>();
 
+    LineGraphSeries<DataPoint>  gasGraph1Series = new LineGraphSeries<>();
+    LineGraphSeries<DataPoint>  gasGraph2Series = new LineGraphSeries<>();
+
+    LinearLayout gasExpandLayout;
+    LinearLayout gasSensorCollapsibleContainer;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d(TAG, "History Tab opened");
         rootView = inflater.inflate(R.layout.fragment_tab_history, container, false);
 
         LinearLayout expandableLayout1 = rootView.findViewById(R.id.collapsibleContainer1);
@@ -146,22 +154,7 @@ public class HistoryTabFragment extends Fragment {
         GridLabelRenderer accelerationGridLabel1 = accelerationGraph1.getGridLabelRenderer();
         accelerationGridLabel1.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
         accelerationGridLabel1.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
-        accelerationGraph1.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
-            @Override
-            public String formatLabel(double value, boolean isValueX) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                if(isValueX){
-                    Date d = new Date((long) value);
-                    return (dateFormat.format(d));
-                }
-                return "" + (int) value;
-            }
-
-            @Override
-            public void setViewport(Viewport viewport) {
-
-            }
-        });
+        accelerationGraph1.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
 
         // second acceleration graph
         accelerationGraph2 = rootView.findViewById(R.id.acceleration_sensor_graph_2);
@@ -172,22 +165,7 @@ public class HistoryTabFragment extends Fragment {
         GridLabelRenderer accelerationGridLabel2 = accelerationGraph2.getGridLabelRenderer();
         accelerationGridLabel2.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
         accelerationGridLabel2.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
-        accelerationGraph2.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
-            @Override
-            public String formatLabel(double value, boolean isValueX) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                if(isValueX){
-                    Date d = new Date((long) value);
-                    return (dateFormat.format(d));
-                }
-                return "" + (int) value;
-            }
-
-            @Override
-            public void setViewport(Viewport viewport) {
-
-            }
-        });
+        accelerationGraph2.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
 
         // third acceleration graph
         accelerationGraph3 = rootView.findViewById(R.id.acceleration_sensor_graph_3);
@@ -198,22 +176,7 @@ public class HistoryTabFragment extends Fragment {
         GridLabelRenderer accelerationGridLabel3 = accelerationGraph3.getGridLabelRenderer();
         accelerationGridLabel3.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
         accelerationGridLabel3.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
-        accelerationGraph3.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
-            @Override
-            public String formatLabel(double value, boolean isValueX) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                if(isValueX){
-                    Date d = new Date((long) value);
-                    return (dateFormat.format(d));
-                }
-                return "" + (int) value;
-            }
-
-            @Override
-            public void setViewport(Viewport viewport) {
-
-            }
-        });
+        accelerationGraph3.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
 
         tempGraph = rootView.findViewById(R.id.temperature_graph);
         Viewport tempGraphViewport = tempGraph.getViewport();
@@ -223,22 +186,7 @@ public class HistoryTabFragment extends Fragment {
         GridLabelRenderer tempGridLabel = tempGraph.getGridLabelRenderer();
         tempGridLabel.setHorizontalAxisTitle(getString(R.string.temperature_graph_x_axis_label));
         tempGridLabel.setVerticalAxisTitle(getString(R.string.temperature_graph_y_axis_label));
-        tempGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
-            @Override
-            public String formatLabel(double value, boolean isValueX) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                if(isValueX){
-                    Date d = new Date((long) value);
-                    return (dateFormat.format(d));
-                }
-                return "" + (int) value;
-            }
-
-            @Override
-            public void setViewport(Viewport viewport) {
-
-            }
-        });
+        tempGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
 
         humidityGraph = rootView.findViewById(R.id.humidity_graph);
         Viewport humidityGraphViewport = humidityGraph.getViewport();
@@ -248,22 +196,7 @@ public class HistoryTabFragment extends Fragment {
         GridLabelRenderer humidityGridLabel = humidityGraph.getGridLabelRenderer();
         humidityGridLabel.setHorizontalAxisTitle(getString(R.string.humidity_graph_x_axis_label));
         humidityGridLabel.setVerticalAxisTitle(getString(R.string.humidity_graph_y_axis_label));
-        humidityGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
-            @Override
-            public String formatLabel(double value, boolean isValueX) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                if(isValueX){
-                    Date d = new Date((long) value);
-                    return (dateFormat.format(d));
-                }
-                return "" + (int) value;
-            }
-
-            @Override
-            public void setViewport(Viewport viewport) {
-
-            }
-        });
+        humidityGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
 
         pressureGraph = rootView.findViewById(R.id.pressure_graph);
         Viewport pressureGraphViewport = pressureGraph.getViewport();
@@ -273,26 +206,22 @@ public class HistoryTabFragment extends Fragment {
         GridLabelRenderer pressureGridLabel = pressureGraph.getGridLabelRenderer();
         pressureGridLabel.setHorizontalAxisTitle(getString(R.string.pressure_graph_x_axis_label));
         pressureGridLabel.setVerticalAxisTitle(getString(R.string.pressure_graph_y_axis_label));
-        pressureGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
-            @Override
-            public String formatLabel(double value, boolean isValueX) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                if(isValueX){
-                    Date d = new Date((long) value);
-                    return (dateFormat.format(d));
-                }
-                return "" + (int) value;
-            }
-
-            @Override
-            public void setViewport(Viewport viewport) {
-
-            }
-        });
+        pressureGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
 
         if(maxXvalue > 0 && maxYvalue > 0){
             updateVoltageGraphBounds();
         }
+
+        LinearLayout rootContainer = rootView.findViewById(R.id.rootContainer);
+        gasExpandLayout = rootView.findViewById(R.id.gas_expand_layout);
+        gasSensorCollapsibleContainer = rootView.findViewById(R.id.gasSensorCollapsibleContainer1);
+        rootContainer.removeView(gasExpandLayout);
+        rootContainer.removeView(gasSensorCollapsibleContainer);
+
+        if(showGasSensorMode){
+            switchToGasSensorMode();
+        }
+
         return rootView;
     }
 
@@ -501,5 +430,74 @@ public class HistoryTabFragment extends Fragment {
             pressureGraph.getViewport().setMinY(pressureSeries.getLowestValueY());
             pressureGraph.getViewport().setMaxY(pressureSeries.getHighestValueY());
         }
+    }
+
+    LabelFormatter simpleTimeLabel = new LabelFormatter() {
+        @Override
+        public String formatLabel(double value, boolean isValueX) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+            if(isValueX){
+                Date d = new Date((long) value);
+                return (dateFormat.format(d));
+            }
+            return "" + (int) value;
+        }
+
+        @Override
+        public void setViewport(Viewport viewport) {
+
+        }
+    };
+
+    public Boolean showGasSensorMode = false;
+    public void switchToGasSensorMode(){
+        showGasSensorMode = true;
+        if(rootView == null){
+            return;
+        }
+        LinearLayout rootContainer = rootView.findViewById(R.id.rootContainer);
+        rootContainer.removeView(rootView.findViewById(R.id.expand1_layout));
+        rootContainer.removeView(rootView.findViewById(R.id.collapsibleContainer1));
+
+        rootContainer.addView(gasExpandLayout);
+        rootContainer.addView(gasSensorCollapsibleContainer);
+
+        LinearLayout expandableLayout1 = rootView.findViewById(R.id.gasSensorCollapsibleContainer1);
+        Switch switchButton1 = rootView.findViewById(R.id.gas_expand1);
+        switchButton1.setChecked(true);
+        switchButton1.setOnClickListener( v -> {
+            if (switchButton1.isChecked()) {
+                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
+                expandView(expandableLayout1, 500);
+
+            } else {
+                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
+                collapseView(expandableLayout1, 500);
+            }
+        });
+
+        rootContainer.removeView(rootView.findViewById(R.id.expand2_layout));
+        rootContainer.removeView(rootView.findViewById(R.id.collapsibleContainer2));
+
+        gasGraph1 = rootView.findViewById(R.id.gas_sensor_graph_1);
+        Viewport gasGraph1Viewport = gasGraph1.getViewport();
+        gasGraph1Viewport.setYAxisBoundsManual(true);
+        gasGraph1Viewport.setXAxisBoundsManual(true);
+        gasGraph1.addSeries(gasGraph1Series);
+        GridLabelRenderer gas1GridLabel = gasGraph1.getGridLabelRenderer();
+        gas1GridLabel.setHorizontalAxisTitle(getString(R.string.gas_sensor_graph_1_x_axis_label));
+        gas1GridLabel.setVerticalAxisTitle(getString(R.string.gas_sensor_graph_1_y_axis_label));
+        gasGraph1.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+
+        gasGraph2 = rootView.findViewById(R.id.gas_sensor_graph_2);
+        Viewport gasGraph2Viewport = gasGraph2.getViewport();
+        gasGraph2Viewport.setYAxisBoundsManual(true);
+        gasGraph2Viewport.setXAxisBoundsManual(true);
+        gasGraph2.addSeries(gasGraph2Series);
+        GridLabelRenderer gas2GridLabel = gasGraph2.getGridLabelRenderer();
+        gas2GridLabel.setHorizontalAxisTitle(getString(R.string.gas_sensor_graph_2_x_axis_label));
+        gas2GridLabel.setVerticalAxisTitle(getString(R.string.gas_sensor_graph_2_y_axis_label));
+        gasGraph2.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+
     }
 }

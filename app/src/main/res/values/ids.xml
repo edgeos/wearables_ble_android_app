@@ -4,6 +4,7 @@
     <item type="id" name="battery_level" />
     <item type="id" name="temperature" />
     <item type="id" name="humidity" />
+    <item type="id" name="pressure" />
     <item type="id" name="VOC" />
     <item type="id" name="spo2_sensor" />
     <item type="id" name="voltage_level" />
@@ -27,4 +28,11 @@
     <item type="id" name="scan_button" />
     <item type="id" name="connected_message" />
     <item type="id" name="battery_gauge" />
+    <item type="id" name="frequency_bar" />
+    <item type="id" name="frequency_bar_text" />
+    <item type="id" name="active_gas_sensor" />
+    <item type="id" name="gas_sensor_data" />
+    <item type="id" name="num_sensors_bar" />
+    <item type="id" name="num_sensors_bar_text" />
+
 </resources>

@@ -30,6 +30,7 @@
                 android:text="Current Device Name" />
 
             <LinearLayout
+                android:id="@+id/sampleRateLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
@@ -96,6 +97,15 @@
                     android:textSize="18sp" />
 
                 <TextView
+                    android:id="@id/pressure"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="Pressure: undefined"
+                    android:textSize="18sp" />
+
+                <TextView
                     android:id="@id/voltage_level"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -143,6 +153,31 @@
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_marginTop="8dp" />
+
+            <LinearLayout
+                android:id="@+id/gas_sensor_dropdown_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:layout_gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/gas_sensor_dropdown_message"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:text="@string/gas_sensor_dropdown_message"
+                    android:textStyle="bold"/>
+
+                <Spinner
+                    android:id="@+id/gas_sensor_dropdown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/gas_sensor_options"
+                    android:prompt="@string/enable_sensors_dropdown" />
+
+            </LinearLayout>
 
 
         </LinearLayout>

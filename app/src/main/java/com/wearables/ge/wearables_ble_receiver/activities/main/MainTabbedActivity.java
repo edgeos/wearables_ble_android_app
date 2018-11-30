@@ -41,13 +41,10 @@ import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 public class MainTabbedActivity extends FragmentActivity implements ActionBar.TabListener {
@@ -172,10 +169,20 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 //dev mode action
                 switchModes();
                 return true;
+            case R.id.gas_mode:
+                Log.d(TAG, "Gas_mode button pushed");
+                //dev mode action
+                enableGasSensorMode();
+                return true;
             default:
                 Log.d(TAG, "No menu item found for " + item.getItemId());
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void enableGasSensorMode(){
+        mDeviceTabFragment.switchToGasSensorMode();
+        mHistoryTabFragment.switchToGasSensorMode();
     }
 
     public void renameDevice(){
@@ -272,6 +279,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     private static IntentFilter createIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothService.ACTION_GATT_GAS_SENSOR_DISCOVERED);
+        intentFilter.addAction(BluetoothService.ACTION_GATT_VOLTAGE_BAND_DISCOVERED);
         intentFilter.addAction(BluetoothService.ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
@@ -284,6 +293,18 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             if (action != null) {
                 switch (action) {
                     case BluetoothService.ACTION_GATT_SERVICES_DISCOVERED:
+                        Log.d(TAG, "ACTION_GATT_SERVICES_DISCOVERED broadcast received");
+                        //good indication that the device is successfully connected
+                        Toast.makeText(mPairingTabFragment.getContext(), "Device Connected", Toast.LENGTH_LONG).show();
+                        mService.setNotifyOnCharacteristics();
+                        break;
+                    case BluetoothService.ACTION_GATT_VOLTAGE_BAND_DISCOVERED:
+                        Log.d(TAG, "ACTION_GATT_SERVICES_DISCOVERED broadcast received");
+                        //good indication that the device is successfully connected
+                        Toast.makeText(mPairingTabFragment.getContext(), "Device Connected", Toast.LENGTH_LONG).show();
+                        mService.setNotifyOnCharacteristics();
+                        break;
+                    case BluetoothService.ACTION_GATT_GAS_SENSOR_DISCOVERED:
                         Log.d(TAG, "ACTION_GATT_SERVICES_DISCOVERED broadcast received");
                         //good indication that the device is successfully connected
                         Toast.makeText(mPairingTabFragment.getContext(), "Device Connected", Toast.LENGTH_LONG).show();
@@ -474,6 +495,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                     Log.d(TAG, "simulated peak: " + peak);
                 }*/
 
+                //TODO: read the alarm threshold config value to determine an event
                 if(peak != lastPeak && peak > 20){
                     Long peakTime = Calendar.getInstance().getTimeInMillis();
                     Long duration;
@@ -511,6 +533,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 if(mDeviceTabFragment.isVisible()){
                     mDeviceTabFragment.updateHumidity(tempHumidPressure.getHumid());
                     mDeviceTabFragment.updateTemperature(tempHumidPressure.getTemp());
+                    mDeviceTabFragment.updatePressure(tempHumidPressure.getPres());
                 }
                 if(mHistoryTabFragment.isVisible()){
                     mHistoryTabFragment.updateTempHumidityPressureGraph(tempHumidPressure);

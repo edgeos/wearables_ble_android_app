@@ -1,6 +1,8 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -9,8 +11,13 @@ import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -51,6 +58,8 @@ public class DeviceTabFragment extends Fragment {
     private static Double minX;
     private static Double maxX;
     List<DataPoint> dataPoints = new ArrayList<>();
+
+    LinearLayout gasSensorView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -163,6 +172,14 @@ public class DeviceTabFragment extends Fragment {
         viewport1.setMinY(0);
         viewport1.setMaxY(100);
 
+        LinearLayout surroundingContainer = rootView.findViewById(R.id.collapsibleContainer1);
+        gasSensorView = rootView.findViewById(R.id.gas_sensor_dropdown_layout);
+        surroundingContainer.removeView(gasSensorView);
+
+        if(showGasSensorMode){
+            switchToGasSensorMode();
+        }
+
         return rootView;
     }
 
@@ -228,10 +245,160 @@ public class DeviceTabFragment extends Fragment {
         }
     }
 
+    public void updatePressure(int pressure){
+        TextView voltageSensorStatusView = rootView.findViewById(R.id.pressure);
+        if(voltageSensorStatusView != null){
+            voltageSensorStatusView.setText(getString(R.string.pressure, String.valueOf(pressure)));
+        }
+    }
+
     public void updateVoltageLevel(int voltageLevel){
         TextView voltageSensorStatusView = rootView.findViewById(R.id.voltage_level);
         if(voltageSensorStatusView != null){
             voltageSensorStatusView.setText(getString(R.string.voltage_level, voltageLevel));
         }
+    }
+
+    public void updateActiveGasSensor(String gasSensor){
+        TextView activeGasSensorView = rootView.findViewById(R.id.active_gas_sensor);
+        if(activeGasSensorView != null){
+            activeGasSensorView.setText(getString(R.string.active_gas_sensor, gasSensor));
+        }
+    }
+
+    public void updateGasSensorData(String data){
+        TextView gasSensorDataView = rootView.findViewById(R.id.gas_sensor_data);
+        if(gasSensorDataView != null){
+            gasSensorDataView.setText(getString(R.string.gas_sensor_data, data));
+        }
+    }
+
+    public Boolean showGasSensorMode = false;
+    public void switchToGasSensorMode(){
+        showGasSensorMode = true;
+        if(rootView == null){
+            return;
+        }
+        LinearLayout container = rootView.findViewById(R.id.collapsibleContainer1);
+        container.addView(gasSensorView);
+
+        LinearLayout frequencyLayout = new LinearLayout(rootView.getContext());
+        frequencyLayout.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(10,10,10,10);
+        frequencyLayout.setLayoutParams(layoutParams);
+
+        SeekBar frequencyBar = new SeekBar(rootView.getContext());
+        ViewGroup.LayoutParams freqBarParams = new ViewGroup.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        frequencyBar.setLayoutParams(freqBarParams);
+        frequencyBar.setMax(100);
+        frequencyBar.setId(R.id.frequency_bar);
+
+        TextView frequencyView = new TextView(rootView.getContext());
+        LinearLayout.LayoutParams freqViewParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        freqViewParams.setMargins(5,5,5,5);
+        frequencyView.setLayoutParams(freqViewParams);
+        frequencyView.setId(R.id.frequency_bar_text);
+        frequencyView.setTypeface(null, Typeface.BOLD);
+        frequencyView.setText(getString(R.string.frequency_value, frequencyBar.getProgress()));
+
+        frequencyBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // updated continuously as the user slides the thumb
+                frequencyView.setText(getString(R.string.frequency_value, progress));
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // called when the user first touches the SeekBar
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // called after the user finishes moving the SeekBar
+                frequencyView.setText(getString(R.string.frequency_value, seekBar.getProgress()));
+
+            }
+        });
+
+        frequencyLayout.addView(frequencyBar);
+        frequencyLayout.addView(frequencyView);
+
+        //LinearLayout container = rootView.findViewById(R.id.collapsibleContainer1);
+        int index = container.indexOfChild(rootView.findViewById(R.id.sampleRateLayout)) + 1;
+        container.addView(frequencyLayout, index);
+
+        //switch the voltage level text view to active gas sensor info
+        TextView activeGasSensorView = rootView.findViewById(R.id.voltage_level);
+        activeGasSensorView.setId(R.id.active_gas_sensor);
+        activeGasSensorView.setText(getString(R.string.active_gas_sensor, "undefined"));
+
+        //switch the alarm threshold view to gas sensor data info
+        TextView gasSensorDataView = rootView.findViewById(R.id.alarm_threshold);
+        gasSensorDataView.setId(R.id.gas_sensor_data);
+        gasSensorDataView.setText(getString(R.string.gas_sensor_data, "undefined"));
+
+        container.removeView(rootView.findViewById(R.id.sensor_log_graph));
+
+        Spinner gasSensorDropdown = rootView.findViewById(R.id.gas_sensor_dropdown);
+        gasSensorDropdown.setOnItemSelectedListener(new CustomOnItemSelectedListener());
+
+        LinearLayout numSensorsLayout = new LinearLayout(rootView.getContext());
+        numSensorsLayout.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams numSensorsParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        numSensorsParams.setMargins(10,10,10,10);
+        numSensorsLayout.setLayoutParams(numSensorsParams);
+
+        SeekBar numSensorsBar = new SeekBar(rootView.getContext());
+        ViewGroup.LayoutParams numSensorsBarParams = new ViewGroup.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        numSensorsBar.setLayoutParams(numSensorsBarParams);
+        numSensorsBar.setMax(10);
+        numSensorsBar.setProgress(4);
+        numSensorsBar.setId(R.id.num_sensors_bar);
+
+        TextView numSensorsView = new TextView(rootView.getContext());
+        LinearLayout.LayoutParams numSensorsViewParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        numSensorsViewParams.setMargins(5,5,5,5);
+        numSensorsView.setLayoutParams(numSensorsViewParams);
+        numSensorsView.setId(R.id.num_sensors_bar_text);
+        numSensorsView.setTypeface(null, Typeface.BOLD);
+        numSensorsView.setText(getString(R.string.num_sensors_value, numSensorsBar.getProgress()));
+
+        numSensorsBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // updated continuously as the user slides the thumb
+                numSensorsView.setText(getString(R.string.num_sensors_value, progress));
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // called when the user first touches the SeekBar
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // called after the user finishes moving the SeekBar
+                numSensorsView.setText(getString(R.string.num_sensors_value, seekBar.getProgress()));
+
+            }
+        });
+
+        numSensorsLayout.addView(numSensorsBar);
+        numSensorsLayout.addView(numSensorsView);
+        container.addView(numSensorsLayout);
+    }
+
+    public class CustomOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
+
+        public void onItemSelected(AdapterView<?> parent, View view, int pos,long id) {
+            Toast.makeText(parent.getContext(),
+                    "OnItemSelectedListener : " + parent.getItemAtPosition(pos).toString(),
+                    Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "OnItemSelectedListener : " + parent.getItemAtPosition(pos).toString());
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> arg0) {
+            // TODO Auto-generated method stub
+        }
+
     }
 }

@@ -47,6 +47,8 @@ public class BluetoothService extends Service {
     private boolean bleQueueIsFree = true;
 
     public final static String ACTION_GATT_SERVICES_DISCOVERED =        "com.wearables.ge.ACTION_GATT_SERVICES_DISCOVERED";
+    public final static String ACTION_GATT_GAS_SENSOR_DISCOVERED =      "com.wearables.ge.ACTION_GATT_GAS_SENSOR_DISCOVERED";
+    public final static String ACTION_GATT_VOLTAGE_BAND_DISCOVERED =    "com.wearables.ge.ACTION_GATT_VOLTAGE_BAND_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE =                  "com.wearables.ge.ACTION_DATA_AVAILABLE";
 
     public final static String EXTRA_TYPE =                             "com.wearables.ge.EXTRA_TYPE";
@@ -191,10 +193,16 @@ public class BluetoothService extends Service {
             for(BluetoothGattService service : gatt.getServices()){
                 serviceUUIDs.add(service.getUuid());
             }
+            //check if it's a voltage band or a gas sensor
             if(serviceUUIDs.contains(GattAttributes.VOLTAGE_WRISTBAND_SERVICE_UUID)){
                 Log.d(TAG, "Voltage Band detected");
+                broadcastUpdate(ACTION_GATT_VOLTAGE_BAND_DISCOVERED);
+            } else if (serviceUUIDs.contains(GattAttributes.GAS_SENSOR_SERVICE_UUID)){
+                Log.d(TAG, "Gas sensor detected");
+                broadcastUpdate(ACTION_GATT_GAS_SENSOR_DISCOVERED);
+            } else {
+                broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             }
-            broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
         }
 
         @Override
