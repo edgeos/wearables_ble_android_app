@@ -8,9 +8,6 @@
         android:title="@string/device_id"
         app:showAsAction="never" />
     <item
-        android:id="@+id/update_rate"
-        android:title="@string/update_rate" />
-    <item
         android:id="@+id/rename"
         android:title="@string/rename" />
     <item

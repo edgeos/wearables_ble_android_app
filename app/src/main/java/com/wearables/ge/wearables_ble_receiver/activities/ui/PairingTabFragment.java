@@ -51,7 +51,7 @@ public class PairingTabFragment extends Fragment {
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_FINE_LOCATION = 2;
-    private static final int SCAN_PERIOD = 5000;
+    private static final int SCAN_PERIOD = 50000;
 
     private boolean mScanning;
     private Handler mHandler;
@@ -69,6 +69,8 @@ public class PairingTabFragment extends Fragment {
     View rootView;
     LinearLayout linLayout;
     LayoutInflater inflater;
+
+    Boolean checkedWhileScanning = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -98,7 +100,7 @@ public class PairingTabFragment extends Fragment {
         ((MainTabbedActivity)Objects.requireNonNull(getActivity())).disconnectDevice();
     }
 
-    private void refreshDeviceCache(BluetoothGatt gatt) {
+    /*private void refreshDeviceCache(BluetoothGatt gatt) {
         if(gatt == null){
             Log.d(TAG, "No device connected");
         }
@@ -110,7 +112,7 @@ public class PairingTabFragment extends Fragment {
         } catch(Exception localException) {
             Log.d(TAG, "Exception refreshing BT cache: %s" + localException.toString());
         }
-    }
+    }*/
 
     public void startScan() {
         Log.d(TAG, "StartScan called");
@@ -124,9 +126,6 @@ public class PairingTabFragment extends Fragment {
         if (!hasPermissions() || mScanning) {
             return;
         }
-
-        //initialize result set
-        //mScanResults = new HashMap<>();
 
         List<ScanFilter> filters = new ArrayList<>();
         ScanSettings settings = new ScanSettings.Builder()
@@ -161,7 +160,7 @@ public class PairingTabFragment extends Fragment {
             return;
         }*/
 
-        if(MainTabbedActivity.connectedDevice != null){
+        if(MainTabbedActivity.connectedDevice != null && !checkedWhileScanning){
             View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
             linLayout.addView(view, 0);
             String objName = connectedDevice.getName() == null ? connectedDevice.getAddress() : connectedDevice.getName();
@@ -177,6 +176,8 @@ public class PairingTabFragment extends Fragment {
                     disconnectDevice();
                 }
             });
+        } else if(checkedWhileScanning) {
+            checkedWhileScanning = false;
         } else {
             Log.d(TAG, "No connected device found");
         }
@@ -300,6 +301,9 @@ public class PairingTabFragment extends Fragment {
                 switchButton.setChecked(false);
                 switchButton.setOnClickListener( v -> {
                     if (switchButton.isChecked()) {
+                        if(mScanning){
+                            checkedWhileScanning = true;
+                        }
                         deviceName = objName;
                         connectedDevice = obj;
                         connectDevice();

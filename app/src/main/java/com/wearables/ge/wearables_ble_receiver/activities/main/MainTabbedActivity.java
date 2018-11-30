@@ -152,10 +152,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.update_rate:
-                Log.d(TAG, "update_rate button pushed");
-                //action for update_rate click
-                return true;
             case R.id.device_id:
                 Log.d(TAG, "device_id button pushed");
                 showDeviceID();
@@ -195,7 +191,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             alert.setView(input);
 
             alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
-                mService.writeToVoltageAlarmConfigChar(input.getText().toString());
+                mService.writeToVoltageAlarmConfigChar(GattAttributes.MESSAGE_TYPE_RENAME, input.getText().toString());
             });
 
             alert.setNegativeButton(R.string.dialog_cancel_button_message, (dialog, whichButton) -> Log.d(TAG, "Rename Device dialog closed"));
@@ -223,7 +219,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     public void showDeviceID(){
         AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
         if(connectedDevice != null){
-            alert.setMessage(getString(R.string.show_device_id, connectedDevice.getAddress() + connectedDevice.getName()));
+            alert.setMessage(getString(R.string.show_device_id, connectedDevice.getAddress()));
         } else {
             alert.setMessage(getString(R.string.show_device_id, "No device connected"));
         }
@@ -231,13 +227,21 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     }
 
     public void switchModes() {
-        MenuItem devModeItem = menuBar.findItem(R.id.dev_mode);
-        if(!devMode){
-            devModeItem.setTitle(R.string.normal_mode_menu_item);
-            devMode = true;
+        if(connectedDevice != null){
+            MenuItem devModeItem = menuBar.findItem(R.id.dev_mode);
+            if(!devMode){
+                mService.writeToVoltageAlarmConfigChar(GattAttributes.MESSAGE_TYPE_MODE, Character.toString((char) 2));
+                devModeItem.setTitle(R.string.normal_mode_menu_item);
+                devMode = true;
+            } else {
+                mService.writeToVoltageAlarmConfigChar(GattAttributes.MESSAGE_TYPE_MODE, Character.toString((char) 1));
+                devModeItem.setTitle(R.string.dev_mode_menu_item);
+                devMode = false;
+            }
         } else {
-            devModeItem.setTitle(R.string.dev_mode_menu_item);
-            devMode = false;
+            AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
+            alert.setMessage("No device connected");
+            alert.show();
         }
     }
 

@@ -21,6 +21,7 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
+import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
 
 import java.text.SimpleDateFormat;
@@ -107,7 +108,7 @@ public class DeviceTabFragment extends Fragment {
                     alert.setMessage("Are you sure you would like to set the voltage alarm threshold to " + seekBar.getProgress() + "?");
 
                     alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
-                        ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.writeToVoltageAlarmConfigChar(String.valueOf(seekBar.getProgress()));
+                        ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.writeToVoltageAlarmConfigChar(GattAttributes.MESSAGE_TYPE_ALARM_THRESHOLD, String.valueOf(seekBar.getProgress()));
                         alarmLevel = seekBar.getProgress();
                         addAlarmLevelLine();
                     });

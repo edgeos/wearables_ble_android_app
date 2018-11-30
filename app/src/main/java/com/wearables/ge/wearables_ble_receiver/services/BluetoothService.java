@@ -29,6 +29,8 @@ import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -98,16 +100,35 @@ public class BluetoothService extends Service {
         }
     }
 
-    public void writeToVoltageAlarmConfigChar(String message){
+    public void writeToVoltageAlarmConfigChar(int messageType, String message){
         BluetoothGattService voltageService = connectedGatt.getService(GattAttributes.VOLTAGE_WRISTBAND_SERVICE_UUID);
         BluetoothGattCharacteristic alarmThreshChar = voltageService.getCharacteristic(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID);
-        message = String.format("%1$-" + 16 + "s", message);
-        message = Character.toString((char) 01) + message;
+        int threshold = 0;
+        if(messageType == GattAttributes.MESSAGE_TYPE_RENAME){
+            message = String.format("%1$-" + 16 + "s", message);
+        } else if(messageType == GattAttributes.MESSAGE_TYPE_ALARM_THRESHOLD){
+            try {
+                threshold = Integer.parseInt(message);
+                message = "";
+            } catch (NumberFormatException e){
+                Log.d(TAG, "Invalid AlarmThreshold value");
+            }
+        }
+
+        message = Character.toString((char) messageType) + message;
         byte[] messageBytes = new byte[0];
         try {
             messageBytes = message.getBytes("UTF-8");
         } catch (UnsupportedEncodingException e) {
             Log.d(TAG, "Unable to convert message to bytes" + e.getMessage());
+        }
+
+        if(messageType == GattAttributes.MESSAGE_TYPE_ALARM_THRESHOLD){
+            byte[] thresholdBytes = ByteBuffer.allocate(4).putInt(threshold).order(ByteOrder.LITTLE_ENDIAN).array();
+            byte[] newMessage = new byte[messageBytes.length + thresholdBytes.length];
+            System.arraycopy(messageBytes, 0, newMessage, 0, messageBytes.length);
+            System.arraycopy(thresholdBytes, 0, newMessage, messageBytes.length, thresholdBytes.length);
+            messageBytes = newMessage;
         }
 
         //try to print message bytes as hex for debugging
@@ -116,8 +137,8 @@ public class BluetoothService extends Service {
             stringBuilder.append(String.format("%02x ", byteChar));
         }
         String value = stringBuilder.toString();
-
         Log.d(TAG, "Writing value: " + value + " to Alarm config characteristic");
+
         writeCharacteristic(alarmThreshChar, messageBytes);
 
         /*try {
