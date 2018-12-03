@@ -66,160 +66,18 @@ public class HistoryTabFragment extends Fragment {
     LineGraphSeries<DataPoint>  gasGraph1Series = new LineGraphSeries<>();
     LineGraphSeries<DataPoint>  gasGraph2Series = new LineGraphSeries<>();
 
-    LinearLayout gasExpandLayout;
-    LinearLayout gasSensorCollapsibleContainer;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+
         rootView = inflater.inflate(R.layout.fragment_tab_history, container, false);
-
-        LinearLayout expandableLayout1 = rootView.findViewById(R.id.collapsibleContainer1);
-        Switch switchButton1 = rootView.findViewById(R.id.expand1);
-        switchButton1.setChecked(true);
-        switchButton1.setOnClickListener( v -> {
-            if (switchButton1.isChecked()) {
-                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
-                expandView(expandableLayout1, 500);
-
-            } else {
-                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
-                collapseView(expandableLayout1, 500);
-            }
-        });
-
-        LinearLayout expandableLayout2 = rootView.findViewById(R.id.collapsibleContainer2);
-        Switch switchButton2 = rootView.findViewById(R.id.expand2);
-        switchButton2.setChecked(true);
-        switchButton2.setOnClickListener( v -> {
-            if (switchButton2.isChecked()) {
-                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
-                expandView(expandableLayout2, 500);
-            } else {
-                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
-                collapseView(expandableLayout2, 500 );
-            }
-        });
-
-        LinearLayout expandableLayout3 = rootView.findViewById(R.id.collapsibleContainer3);
-        Switch switchButton3 = rootView.findViewById(R.id.expand3);
-        switchButton3.setChecked(true);
-        switchButton3.setOnClickListener( v -> {
-            if (switchButton3.isChecked()) {
-                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
-                expandView(expandableLayout3, 500);
-            } else {
-                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
-                collapseView(expandableLayout3, 500 );
-            }
-        });
-
-        // get graph view instance
-        Log.d(TAG, "Getting graph objects");
-        voltageGraph1 = rootView.findViewById(R.id.voltage_sensor_graph_1);
-        Viewport voltageGraphViewport1 = voltageGraph1.getViewport();
-        voltageGraphViewport1.setYAxisBoundsManual(true);
-        voltageGraphViewport1.setXAxisBoundsManual(true);
-        voltageGraphViewport1.setMinY(0);
-        GridLabelRenderer gridLabel1 = voltageGraph1.getGridLabelRenderer();
-        gridLabel1.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
-        gridLabel1.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
-
-        // second graph
-        voltageGraph2 = rootView.findViewById(R.id.voltage_sensor_graph_2);
-        Viewport voltageGraphViewport2 = voltageGraph2.getViewport();
-        voltageGraphViewport2.setYAxisBoundsManual(true);
-        voltageGraphViewport2.setXAxisBoundsManual(true);
-        voltageGraphViewport2.setMinY(0);
-        GridLabelRenderer gridLabel2 = voltageGraph2.getGridLabelRenderer();
-        gridLabel2.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
-        gridLabel2.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
-
-        // third graph
-        voltageGraph3 = rootView.findViewById(R.id.voltage_sensor_graph_3);
-        Viewport voltageGraphViewport3 = voltageGraph3.getViewport();
-        voltageGraphViewport3.setYAxisBoundsManual(true);
-        voltageGraphViewport3.setXAxisBoundsManual(true);
-        voltageGraphViewport3.setMinY(0);
-        GridLabelRenderer gridLabel3 = voltageGraph3.getGridLabelRenderer();
-        gridLabel3.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
-        gridLabel3.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
-
-        //Acceleration Graphs
-        accelerationGraph1 = rootView.findViewById(R.id.acceleration_sensor_graph_1);
-        Viewport accelerationGraphViewport1 = accelerationGraph1.getViewport();
-        accelerationGraphViewport1.setYAxisBoundsManual(true);
-        accelerationGraphViewport1.setXAxisBoundsManual(true);
-        accelerationGraph1.addSeries(accelerometerXseries);
-        GridLabelRenderer accelerationGridLabel1 = accelerationGraph1.getGridLabelRenderer();
-        accelerationGridLabel1.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
-        accelerationGridLabel1.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
-        accelerationGraph1.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
-
-        // second acceleration graph
-        accelerationGraph2 = rootView.findViewById(R.id.acceleration_sensor_graph_2);
-        Viewport accelerationGraphViewport2 = accelerationGraph2.getViewport();
-        accelerationGraphViewport2.setYAxisBoundsManual(true);
-        accelerationGraphViewport2.setXAxisBoundsManual(true);
-        accelerationGraph2.addSeries(accelerometerYseries);
-        GridLabelRenderer accelerationGridLabel2 = accelerationGraph2.getGridLabelRenderer();
-        accelerationGridLabel2.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
-        accelerationGridLabel2.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
-        accelerationGraph2.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
-
-        // third acceleration graph
-        accelerationGraph3 = rootView.findViewById(R.id.acceleration_sensor_graph_3);
-        Viewport accelerationGraphViewport3 = accelerationGraph3.getViewport();
-        accelerationGraphViewport3.setYAxisBoundsManual(true);
-        accelerationGraphViewport3.setXAxisBoundsManual(true);
-        accelerationGraph3.addSeries(accelerometerZseries);
-        GridLabelRenderer accelerationGridLabel3 = accelerationGraph3.getGridLabelRenderer();
-        accelerationGridLabel3.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
-        accelerationGridLabel3.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
-        accelerationGraph3.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
-
-        tempGraph = rootView.findViewById(R.id.temperature_graph);
-        Viewport tempGraphViewport = tempGraph.getViewport();
-        tempGraphViewport.setYAxisBoundsManual(true);
-        tempGraphViewport.setXAxisBoundsManual(true);
-        tempGraph.addSeries(temperatureSeries);
-        GridLabelRenderer tempGridLabel = tempGraph.getGridLabelRenderer();
-        tempGridLabel.setHorizontalAxisTitle(getString(R.string.temperature_graph_x_axis_label));
-        tempGridLabel.setVerticalAxisTitle(getString(R.string.temperature_graph_y_axis_label));
-        tempGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
-
-        humidityGraph = rootView.findViewById(R.id.humidity_graph);
-        Viewport humidityGraphViewport = humidityGraph.getViewport();
-        humidityGraphViewport.setYAxisBoundsManual(true);
-        humidityGraphViewport.setXAxisBoundsManual(true);
-        humidityGraph.addSeries(humiditySeries);
-        GridLabelRenderer humidityGridLabel = humidityGraph.getGridLabelRenderer();
-        humidityGridLabel.setHorizontalAxisTitle(getString(R.string.humidity_graph_x_axis_label));
-        humidityGridLabel.setVerticalAxisTitle(getString(R.string.humidity_graph_y_axis_label));
-        humidityGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
-
-        pressureGraph = rootView.findViewById(R.id.pressure_graph);
-        Viewport pressureGraphViewport = pressureGraph.getViewport();
-        pressureGraphViewport.setYAxisBoundsManual(true);
-        pressureGraphViewport.setXAxisBoundsManual(true);
-        pressureGraph.addSeries(pressureSeries);
-        GridLabelRenderer pressureGridLabel = pressureGraph.getGridLabelRenderer();
-        pressureGridLabel.setHorizontalAxisTitle(getString(R.string.pressure_graph_x_axis_label));
-        pressureGridLabel.setVerticalAxisTitle(getString(R.string.pressure_graph_y_axis_label));
-        pressureGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+        initializeVoltageGraphs();
+        initializeAccelerationGraphs();
+        initializeTempHumidPressureGraphs();
 
         if(maxXvalue > 0 && maxYvalue > 0){
             updateVoltageGraphBounds();
-        }
-
-        LinearLayout rootContainer = rootView.findViewById(R.id.rootContainer);
-        gasExpandLayout = rootView.findViewById(R.id.gas_expand_layout);
-        gasSensorCollapsibleContainer = rootView.findViewById(R.id.gasSensorCollapsibleContainer1);
-        rootContainer.removeView(gasExpandLayout);
-        rootContainer.removeView(gasSensorCollapsibleContainer);
-
-        if(showGasSensorMode){
-            switchToGasSensorMode();
         }
 
         return rootView;
@@ -449,21 +307,9 @@ public class HistoryTabFragment extends Fragment {
         }
     };
 
-    public Boolean showGasSensorMode = false;
-    public void switchToGasSensorMode(){
-        showGasSensorMode = true;
-        if(rootView == null){
-            return;
-        }
-        LinearLayout rootContainer = rootView.findViewById(R.id.rootContainer);
-        rootContainer.removeView(rootView.findViewById(R.id.expand1_layout));
-        rootContainer.removeView(rootView.findViewById(R.id.collapsibleContainer1));
-
-        rootContainer.addView(gasExpandLayout);
-        rootContainer.addView(gasSensorCollapsibleContainer);
-
-        LinearLayout expandableLayout1 = rootView.findViewById(R.id.gasSensorCollapsibleContainer1);
-        Switch switchButton1 = rootView.findViewById(R.id.gas_expand1);
+    public void initializeVoltageGraphs(){
+        LinearLayout expandableLayout1 = rootView.findViewById(R.id.collapsibleContainer1);
+        Switch switchButton1 = rootView.findViewById(R.id.expand1);
         switchButton1.setChecked(true);
         switchButton1.setOnClickListener( v -> {
             if (switchButton1.isChecked()) {
@@ -476,28 +322,129 @@ public class HistoryTabFragment extends Fragment {
             }
         });
 
-        rootContainer.removeView(rootView.findViewById(R.id.expand2_layout));
-        rootContainer.removeView(rootView.findViewById(R.id.collapsibleContainer2));
+        // get graph view instance
+        Log.d(TAG, "Getting graph objects");
+        voltageGraph1 = rootView.findViewById(R.id.voltage_sensor_graph_1);
+        Viewport voltageGraphViewport1 = voltageGraph1.getViewport();
+        voltageGraphViewport1.setYAxisBoundsManual(true);
+        voltageGraphViewport1.setXAxisBoundsManual(true);
+        voltageGraphViewport1.setMinY(0);
+        GridLabelRenderer gridLabel1 = voltageGraph1.getGridLabelRenderer();
+        gridLabel1.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
+        gridLabel1.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
 
-        gasGraph1 = rootView.findViewById(R.id.gas_sensor_graph_1);
-        Viewport gasGraph1Viewport = gasGraph1.getViewport();
-        gasGraph1Viewport.setYAxisBoundsManual(true);
-        gasGraph1Viewport.setXAxisBoundsManual(true);
-        gasGraph1.addSeries(gasGraph1Series);
-        GridLabelRenderer gas1GridLabel = gasGraph1.getGridLabelRenderer();
-        gas1GridLabel.setHorizontalAxisTitle(getString(R.string.gas_sensor_graph_1_x_axis_label));
-        gas1GridLabel.setVerticalAxisTitle(getString(R.string.gas_sensor_graph_1_y_axis_label));
-        gasGraph1.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+        // second graph
+        voltageGraph2 = rootView.findViewById(R.id.voltage_sensor_graph_2);
+        Viewport voltageGraphViewport2 = voltageGraph2.getViewport();
+        voltageGraphViewport2.setYAxisBoundsManual(true);
+        voltageGraphViewport2.setXAxisBoundsManual(true);
+        voltageGraphViewport2.setMinY(0);
+        GridLabelRenderer gridLabel2 = voltageGraph2.getGridLabelRenderer();
+        gridLabel2.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
+        gridLabel2.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
 
-        gasGraph2 = rootView.findViewById(R.id.gas_sensor_graph_2);
-        Viewport gasGraph2Viewport = gasGraph2.getViewport();
-        gasGraph2Viewport.setYAxisBoundsManual(true);
-        gasGraph2Viewport.setXAxisBoundsManual(true);
-        gasGraph2.addSeries(gasGraph2Series);
-        GridLabelRenderer gas2GridLabel = gasGraph2.getGridLabelRenderer();
-        gas2GridLabel.setHorizontalAxisTitle(getString(R.string.gas_sensor_graph_2_x_axis_label));
-        gas2GridLabel.setVerticalAxisTitle(getString(R.string.gas_sensor_graph_2_y_axis_label));
-        gasGraph2.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
-
+        // third graph
+        voltageGraph3 = rootView.findViewById(R.id.voltage_sensor_graph_3);
+        Viewport voltageGraphViewport3 = voltageGraph3.getViewport();
+        voltageGraphViewport3.setYAxisBoundsManual(true);
+        voltageGraphViewport3.setXAxisBoundsManual(true);
+        voltageGraphViewport3.setMinY(0);
+        GridLabelRenderer gridLabel3 = voltageGraph3.getGridLabelRenderer();
+        gridLabel3.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
+        gridLabel3.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
     }
+
+    public void initializeAccelerationGraphs(){
+        LinearLayout expandableLayout2 = rootView.findViewById(R.id.collapsibleContainer2);
+        Switch switchButton2 = rootView.findViewById(R.id.expand2);
+        switchButton2.setChecked(true);
+        switchButton2.setOnClickListener( v -> {
+            if (switchButton2.isChecked()) {
+                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
+                expandView(expandableLayout2, 500);
+            } else {
+                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
+                collapseView(expandableLayout2, 500 );
+            }
+        });
+
+        //Acceleration Graphs
+        accelerationGraph1 = rootView.findViewById(R.id.acceleration_sensor_graph_1);
+        Viewport accelerationGraphViewport1 = accelerationGraph1.getViewport();
+        accelerationGraphViewport1.setYAxisBoundsManual(true);
+        accelerationGraphViewport1.setXAxisBoundsManual(true);
+        accelerationGraph1.addSeries(accelerometerXseries);
+        GridLabelRenderer accelerationGridLabel1 = accelerationGraph1.getGridLabelRenderer();
+        accelerationGridLabel1.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
+        accelerationGridLabel1.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
+        accelerationGraph1.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+
+        // second acceleration graph
+        accelerationGraph2 = rootView.findViewById(R.id.acceleration_sensor_graph_2);
+        Viewport accelerationGraphViewport2 = accelerationGraph2.getViewport();
+        accelerationGraphViewport2.setYAxisBoundsManual(true);
+        accelerationGraphViewport2.setXAxisBoundsManual(true);
+        accelerationGraph2.addSeries(accelerometerYseries);
+        GridLabelRenderer accelerationGridLabel2 = accelerationGraph2.getGridLabelRenderer();
+        accelerationGridLabel2.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
+        accelerationGridLabel2.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
+        accelerationGraph2.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+
+        // third acceleration graph
+        accelerationGraph3 = rootView.findViewById(R.id.acceleration_sensor_graph_3);
+        Viewport accelerationGraphViewport3 = accelerationGraph3.getViewport();
+        accelerationGraphViewport3.setYAxisBoundsManual(true);
+        accelerationGraphViewport3.setXAxisBoundsManual(true);
+        accelerationGraph3.addSeries(accelerometerZseries);
+        GridLabelRenderer accelerationGridLabel3 = accelerationGraph3.getGridLabelRenderer();
+        accelerationGridLabel3.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
+        accelerationGridLabel3.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
+        accelerationGraph3.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+    }
+
+    public void initializeTempHumidPressureGraphs(){
+        LinearLayout expandableLayout3 = rootView.findViewById(R.id.collapsibleContainer3);
+        Switch switchButton3 = rootView.findViewById(R.id.expand3);
+        switchButton3.setChecked(true);
+        switchButton3.setOnClickListener( v -> {
+            if (switchButton3.isChecked()) {
+                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
+                expandView(expandableLayout3, 500);
+            } else {
+                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
+                collapseView(expandableLayout3, 500 );
+            }
+        });
+
+        tempGraph = rootView.findViewById(R.id.temperature_graph);
+        Viewport tempGraphViewport = tempGraph.getViewport();
+        tempGraphViewport.setYAxisBoundsManual(true);
+        tempGraphViewport.setXAxisBoundsManual(true);
+        tempGraph.addSeries(temperatureSeries);
+        GridLabelRenderer tempGridLabel = tempGraph.getGridLabelRenderer();
+        tempGridLabel.setHorizontalAxisTitle(getString(R.string.temperature_graph_x_axis_label));
+        tempGridLabel.setVerticalAxisTitle(getString(R.string.temperature_graph_y_axis_label));
+        tempGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+
+        humidityGraph = rootView.findViewById(R.id.humidity_graph);
+        Viewport humidityGraphViewport = humidityGraph.getViewport();
+        humidityGraphViewport.setYAxisBoundsManual(true);
+        humidityGraphViewport.setXAxisBoundsManual(true);
+        humidityGraph.addSeries(humiditySeries);
+        GridLabelRenderer humidityGridLabel = humidityGraph.getGridLabelRenderer();
+        humidityGridLabel.setHorizontalAxisTitle(getString(R.string.humidity_graph_x_axis_label));
+        humidityGridLabel.setVerticalAxisTitle(getString(R.string.humidity_graph_y_axis_label));
+        humidityGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+
+        pressureGraph = rootView.findViewById(R.id.pressure_graph);
+        Viewport pressureGraphViewport = pressureGraph.getViewport();
+        pressureGraphViewport.setYAxisBoundsManual(true);
+        pressureGraphViewport.setXAxisBoundsManual(true);
+        pressureGraph.addSeries(pressureSeries);
+        GridLabelRenderer pressureGridLabel = pressureGraph.getGridLabelRenderer();
+        pressureGridLabel.setHorizontalAxisTitle(getString(R.string.pressure_graph_x_axis_label));
+        pressureGridLabel.setVerticalAxisTitle(getString(R.string.pressure_graph_y_axis_label));
+        pressureGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+    }
+
 }

@@ -13,6 +13,8 @@ package com.wearables.ge.wearables_ble_receiver.activities.main;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.widget.Button;
 
 import com.wearables.ge.wearables_ble_receiver.R;
 
@@ -36,7 +38,19 @@ public class AuthenticatorActivity extends AppCompatActivity {
         }).execute();*/
 
         //Intent intent = new Intent(this, MainActivity.class);
-        Intent intent = new Intent(this, MainTabbedActivity.class);
-        startActivity(intent);
+        Button gasModeButton = findViewById(R.id.button2);
+        gasModeButton.setOnClickListener(v -> {
+            MainTabbedActivity.gasSensorModeEnabled = true;
+            Intent intent = new Intent(this, MainTabbedActivity.class);
+            startActivity(intent);
+        });
+
+        Button voltageModeButton = findViewById(R.id.button3);
+        voltageModeButton.setOnClickListener(v -> {
+            MainTabbedActivity.gasSensorModeEnabled = false;
+            Intent intent = new Intent(this, MainTabbedActivity.class);
+            startActivity(intent);
+        });
+
     }
 }

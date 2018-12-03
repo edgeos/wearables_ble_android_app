@@ -30,7 +30,10 @@ import android.widget.Toast;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.ui.DeviceTabFragment;
 import com.wearables.ge.wearables_ble_receiver.activities.ui.EventsTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.ui.GasDeviceTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.ui.GasHistoryTabFragment;
 import com.wearables.ge.wearables_ble_receiver.activities.ui.HistoryTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.ui.LoggingTabFragment;
 import com.wearables.ge.wearables_ble_receiver.activities.ui.PairingTabFragment;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.services.LocationService;
@@ -68,6 +71,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     static PairingTabFragment mPairingTabFragment = new PairingTabFragment();
     static EventsTabFragment mEventsTabFragment = new EventsTabFragment();
     static HistoryTabFragment mHistoryTabFragment = new HistoryTabFragment();
+    static GasDeviceTabFragment mGasDeviceTabFragment = new GasDeviceTabFragment();
+    static LoggingTabFragment mLoggingTabFragment = new LoggingTabFragment();
+    static GasHistoryTabFragment mGasHistoryTabFragment = new GasHistoryTabFragment();
 
     public static String ARG_SECTION_NUMBER = "section_number";
 
@@ -82,6 +88,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     public int lastPeak;
     public Long lastPeakTime;
+
+    public static boolean gasSensorModeEnabled = false;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,6 +144,11 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         //This is because we don't need the location service to send updates to the UI.
         //We only need to grab the latest coordinates from the location service.
         LocationService.startLocationService(this);
+
+        /*mDeviceTabFragment.switchToGasSensorMode();
+        mHistoryTabFragment.switchToGasSensorMode();
+        mEventsTabFragment.switchToGasSensorMode();*/
+
     }
 
     @Override
@@ -169,20 +182,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 //dev mode action
                 switchModes();
                 return true;
-            case R.id.gas_mode:
-                Log.d(TAG, "Gas_mode button pushed");
-                //dev mode action
-                enableGasSensorMode();
-                return true;
             default:
                 Log.d(TAG, "No menu item found for " + item.getItemId());
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    public void enableGasSensorMode(){
-        mDeviceTabFragment.switchToGasSensorMode();
-        mHistoryTabFragment.switchToGasSensorMode();
     }
 
     public void renameDevice(){
@@ -341,8 +344,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
      */
     public static class AppSectionsPagerAdapter extends FragmentPagerAdapter {
 
-
-        AppSectionsPagerAdapter(FragmentManager fm) {
+        AppSectionsPagerAdapter(FragmentManager fm){
             super(fm);
         }
 
@@ -357,12 +359,24 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                     mPairingTabFragment.setArguments(args);
                     return mPairingTabFragment;
                 case 1:
+                    if(gasSensorModeEnabled){
+                        mGasDeviceTabFragment.setArguments(args);
+                        return mGasDeviceTabFragment;
+                    }
                     mDeviceTabFragment.setArguments(args);
                     return mDeviceTabFragment;
                 case 2:
+                    if(gasSensorModeEnabled){
+                        mLoggingTabFragment.setArguments(args);
+                        return mLoggingTabFragment;
+                    }
                     mEventsTabFragment.setArguments(args);
                     return mEventsTabFragment;
                 case 3:
+                    if(gasSensorModeEnabled){
+                        mGasHistoryTabFragment.setArguments(args);
+                        return mGasHistoryTabFragment;
+                    }
                     mHistoryTabFragment.setArguments(args);
                     return mHistoryTabFragment;
 

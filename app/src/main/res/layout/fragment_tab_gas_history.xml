@@ -17,14 +17,14 @@
         android:orientation="vertical">
 
         <LinearLayout
-            android:id="@+id/expand1_layout"
+            android:id="@+id/gas_expand_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:animateLayoutChanges="true"
             android:orientation="horizontal">
 
             <Switch
-                android:id="@+id/expand1"
+                android:id="@+id/gas_expand1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -35,156 +35,51 @@
                 />
 
             <TextView
-                android:id="@+id/device_name_1"
+                android:id="@+id/gas_device_name_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="16dp"
-                android:text="@string/voltage_sensor_button"
+                android:text="@string/gas_sensor_button"
                 android:textSize="16dp"
                 android:textStyle="bold" />
 
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/collapsibleContainer1"
+            android:id="@+id/gasSensorCollapsibleContainer1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:animateLayoutChanges="true"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/sensor_name_a1"
+                android:id="@+id/gas_sensor_name_a1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 android:textStyle="bold"
-                android:text="@string/voltage_channel_one_graph_title"
-                 />
-
-            <com.jjoe64.graphview.GraphView
-                android:id="@+id/voltage_sensor_graph_1"
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_marginBottom="8dp"
-              />
-
-            <TextView
-                android:id="@+id/sensor_name_a2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:textStyle="bold"
-                android:text="@string/voltage_channel_two_graph_title"
-                 />
-
-            <com.jjoe64.graphview.GraphView
-                android:id="@+id/voltage_sensor_graph_2"
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-               />
-
-            <TextView
-                android:id="@+id/sensor_name_a3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:textStyle="bold"
-                android:text="@string/voltage_channel_three_graph_title"
+                android:text="@string/gas_sensor_graph_1_title"
                 />
 
             <com.jjoe64.graphview.GraphView
-                android:id="@+id/voltage_sensor_graph_3"
+                android:id="@+id/gas_sensor_graph_1"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_marginBottom="8dp"
                 />
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/expand2_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
-            android:orientation="horizontal">
-
-            <Switch
-                android:id="@+id/expand2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginRight="10dp"
-                android:textOn="-"
-                android:textOff="+"
-                android:switchMinWidth="10dp"
-                />
-
             <TextView
-                android:id="@+id/device_name_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginLeft="10dp"
-                android:textSize="16dp"
-                android:textStyle="bold"
-                android:text="@string/acceleration_sensor_button" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/collapsibleContainer2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
-            android:orientation="vertical">
-
-
-            <TextView
-                android:id="@+id/sensor_name_b1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:text="@string/acceleration_x_graph_title"
-                android:textStyle="bold" />
-
-            <com.jjoe64.graphview.GraphView
-                android:id="@+id/acceleration_sensor_graph_1"
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_marginBottom="8dp"
-                />
-
-
-            <TextView
-                android:id="@+id/sensor_name_b2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:text="@string/acceleration_y_graph_title"
-                android:textStyle="bold" />
-
-            <com.jjoe64.graphview.GraphView
-                android:id="@+id/acceleration_sensor_graph_2"
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                />
-
-
-            <TextView
-                android:id="@+id/sensor_name_b3"
+                android:id="@+id/gas_sensor_name_a2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 android:textStyle="bold"
-                android:text="@string/acceleration_z_graph_title" />
+                android:text="@string/gas_sensor_graph_2_title"
+                />
 
             <com.jjoe64.graphview.GraphView
-                android:id="@+id/acceleration_sensor_graph_3"
+                android:id="@+id/gas_sensor_graph_2"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_marginTop="8dp"

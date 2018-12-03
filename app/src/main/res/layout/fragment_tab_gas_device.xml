@@ -30,6 +30,52 @@
                 android:text="Current Device Name" />
 
             <LinearLayout
+                android:id="@+id/sampleRateLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:orientation="vertical">
+
+                <SeekBar
+                    android:id="@+id/sampleRateBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="50" />
+
+                <TextView
+                    android:id="@+id/sampleRateView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/frequency_bar_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:orientation="vertical">
+
+                <SeekBar
+                    android:id="@+id/frequency_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="50" />
+
+                <TextView
+                    android:id="@+id/frequency_bar_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/main_information_display"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -38,7 +84,7 @@
 
 
                 <TextView
-                    android:id="@id/voltage_sensor_status"
+                    android:id="@+id/gas_sensor_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -83,21 +129,21 @@
                     android:textSize="18sp" />
 
                 <TextView
-                    android:id="@id/voltage_level"
+                    android:id="@id/active_gas_sensor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="Voltage Level: undefined"
+                    android:text="Active Gas Sensor: undefined"
                     android:textSize="18sp" />
 
                 <TextView
-                    android:id="@id/alarm_threshold"
+                    android:id="@id/gas_sensor_data"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="Alarm Threshold: undefined"
+                    android:text="Gas Sensor Data: undefined"
                     android:textSize="18sp" />
             </LinearLayout>
 
@@ -124,12 +170,53 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/gas_sensor_dropdown_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:layout_gravity="center"
+                android:orientation="horizontal">
 
-            <com.jjoe64.graphview.GraphView
-                android:id="@+id/sensor_log_graph"
+                <TextView
+                    android:id="@+id/gas_sensor_dropdown_message"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:text="@string/gas_sensor_dropdown_message"
+                    android:textStyle="bold"/>
+
+                <Spinner
+                    android:id="@+id/gas_sensor_dropdown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/gas_sensor_options"
+                    android:prompt="@string/enable_sensors_dropdown" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/num_sensors_bar_layout"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginTop="8dp" />
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:orientation="vertical">
+
+                <SeekBar
+                    android:id="@+id/num_sensors_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="10"
+                    android:progress="4" />
+
+                <TextView
+                    android:id="@+id/num_sensors_bar_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:textStyle="bold"/>
+
+            </LinearLayout>
 
 
         </LinearLayout>

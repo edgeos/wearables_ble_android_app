@@ -3,12 +3,10 @@ package com.wearables.ge.wearables_ble_receiver.activities.ui;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -20,14 +18,12 @@ import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
-import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 public class EventsTabFragment extends Fragment {
     private static final String TAG = "Events Tab Fragment";
@@ -35,7 +31,6 @@ public class EventsTabFragment extends Fragment {
     public static final String TAB_NAME = "Events";
 
     View rootView;
-    LinearLayout logEventsList;
 
     public List<VoltageEvent> voltageEvents = new ArrayList<>();
 
@@ -48,10 +43,6 @@ public class EventsTabFragment extends Fragment {
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_tab_events, container, false);
 
-        //refreshEventsLog();
-
-        /*logEventsList = rootView.findViewById(R.id.logEventList);
-        logEventsList.removeAllViews();*/
         refreshEventsLog();
 
         GraphView eventGraph = rootView.findViewById(R.id.event_log_graph);
