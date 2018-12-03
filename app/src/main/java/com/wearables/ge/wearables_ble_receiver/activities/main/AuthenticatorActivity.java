@@ -37,20 +37,8 @@ public class AuthenticatorActivity extends AppCompatActivity {
             }
         }).execute();*/
 
-        //Intent intent = new Intent(this, MainActivity.class);
-        Button gasModeButton = findViewById(R.id.button2);
-        gasModeButton.setOnClickListener(v -> {
-            MainTabbedActivity.gasSensorModeEnabled = true;
-            Intent intent = new Intent(this, MainTabbedActivity.class);
-            startActivity(intent);
-        });
-
-        Button voltageModeButton = findViewById(R.id.button3);
-        voltageModeButton.setOnClickListener(v -> {
-            MainTabbedActivity.gasSensorModeEnabled = false;
-            Intent intent = new Intent(this, MainTabbedActivity.class);
-            startActivity(intent);
-        });
+        Intent intent = new Intent(this, MainTabbedActivity.class);
+        startActivity(intent);
 
     }
 }

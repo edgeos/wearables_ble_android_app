@@ -75,20 +75,4 @@
     <string name="pressure_graph_x_axis_label">Time</string>
     <string name="pressure_graph_y_axis_label">Pressure</string>
 
-    <string name="gas_sensor_graph_1_title">Z\'</string>
-    <string name="gas_sensor_graph_2_title">Z\'\'</string>
-    <string name="gas_sensor_graph_1_x_axis_label">Time</string>
-    <string name="gas_sensor_graph_1_y_axis_label">Magnitude</string>
-    <string name="gas_sensor_graph_2_x_axis_label">Time</string>
-    <string name="gas_sensor_graph_2_y_axis_label">Magnitude</string>
-
-    <string name="enable_sensors_dropdown">Enable Sensor</string>
-    <string name="gas_sensor_dropdown_message">Active Sensor: </string>
-    <string-array name="gas_sensor_options">
-        <item>Gas Sensor 1</item>
-        <item>Gas Sensor 2</item>
-        <item>Gas Sensor 3</item>
-        <item>Gas Sensor 4</item>
-    </string-array>
-
 </resources>
