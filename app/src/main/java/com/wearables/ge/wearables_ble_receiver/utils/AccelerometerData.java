@@ -22,9 +22,9 @@ public class AccelerometerData {
             String yValueString = hexSplit.get(3) + hexSplit.get(2);
             String zValueString = hexSplit.get(5) + hexSplit.get(4);
             Log.d(TAG, "xValueString: " + xValueString + " yValueString: " + yValueString + " zValueString: " + zValueString);
-            this.xValue = Integer.parseInt(xValueString, 16);
-            this.yValue = Integer.parseInt(yValueString, 16);
-            this.zValue = Integer.parseInt(zValueString, 16);
+            this.xValue = (short) Integer.parseInt(xValueString, 16);
+            this.yValue = (short) Integer.parseInt(yValueString, 16);
+            this.zValue = (short) Integer.parseInt(zValueString, 16);
             Log.d(TAG, "xValue: " + xValue + " yValue: " + yValue + " zValue: " + zValue);
             this.date = Calendar.getInstance().getTimeInMillis();
         } else {

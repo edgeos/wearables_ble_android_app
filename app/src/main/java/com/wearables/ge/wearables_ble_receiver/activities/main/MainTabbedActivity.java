@@ -137,10 +137,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         //We only need to grab the latest coordinates from the location service.
         LocationService.startLocationService(this);
 
-        /*mDeviceTabFragment.switchToGasSensorMode();
-        mHistoryTabFragment.switchToGasSensorMode();
-        mEventsTabFragment.switchToGasSensorMode();*/
-
     }
 
     @Override
@@ -288,18 +284,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             if (action != null) {
                 switch (action) {
                     case BluetoothService.ACTION_GATT_SERVICES_DISCOVERED:
-                        Log.d(TAG, "ACTION_GATT_SERVICES_DISCOVERED broadcast received");
-                        //good indication that the device is successfully connected
-                        Toast.makeText(mPairingTabFragment.getContext(), "Device Connected", Toast.LENGTH_LONG).show();
-                        mService.setNotifyOnCharacteristics();
-                        break;
-                    case BluetoothService.ACTION_GATT_VOLTAGE_BAND_DISCOVERED:
-                        Log.d(TAG, "ACTION_GATT_SERVICES_DISCOVERED broadcast received");
-                        //good indication that the device is successfully connected
-                        Toast.makeText(mPairingTabFragment.getContext(), "Device Connected", Toast.LENGTH_LONG).show();
-                        mService.setNotifyOnCharacteristics();
-                        break;
-                    case BluetoothService.ACTION_GATT_GAS_SENSOR_DISCOVERED:
                         Log.d(TAG, "ACTION_GATT_SERVICES_DISCOVERED broadcast received");
                         //good indication that the device is successfully connected
                         Toast.makeText(mPairingTabFragment.getContext(), "Device Connected", Toast.LENGTH_LONG).show();
@@ -469,6 +453,12 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 Log.d(TAG, "Battery level: " + extraIntData + "%");
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
+
+                //attempt to read threshold value
+                /*mService.readCharacteristic(BluetoothService.connectedGatt
+                        .getService(GattAttributes.VOLTAGE_WRISTBAND_SERVICE_UUID)
+                        .getCharacteristic(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID));*/
+
                 VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
                 mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
                 //get peak between 40 and 70Hz bins
@@ -489,7 +479,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 }*/
 
                 //TODO: read the alarm threshold config value to determine an event
-                if(peak != lastPeak && peak > 20){
+                int threshold = mDeviceTabFragment.alarmLevel;
+                if(peak != lastPeak && peak > threshold){
                     Long peakTime = Calendar.getInstance().getTimeInMillis();
                     Long duration;
                     if(lastPeakTime == null){
@@ -514,12 +505,12 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
             } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
-                if(mHistoryTabFragment.isVisible()){
+                //if(mHistoryTabFragment.isVisible()){
                     AccelerometerData accelerometerData = new AccelerometerData(value);
                     if(accelerometerData.getDate() != null){
                         mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
                     }
-                }
+                //}
                 Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
             } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
                 TempHumidPressure tempHumidPressure = new TempHumidPressure(value);

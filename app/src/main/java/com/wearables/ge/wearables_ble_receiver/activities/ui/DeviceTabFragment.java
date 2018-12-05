@@ -54,7 +54,7 @@ public class DeviceTabFragment extends Fragment {
 
     SeekBar logThresholdBar;
 
-    public int alarmLevel;
+    public int alarmLevel = 50;
     private static Double minX;
     private static Double maxX;
     List<DataPoint> dataPoints = new ArrayList<>();
