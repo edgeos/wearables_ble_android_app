@@ -270,8 +270,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     private static IntentFilter createIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothService.ACTION_GATT_SERVICES_DISCOVERED);
-        intentFilter.addAction(BluetoothService.ACTION_GATT_GAS_SENSOR_DISCOVERED);
-        intentFilter.addAction(BluetoothService.ACTION_GATT_VOLTAGE_BAND_DISCOVERED);
         intentFilter.addAction(BluetoothService.ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
@@ -286,6 +284,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                     case BluetoothService.ACTION_GATT_SERVICES_DISCOVERED:
                         Log.d(TAG, "ACTION_GATT_SERVICES_DISCOVERED broadcast received");
                         //good indication that the device is successfully connected
+                        mDeviceTabFragment.setConnectedMessage(true);
                         Toast.makeText(mPairingTabFragment.getContext(), "Device Connected", Toast.LENGTH_LONG).show();
                         mService.setNotifyOnCharacteristics();
                         break;

@@ -142,6 +142,8 @@ public class DeviceTabFragment extends Fragment {
         viewport1.setMinY(0);
         viewport1.setMaxY(100);
 
+        setConnectedMessage(isConnected);
+
         return rootView;
     }
 
@@ -184,6 +186,18 @@ public class DeviceTabFragment extends Fragment {
     public void displayDeviceName(String name){
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(name);
+    }
+
+    boolean isConnected;
+    public void setConnectedMessage(boolean status){
+        if(rootView != null){
+            TextView connectedStatusView = rootView.findViewById(R.id.voltage_sensor_status);
+            if(connectedStatusView != null){
+                String message = status ? "Connected" : "Disconnected";
+                connectedStatusView.setText(getString(R.string.voltage_sensor_status, message));
+            }
+        }
+        this.isConnected = status;
     }
 
     public void updateBatteryLevel(int batteryLevel){
