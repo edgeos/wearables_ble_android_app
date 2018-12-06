@@ -15,7 +15,8 @@ import java.util.UUID;
 @SuppressWarnings("unused")
 public class GattAttributes {
     private static final String UUID_MASK = "0000%s-0000-1000-8000-00805f9b34fb";
-    private static final String VOLTAGE_UUID_MASK = "58da000%s-f287-4b46-8e75-9e6dcfa567c1";
+    //private static final String VOLTAGE_UUID_MASK = "58da000%s-f287-4b46-8e75-9e6dcfa567c1";
+    private static final String VOLTAGE_UUID_MASK = "4001000%s-4c0b-954d-8451-a0d4a5d77036";
 
 
     public static UUID BATT_LEVEL_CHAR_UUID = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");

@@ -178,8 +178,12 @@ public class EventsTabFragment extends Fragment {
             dataPoints.remove(0);
             dataPoints.add(new DataPoint(voltageEvent.getTime(), voltageEvent.getVoltage()));
         }
+        double lastX = 0;
         for(DataPoint dataPoint : dataPoints){
-            logSeries.appendData(dataPoint, false, 20);
+            if(dataPoint.getX() > lastX){
+                lastX = dataPoint.getX();
+                logSeries.appendData(dataPoint, false, 20);
+            }
         }
         dataPointsListSize = dataPoints.size();
         logSeries.setSpacing(10);

@@ -103,7 +103,13 @@ public class BluetoothService extends Service {
     }
 
     public void writeToVoltageAlarmConfigChar(int messageType, String message){
+        if(connectedGatt == null){
+            return;
+        }
         BluetoothGattService voltageService = connectedGatt.getService(GattAttributes.VOLTAGE_WRISTBAND_SERVICE_UUID);
+        if(voltageService == null){
+            return;
+        }
         BluetoothGattCharacteristic alarmThreshChar = voltageService.getCharacteristic(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID);
         int threshold = 0;
         if(messageType == GattAttributes.MESSAGE_TYPE_RENAME){
@@ -126,7 +132,7 @@ public class BluetoothService extends Service {
         }
 
         if(messageType == GattAttributes.MESSAGE_TYPE_ALARM_THRESHOLD){
-            byte[] thresholdBytes = ByteBuffer.allocate(4).putInt(threshold).order(ByteOrder.LITTLE_ENDIAN).array();
+            byte[] thresholdBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(threshold).array();
             byte[] newMessage = new byte[messageBytes.length + thresholdBytes.length];
             System.arraycopy(messageBytes, 0, newMessage, 0, messageBytes.length);
             System.arraycopy(thresholdBytes, 0, newMessage, messageBytes.length, thresholdBytes.length);

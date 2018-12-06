@@ -504,12 +504,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
             } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
-                //if(mHistoryTabFragment.isVisible()){
-                    AccelerometerData accelerometerData = new AccelerometerData(value);
-                    if(accelerometerData.getDate() != null){
-                        mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
-                    }
-                //}
+                AccelerometerData accelerometerData = new AccelerometerData(value);
+                if(accelerometerData.getDate() != null){
+                    mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
+                }
                 Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
             } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
                 TempHumidPressure tempHumidPressure = new TempHumidPressure(value);

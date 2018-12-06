@@ -21,7 +21,7 @@ public class AccelerometerData {
             String xValueString = hexSplit.get(1) + hexSplit.get(0);
             String yValueString = hexSplit.get(3) + hexSplit.get(2);
             String zValueString = hexSplit.get(5) + hexSplit.get(4);
-            Log.d(TAG, "xValueString: " + xValueString + " yValueString: " + yValueString + " zValueString: " + zValueString);
+            Log.d(TAG,  "xValueString: " + xValueString + " yValueString: " + yValueString + " zValueString: " + zValueString);
             this.xValue = (short) Integer.parseInt(xValueString, 16);
             this.yValue = (short) Integer.parseInt(yValueString, 16);
             this.zValue = (short) Integer.parseInt(zValueString, 16);
