@@ -511,13 +511,15 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
             } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
                 TempHumidPressure tempHumidPressure = new TempHumidPressure(value);
-                if(mDeviceTabFragment.isVisible()){
-                    mDeviceTabFragment.updateHumidity(tempHumidPressure.getHumid());
-                    mDeviceTabFragment.updateTemperature(tempHumidPressure.getTemp());
-                    mDeviceTabFragment.updatePressure(tempHumidPressure.getPres());
-                }
-                if(mHistoryTabFragment.isVisible()){
-                    mHistoryTabFragment.updateTempHumidityPressureGraph(tempHumidPressure);
+                if(tempHumidPressure.getDate() != null){
+                    if(mDeviceTabFragment.isVisible()){
+                        mDeviceTabFragment.updateHumidity(tempHumidPressure.getHumid());
+                        mDeviceTabFragment.updateTemperature(tempHumidPressure.getTemp());
+                        mDeviceTabFragment.updatePressure(tempHumidPressure.getPres());
+                    }
+                    if(mHistoryTabFragment.isVisible()){
+                        mHistoryTabFragment.updateTempHumidityPressureGraph(tempHumidPressure);
+                    }
                 }
                 Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
             } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){

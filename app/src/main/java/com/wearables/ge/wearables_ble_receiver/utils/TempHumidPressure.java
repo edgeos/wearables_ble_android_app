@@ -37,6 +37,19 @@ public class TempHumidPressure {
             this.pres = (presRaw / 256);
             this.date = Calendar.getInstance().getTimeInMillis();
             Log.d(TAG, "temp: " + tempString + " humid: " + humidString + " pressure: "+ pressureString);
+        } else if(hexSplit.size() == 6) {
+            String tempString = hexSplit.get(1) + hexSplit.get(0);
+            String humidString = hexSplit.get(3) + hexSplit.get(2);
+            String pressureString = hexSplit.get(5) + hexSplit.get(4);
+            int tempRaw = Integer.parseInt(tempString, 16);
+            int humidRaw = Integer.parseInt(humidString, 16);
+            int presRaw = Integer.parseInt(pressureString, 16);
+
+            this.temp = (tempRaw * 0.01);
+            this.humid = (humidRaw / 1024);
+            this.pres = (presRaw / 256);
+            this.date = Calendar.getInstance().getTimeInMillis();
+            Log.d(TAG, "temp: " + tempString + " humid: " + humidString + " pressure: "+ pressureString);
         } else {
             Log.d(TAG, "Temp/Pressure/Humid hex string malformed: " + hexString);
         }

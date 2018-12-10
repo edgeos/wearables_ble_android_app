@@ -47,8 +47,6 @@ public class BluetoothService extends Service {
     private boolean bleQueueIsFree = true;
 
     public final static String ACTION_GATT_SERVICES_DISCOVERED =        "com.wearables.ge.ACTION_GATT_SERVICES_DISCOVERED";
-    public final static String ACTION_GATT_GAS_SENSOR_DISCOVERED =      "com.wearables.ge.ACTION_GATT_GAS_SENSOR_DISCOVERED";
-    public final static String ACTION_GATT_VOLTAGE_BAND_DISCOVERED =    "com.wearables.ge.ACTION_GATT_VOLTAGE_BAND_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE =                  "com.wearables.ge.ACTION_DATA_AVAILABLE";
 
     public final static String EXTRA_TYPE =                             "com.wearables.ge.EXTRA_TYPE";
@@ -87,6 +85,7 @@ public class BluetoothService extends Service {
     public void connectDevice(BluetoothDevice device) {
         BluetoothService.GattClientCallback gattClientCallback = new BluetoothService.GattClientCallback();
         connectedGatt = device.connectGatt(this, false, gattClientCallback);
+        //Boolean refreshed = refreshDeviceCache(connectedGatt);
         Log.d(TAG, "Device " + deviceName + " connected");
     }
 
@@ -94,6 +93,8 @@ public class BluetoothService extends Service {
         //disconnect
         Log.d(TAG, "Attempting to disconnect " + deviceName);
         if (connectedGatt != null) {
+            Boolean refreshed = refreshDeviceCache(connectedGatt);
+            Log.d(TAG, "Device cache refreshed: " + refreshed);
             connectedGatt.disconnect();
             connectedGatt.close();
             connectedGatt = null;
@@ -148,14 +149,17 @@ public class BluetoothService extends Service {
         Log.d(TAG, "Writing value: " + value + " to Alarm config characteristic");
 
         writeCharacteristic(alarmThreshChar, messageBytes);
+    }
 
-        /*try {
-            Method localMethod = connectedGatt.getClass().getMethod("refresh");
-            localMethod.invoke(connectedGatt);
-            Log.d(TAG, "Cache refreshed");
-        } catch(Exception localException) {
-            Log.d(TAG, "Exception refreshing BT cache: %s" + localException.toString());
-        }*/
+    private boolean refreshDeviceCache(BluetoothGatt gatt){
+        try {
+            Method localMethod = gatt.getClass().getMethod("refresh", new Class[0]);
+            return (Boolean) localMethod.invoke(gatt, new Object[0]);
+        }
+        catch (Exception localException) {
+            Log.e(TAG, "An exception occured while refreshing device");
+        }
+        return false;
     }
 
     private class GattClientCallback extends BluetoothGattCallback {
@@ -176,6 +180,8 @@ public class BluetoothService extends Service {
                 //set global variables for connected device and device name
                 if(gatt != null){
                     connectedGatt = gatt;
+                    Boolean refreshed = refreshDeviceCache(connectedGatt);
+                    Log.d(TAG, "Device cache refreshed: " + refreshed);
                     deviceName = gatt.getDevice().getName() == null ? gatt.getDevice().getAddress() : gatt.getDevice().getName();
                     Log.d(TAG, "Device connected: " + deviceName);
                 }
