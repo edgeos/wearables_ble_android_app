@@ -13,7 +13,6 @@ import android.widget.ProgressBar;
 
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
-import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -33,7 +32,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +53,6 @@ public class PairingTabFragment extends Fragment {
 
     private boolean mScanning;
     private Handler mHandler;
-    //private Map<String, BluetoothDevice> mScanResults;
 
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBluetoothLeScanner;
@@ -100,27 +97,11 @@ public class PairingTabFragment extends Fragment {
         ((MainTabbedActivity)Objects.requireNonNull(getActivity())).disconnectDevice();
     }
 
-    /*private void refreshDeviceCache(BluetoothGatt gatt) {
-        if(gatt == null){
-            Log.d(TAG, "No device connected");
-        }
-        try {
-            Method localMethod = gatt.getClass().getMethod("refresh");
-            if(localMethod != null) {
-                localMethod.invoke(gatt);
-            }
-        } catch(Exception localException) {
-            Log.d(TAG, "Exception refreshing BT cache: %s" + localException.toString());
-        }
-    }*/
-
     public void startScan() {
         Log.d(TAG, "StartScan called");
         //add spinner to view
         spinner = rootView.findViewById(R.id.progressBar2);
         spinner.setVisibility(View.VISIBLE);
-
-        //refreshDeviceCache(BluetoothService.connectedGatt);
 
         //if the user hasn't allowed BT scanning  or if a scan is currently happening then stop here
         if (!hasPermissions() || mScanning) {

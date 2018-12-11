@@ -116,13 +116,11 @@ public class EventsTabFragment extends Fragment {
             TextView dateTimeTextView = new TextView(rootView.getContext());
             dateTimeTextView.setText(date);
             dateTimeTextView.setGravity(Gravity.CENTER);
-            //logEventsList.addView(dateTimeTextView);
 
             String message = "Level " + voltageEvent.getVoltage() + ", lasted " + voltageEvent.getDuration() + " milliseconds";
             TextView messageTextView = new TextView(rootView.getContext());
             messageTextView.setText(message);
             messageTextView.setGravity(Gravity.CENTER);
-            //logEventsList.addView(messageTextView);
 
             String coordinates = "No coordinates found for event.";
             if(latitude != null){
@@ -132,7 +130,6 @@ public class EventsTabFragment extends Fragment {
             locationTextView.setText(coordinates);
             locationTextView.setGravity(Gravity.CENTER);
             locationTextView.setPadding(0,0,0,30);
-            //logEventsList.addView(locationTextView);
 
             logEventsList.addView(locationTextView, 0);
             logEventsList.addView(messageTextView, 0);

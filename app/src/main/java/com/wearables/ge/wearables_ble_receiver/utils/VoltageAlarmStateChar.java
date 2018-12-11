@@ -1,12 +1,8 @@
 package com.wearables.ge.wearables_ble_receiver.utils;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 
 @SuppressWarnings("unused")
 public class VoltageAlarmStateChar {
