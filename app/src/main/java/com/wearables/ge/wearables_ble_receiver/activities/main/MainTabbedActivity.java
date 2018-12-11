@@ -459,47 +459,41 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                         .getCharacteristic(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID));*/
 
                 VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
-                mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
-                //get peak between 40 and 70Hz bins
-                int start = Math.round(40/voltageAlarmState.getFft_bin_size()) + 1;
-                int end = Math.round(70/voltageAlarmState.getFft_bin_size()) + 1;
-                List<Integer> peakRange = new ArrayList<>();
-                for(int i = start; i <= end; i++){
-                    peakRange.add(voltageAlarmState.getCh1_fft_results().get(i));
-                }
-                int peak = Collections.max(peakRange);
-
-                //add for some simulated peaks
-                /*Long now = Calendar.getInstance().getTimeInMillis();
-                if((now % 10) == 0){
-                    Random rand = new Random();
-                    peak = rand.nextInt(100);
-                    Log.d(TAG, "simulated peak: " + peak);
-                }*/
-
-                //TODO: read the alarm threshold config value to determine an event
-                int threshold = mDeviceTabFragment.alarmLevel;
-                if(peak != lastPeak && peak > threshold){
-                    Long peakTime = Calendar.getInstance().getTimeInMillis();
-                    Long duration;
-                    if(lastPeakTime == null){
-                        duration = 0L;
-                    } else {
-                        duration = peakTime - lastPeakTime;
+                if(voltageAlarmState.getDevMode()){
+                    mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
+                    //get peak between 40 and 70Hz bins
+                    int start = Math.round(40/voltageAlarmState.getFft_bin_size()) + 1;
+                    int end = Math.round(70/voltageAlarmState.getFft_bin_size()) + 1;
+                    List<Integer> peakRange = new ArrayList<>();
+                    for(int i = start; i <= end; i++){
+                        peakRange.add(voltageAlarmState.getCh1_fft_results().get(i));
                     }
+                    int peak = Collections.max(peakRange);
 
-                    VoltageEvent voltageEvent = new VoltageEvent(lastPeak, duration);
-                    mEventsTabFragment.voltageEvents.add(voltageEvent);
-                    lastPeak = peak;
-                    lastPeakTime = peakTime;
-                    if(mEventsTabFragment.isVisible()){
-                        mEventsTabFragment.addEventItem(voltageEvent);
+                    //TODO: read the alarm threshold config value to determine an event
+                    int threshold = mDeviceTabFragment.alarmLevel;
+                    if(peak != lastPeak && peak > threshold){
+                        Long peakTime = Calendar.getInstance().getTimeInMillis();
+                        Long duration;
+                        if(lastPeakTime == null){
+                            duration = 0L;
+                        } else {
+                            duration = peakTime - lastPeakTime;
+                        }
+
+                        VoltageEvent voltageEvent = new VoltageEvent(lastPeak, duration);
+                        mEventsTabFragment.voltageEvents.add(voltageEvent);
+                        lastPeak = peak;
+                        lastPeakTime = peakTime;
+                        if(mEventsTabFragment.isVisible()){
+                            mEventsTabFragment.addEventItem(voltageEvent);
+                        }
                     }
-                }
-                VoltageEvent voltageEvent = new VoltageEvent(peak, 0L);
-                mDeviceTabFragment.updateGraph(voltageEvent);
-                if(mDeviceTabFragment.isVisible()){
-                    mDeviceTabFragment.updateVoltageLevel(peak);
+                    VoltageEvent voltageEvent = new VoltageEvent(peak, 0L);
+                    mDeviceTabFragment.updateGraph(voltageEvent);
+                    if(mDeviceTabFragment.isVisible()){
+                        mDeviceTabFragment.updateVoltageLevel(peak);
+                    }
                 }
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
