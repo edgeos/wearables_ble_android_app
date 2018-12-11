@@ -300,7 +300,7 @@ public class PairingTabFragment extends Fragment {
             Log.d(TAG, "Found device: " + objName);
             if(!scanResults.containsKey(objName)){
                 View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
-                linLayout.addView(view, 0);
+                linLayout.addView(view, linLayout.indexOfChild(spinner));
 
                 ((TextView) view.findViewById(R.id.text)).setText(objName);
 

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name"> GRC Sense </string>
+    <string name="app_name"> Volt Sense </string>
     <string name="edit_message">Enter a message</string>
     <string name="scan_button">Scan Again</string>
     <string name="connect_button">Connect</string>
