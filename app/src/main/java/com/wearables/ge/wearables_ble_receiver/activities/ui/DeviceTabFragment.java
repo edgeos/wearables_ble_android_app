@@ -19,13 +19,19 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.GridLabelRenderer;
-import com.jjoe64.graphview.LabelFormatter;
-import com.jjoe64.graphview.Viewport;
-import com.jjoe64.graphview.series.BarGraphSeries;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.CombinedChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.CombinedData;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
@@ -33,7 +39,6 @@ import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -43,21 +48,16 @@ public class DeviceTabFragment extends Fragment {
 
     public static final String TAB_NAME = "Device";
 
-    private TextView sampleRateView = null;
     private TextView logThresholdView = null;
     private TextView deviceName = null;
 
     View rootView;
 
-    LineGraphSeries<DataPoint> alarmLevelSeries;
-    GraphView logGraph;
+    CombinedChart logGraph;
 
     SeekBar logThresholdBar;
 
     public int alarmLevel = 50;
-    private static Double minX;
-    private static Double maxX;
-    List<DataPoint> dataPoints = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -111,81 +111,93 @@ public class DeviceTabFragment extends Fragment {
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(MainTabbedActivity.connectedDeviceName);
 
-        // log graphic
-        GraphView logGraph = rootView.findViewById(R.id.sensor_log_graph);
-        logGraph.getGridLabelRenderer().setHumanRounding(false);
-        logGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
-            int i = 0;
-            @Override
-            public String formatLabel(double value, boolean isValueX) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                if(isValueX && i == 100){
-                    Date d = new Date((long) value);
-                    i = 0;
-                    return (dateFormat.format(d));
-                } else if (isValueX){
-                    i++;
-                    return "";
-                }
-                return "" + (int) value;
-            }
-
-            @Override
-            public void setViewport(Viewport viewport) {
-
-            }
-        });
-
-        Viewport viewport1 = logGraph.getViewport();
-        viewport1.setYAxisBoundsManual(true);
-        viewport1.setXAxisBoundsManual(true);
-        viewport1.setMinY(0);
-        viewport1.setMaxY(300);
+        initializeEventChart();
 
         setConnectedMessage(isConnected);
 
         return rootView;
     }
 
-    public void updateGraph(VoltageEvent voltageEvent){
+    public void initializeEventChart(){
         logGraph = rootView.findViewById(R.id.sensor_log_graph);
-        BarGraphSeries<DataPoint> logSeries = new BarGraphSeries<>();
-        logGraph.removeAllSeries();
-        int dataPointsListSize = dataPoints.size();
-        if(dataPointsListSize < 10){
-            dataPoints.add(new DataPoint(voltageEvent.getTime(), voltageEvent.getVoltage()));
-        } else {
-            dataPoints.remove(0);
-            dataPoints.add(new DataPoint(voltageEvent.getTime(), voltageEvent.getVoltage()));
-        }
-        for(DataPoint dataPoint : dataPoints){
-            logSeries.appendData(dataPoint, false, 20);
-        }
-        dataPointsListSize = dataPoints.size();
-        logSeries.setSpacing(10);
-        minX = dataPoints.get(0).getX() - 500;
-        maxX = dataPoints.get(dataPointsListSize - 1).getX() + 500;
-        logGraph.getViewport().setMinX(minX);
-        logGraph.getViewport().setMaxX(maxX);
-        logGraph.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
-        logGraph.addSeries(logSeries);
+        logGraph.setDrawBarShadow(false);
+        logGraph.setDrawValueAboveBar(false);
+        logGraph.setMaxVisibleValueCount(30);
 
-        addAlarmLevelLine();
+        XAxis xAxis = logGraph.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setTypeface(Typeface.SANS_SERIF);
+        xAxis.setDrawGridLines(false);
+        xAxis.setGranularity(1f); // only intervals of 1 day
+        xAxis.setLabelCount(7);
+        xAxis.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxis = logGraph.getAxisLeft();
+        leftAxis.setTypeface(Typeface.SANS_SERIF);
+        leftAxis.setLabelCount(8, false);
+        leftAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
+        leftAxis.setSpaceTop(15f);
+        leftAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
+        leftAxis.setAxisMaximum(250);
+
+        YAxis rightAxis = logGraph.getAxisRight();
+        rightAxis.setDrawGridLines(false);
+        rightAxis.setTypeface(Typeface.SANS_SERIF);
+        rightAxis.setLabelCount(8, false);
+        rightAxis.setSpaceTop(15f);
+        rightAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
+        rightAxis.setAxisMaximum(250);
+
     }
 
-    public void addAlarmLevelLine(){
-        logGraph.removeSeries(alarmLevelSeries);
-        alarmLevelSeries = new LineGraphSeries<>(new DataPoint[] {
-                new DataPoint(minX, logThresholdBar.getProgress()),
-                new DataPoint(maxX, logThresholdBar.getProgress())
-        });
-        logGraph.addSeries(alarmLevelSeries);
-        alarmLevelSeries.setColor(Color.RED);
+    int i = 0;
+    List<BarEntry> entries = new ArrayList<>();
+    public void updateGraph(VoltageEvent voltageEvent){
+        Log.d(TAG, "Update Voltage graph called");
+        if(logGraph != null ){
+            i++;
+            if(entries.size() == 15){
+                entries.remove(0);
+            }
+            entries.add(new BarEntry(i, voltageEvent.getVoltage()));
+            BarDataSet set = new BarDataSet(entries, "Events");
+            BarData barData = new BarData(set);
+            barData.setBarWidth(0.8f);
+            CombinedData data = new CombinedData();
+            data.setData(barData);
+            data.setData(addAlarmLevelLine());
+
+            logGraph.setData(data);
+
+            logGraph.invalidate();
+
+
+        } else {
+            Log.d(TAG, "Log graph uninitialised");
+        }
+    }
+
+    public LineData addAlarmLevelLine(){
+        List<Entry> alarmLevelEntries = new ArrayList<>();
+        alarmLevelEntries.add(new Entry(entries.get(0).getX(), logThresholdBar.getProgress()));
+        alarmLevelEntries.add(new Entry(entries.get(entries.size() - 1).getX(), logThresholdBar.getProgress()));
+        LineDataSet set = new LineDataSet(alarmLevelEntries, "Alarm Level");
+        set.setColor(Color.RED);
+        return new LineData(set);
     }
 
     public void displayDeviceName(String name){
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(name);
+    }
+
+    public class DateValueFormatter implements IAxisValueFormatter {
+        @Override
+        public String getFormattedValue(float value, AxisBase axis){
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+            Date d = new Date();
+            return (dateFormat.format(d));
+        }
     }
 
     boolean isConnected;

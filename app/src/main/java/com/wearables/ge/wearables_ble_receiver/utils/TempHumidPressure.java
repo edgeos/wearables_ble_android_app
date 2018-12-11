@@ -18,15 +18,9 @@ public class TempHumidPressure {
     public TempHumidPressure(String hexString){
         List<String> hexSplit = Arrays.asList(hexString.split("\\s+"));
         if(hexSplit.size() == 12){
-            /*String tempString = hexSplit.get(1) + hexSplit.get(0);
-            String humidString = hexSplit.get(3) + hexSplit.get(2);
-            String pressureString = hexSplit.get(5) + hexSplit.get(4);*/
             String tempString = hexSplit.get(3) + hexSplit.get(2) + hexSplit.get(1) + hexSplit.get(0);
             String humidString = hexSplit.get(7) + hexSplit.get(6) + hexSplit.get(5) + hexSplit.get(4);
             String pressureString = hexSplit.get(11) + hexSplit.get(10) + hexSplit.get(9) + hexSplit.get(8);
-            /*this.temp = Integer.parseInt(tempString, 16);
-            this.humid = Integer.parseInt(humidString, 16);
-            this.pres = Integer.parseInt(pressureString, 16);*/
 
             int tempRaw = Integer.parseInt(tempString, 16);
             int humidRaw = Integer.parseInt(humidString, 16);

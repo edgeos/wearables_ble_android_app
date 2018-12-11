@@ -17,11 +17,11 @@
         android:textSize="16dp"
         android:textStyle="bold" />
 
-    <com.jjoe64.graphview.GraphView
+    <com.github.mikephil.charting.charts.BarChart
         android:id="@+id/event_log_graph"
         android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:layout_marginTop="8dp" />
+        android:layout_height="250dp"
+        android:layout_marginTop="8dp"/>
 
 
     <android.support.constraint.ConstraintLayout

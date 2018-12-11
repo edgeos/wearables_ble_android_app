@@ -1,8 +1,9 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
-import android.location.Location;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,12 +11,14 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.GridLabelRenderer;
-import com.jjoe64.graphview.LabelFormatter;
-import com.jjoe64.graphview.Viewport;
-import com.jjoe64.graphview.series.BarGraphSeries;
-import com.jjoe64.graphview.series.DataPoint;
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
@@ -34,7 +37,7 @@ public class EventsTabFragment extends Fragment {
 
     public List<VoltageEvent> voltageEvents = new ArrayList<>();
 
-    GraphView eventGraph;
+    BarChart eventGraph;
 
     TextView deviceName;
 
@@ -45,41 +48,54 @@ public class EventsTabFragment extends Fragment {
 
         refreshEventsLog();
 
-        GraphView eventGraph = rootView.findViewById(R.id.event_log_graph);
-        eventGraph.getGridLabelRenderer().setHumanRounding(false);
-        eventGraph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
-            int i = 0;
-            @Override
-            public String formatLabel(double value, boolean isValueX) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-                if(isValueX && i == 100){
-                    Date d = new Date((long) value);
-                    i = 0;
-                    return (dateFormat.format(d));
-                } else if (isValueX){
-                    i++;
-                    return "";
-                }
-                return "" + (int) value;
-            }
-
-            @Override
-            public void setViewport(Viewport viewport) {
-
-            }
-        });
-
-        Viewport viewport1 = eventGraph.getViewport();
-        viewport1.setYAxisBoundsManual(true);
-        viewport1.setXAxisBoundsManual(true);
-        viewport1.setMinY(0);
-        viewport1.setMaxY(100);
+        initializeEventChart();
 
         // Device name shown at the top of the page
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(MainTabbedActivity.connectedDeviceName);
 
         return rootView;
+    }
+
+    public void initializeEventChart(){
+        eventGraph = rootView.findViewById(R.id.event_log_graph);
+        eventGraph.setDrawBarShadow(false);
+        eventGraph.setDrawValueAboveBar(false);
+        eventGraph.setMaxVisibleValueCount(30);
+
+        XAxis xAxis = eventGraph.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setTypeface(Typeface.SANS_SERIF);
+        xAxis.setDrawGridLines(false);
+        xAxis.setGranularity(1f); // only intervals of 1 day
+        xAxis.setLabelCount(7);
+        xAxis.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxis = eventGraph.getAxisLeft();
+        leftAxis.setTypeface(Typeface.SANS_SERIF);
+        leftAxis.setLabelCount(8, false);
+        leftAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
+        leftAxis.setSpaceTop(15f);
+        leftAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
+        leftAxis.setAxisMaximum(250);
+
+        YAxis rightAxis = eventGraph.getAxisRight();
+        rightAxis.setDrawGridLines(false);
+        rightAxis.setTypeface(Typeface.SANS_SERIF);
+        rightAxis.setLabelCount(8, false);
+        rightAxis.setSpaceTop(15f);
+        rightAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
+        rightAxis.setAxisMaximum(250);
+
+    }
+
+    public class DateValueFormatter implements IAxisValueFormatter {
+        @Override
+        public String getFormattedValue(float value, AxisBase axis){
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+            Date d = new Date();
+            return (dateFormat.format(d));
+        }
     }
 
     public void refreshEventsLog(){
@@ -164,34 +180,25 @@ public class EventsTabFragment extends Fragment {
         updateGraph(voltageEvent);
     }
 
-    List<DataPoint> dataPoints = new ArrayList<>();
-    double minX;
-    double maxX;
+    List<BarEntry> entries = new ArrayList<>();
+    int i =0;
     public void updateGraph(VoltageEvent voltageEvent){
-        eventGraph = rootView.findViewById(R.id.event_log_graph);
-        BarGraphSeries<DataPoint> logSeries = new BarGraphSeries<>();
-        eventGraph.removeAllSeries();
-        int dataPointsListSize = dataPoints.size();
-        if(dataPointsListSize < 10){
-            dataPoints.add(new DataPoint(voltageEvent.getTime(), voltageEvent.getVoltage()));
-        } else {
-            dataPoints.remove(0);
-            dataPoints.add(new DataPoint(voltageEvent.getTime(), voltageEvent.getVoltage()));
-        }
-        double lastX = 0;
-        for(DataPoint dataPoint : dataPoints){
-            if(dataPoint.getX() > lastX){
-                lastX = dataPoint.getX();
-                logSeries.appendData(dataPoint, false, 20);
+        if(eventGraph != null ){
+            i++;
+            if(entries.size() == 15){
+                entries.remove(0);
             }
+            entries.add(new BarEntry(i, voltageEvent.getVoltage()));
+            BarDataSet set = new BarDataSet(entries, "Events");
+            BarData barData = new BarData(set);
+            barData.setBarWidth(0.8f);
+
+            eventGraph.setData(barData);
+            eventGraph.setFitBars(true);
+
+            eventGraph.invalidate();
+        } else {
+            Log.d(TAG, "Log graph uninitialised");
         }
-        dataPointsListSize = dataPoints.size();
-        logSeries.setSpacing(10);
-        minX = dataPoints.get(0).getX() - 500;
-        maxX = dataPoints.get(dataPointsListSize - 1).getX() + 500;
-        eventGraph.getViewport().setMinX(minX);
-        eventGraph.getViewport().setMaxX(maxX);
-        eventGraph.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
-        eventGraph.addSeries(logSeries);
     }
 }

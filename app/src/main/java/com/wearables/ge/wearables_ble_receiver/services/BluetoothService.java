@@ -180,8 +180,8 @@ public class BluetoothService extends Service {
                 //set global variables for connected device and device name
                 if(gatt != null){
                     connectedGatt = gatt;
-                    Boolean refreshed = refreshDeviceCache(connectedGatt);
-                    Log.d(TAG, "Device cache refreshed: " + refreshed);
+                    //Boolean refreshed = refreshDeviceCache(connectedGatt);
+                    //Log.d(TAG, "Device cache refreshed: " + refreshed);
                     deviceName = gatt.getDevice().getName() == null ? gatt.getDevice().getAddress() : gatt.getDevice().getName();
                     Log.d(TAG, "Device connected: " + deviceName);
                 }
@@ -201,9 +201,11 @@ public class BluetoothService extends Service {
                 Log.d(TAG, "Problem with BLE connection, status not successful: " + status);
                 return;
             }
-            List<UUID> serviceUUIDs = new ArrayList<>();
             for(BluetoothGattService service : gatt.getServices()){
-                serviceUUIDs.add(service.getUuid());
+                Log.d(TAG, "Found Service: " + service.getUuid());
+                for(BluetoothGattCharacteristic characteristic : service.getCharacteristics()){
+                    Log.d(TAG, "With characteristic: " + characteristic.getUuid());
+                }
             }
             broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
         }

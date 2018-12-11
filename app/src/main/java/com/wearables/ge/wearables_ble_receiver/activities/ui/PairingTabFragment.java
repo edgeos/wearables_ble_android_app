@@ -252,6 +252,20 @@ public class PairingTabFragment extends Fragment {
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startScan();
+                } else {
+                    Log.d(TAG, "Location permission denied");
+                }
+            }
+        }
+    }
+
     private class BtleScanCallback extends ScanCallback {
 
         private Map<String, BluetoothDevice> scanResults;

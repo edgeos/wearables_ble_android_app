@@ -1,9 +1,9 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,19 +13,25 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.GridLabelRenderer;
-import com.jjoe64.graphview.LabelFormatter;
-import com.jjoe64.graphview.Viewport;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.utils.ColorTemplate;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerData;
 import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 public class HistoryTabFragment extends Fragment {
@@ -36,35 +42,19 @@ public class HistoryTabFragment extends Fragment {
     private ScaleAnimation expandAnimation = new ScaleAnimation(1, 1, 0, 1);
     private ScaleAnimation collapseAnimation = new ScaleAnimation(1, 1, 1, 0);
 
-    private LineGraphSeries<DataPoint> series1;
-    private LineGraphSeries<DataPoint> series2;
-    private LineGraphSeries<DataPoint> series3;
-    GraphView voltageGraph1;
-    GraphView voltageGraph2;
-    GraphView voltageGraph3;
-    GraphView accelerationGraph1;
-    GraphView accelerationGraph2;
-    GraphView accelerationGraph3;
-    GraphView tempGraph;
-    GraphView humidityGraph;
-    GraphView pressureGraph;
+    LineChart voltageGraph1;
+    LineChart voltageGraph2;
+    LineChart voltageGraph3;
+    LineChart accelerationGraph1;
+    LineChart accelerationGraph2;
+    LineChart accelerationGraph3;
+    LineChart tempGraph;
+    LineChart humidityGraph;
+    LineChart pressureGraph;
 
-    GraphView gasGraph1;
-    GraphView gasGraph2;
     private int lastX = 0;
 
     View rootView;
-
-    LineGraphSeries<DataPoint>  accelerometerXseries = new LineGraphSeries<>();
-    LineGraphSeries<DataPoint>  accelerometerYseries = new LineGraphSeries<>();
-    LineGraphSeries<DataPoint>  accelerometerZseries = new LineGraphSeries<>();
-
-    LineGraphSeries<DataPoint>  temperatureSeries = new LineGraphSeries<>();
-    LineGraphSeries<DataPoint>  humiditySeries = new LineGraphSeries<>();
-    LineGraphSeries<DataPoint>  pressureSeries = new LineGraphSeries<>();
-
-    LineGraphSeries<DataPoint>  gasGraph1Series = new LineGraphSeries<>();
-    LineGraphSeries<DataPoint>  gasGraph2Series = new LineGraphSeries<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -75,10 +65,6 @@ public class HistoryTabFragment extends Fragment {
         initializeVoltageGraphs();
         initializeAccelerationGraphs();
         initializeTempHumidPressureGraphs();
-
-        if(maxXvalue > 0 && maxYvalue > 0){
-            updateVoltageGraphBounds();
-        }
 
         return rootView;
     }
@@ -131,181 +117,245 @@ public class HistoryTabFragment extends Fragment {
         view.startAnimation(collapseAnimation);
     }
 
-    public int y1;
-    public int y2;
-    public int y3;
     public int increment;
-    public int maxYvalue;
-    public int maxXvalue;
 
     public void updateVoltageGraph(VoltageAlarmStateChar voltageAlarmState) {
-        Log.d(TAG, "UpdateGraph called");
-        super.onResume();
-
-        if(voltageGraph1 == null || voltageGraph2 == null || voltageGraph3 == null){
-            return;
-        }
-
-        int maxXvalueCheck = ((voltageAlarmState.getNum_fft_bins() - 1) * voltageAlarmState.getFft_bin_size()) + 20;
-
-        series1 = new LineGraphSeries<>();
-        series2 = new LineGraphSeries<>();
-        series3 = new LineGraphSeries<>();
-
         increment = voltageAlarmState.getFft_bin_size();
-
-        for (int i = 0; i < voltageAlarmState.getNum_fft_bins(); i++) {
-            y1 = voltageAlarmState.getCh1_fft_results().get(i);
-            y2 = voltageAlarmState.getCh2_fft_results().get(i);
-            y3 = voltageAlarmState.getCh3_fft_results().get(i);
-            if(y1 > maxYvalue){
-                roundMaxY(y1);
+        if(voltageGraph1 != null){
+            ArrayList<Entry> ch1Entries = new ArrayList<>();
+            for(int result : voltageAlarmState.getCh1_fft_results()){
+                lastX = lastX + increment;
+                float xValue = lastX - increment;
+                ch1Entries.add(new Entry(xValue, result));
             }
-            if(y2 > maxYvalue){
-                roundMaxY(y2);
+            lastX = 0;
+            LineDataSet ch1Set = new LineDataSet(ch1Entries, "Channel 1");
+            ch1Set.setDrawValues(false);
+            ch1Set.setAxisDependency(YAxis.AxisDependency.LEFT);
+            ch1Set.setCircleRadius(3);
+            ch1Set.setCircleHoleColor(ch1Set.getColor());
+
+            List<ILineDataSet> ch1DataSet = new ArrayList<>();
+            ch1DataSet.add(ch1Set);
+
+            LineData ch1Data = new LineData(ch1DataSet);
+
+            voltageGraph1.setData(ch1Data);
+            voltageGraph1.invalidate();
+        }
+
+        if(voltageGraph2 != null){
+            ArrayList<Entry> ch2Entries = new ArrayList<>();
+            for(int result : voltageAlarmState.getCh2_fft_results()){
+                lastX = lastX + increment;
+                float xValue = lastX - increment;
+                ch2Entries.add(new Entry(xValue, result));
             }
-            if(y3 > maxYvalue){
-                roundMaxY(y3);
+            lastX = 0;
+            LineDataSet ch2Set = new LineDataSet(ch2Entries, "Channel 1");
+            ch2Set.setDrawValues(false);
+            ch2Set.setAxisDependency(YAxis.AxisDependency.LEFT);
+            ch2Set.setCircleRadius(3);
+            ch2Set.setCircleHoleColor(ch2Set.getColor());
+
+            List<ILineDataSet> ch2DataSet = new ArrayList<>();
+            ch2DataSet.add(ch2Set);
+
+            LineData ch2Data = new LineData(ch2DataSet);
+
+            voltageGraph2.setData(ch2Data);
+            voltageGraph2.invalidate();
+        }
+
+        if(voltageGraph3 != null){
+            ArrayList<Entry> ch3Entries = new ArrayList<>();
+            for(int result : voltageAlarmState.getCh3_fft_results()){
+                lastX = lastX + increment;
+                float xValue = lastX - increment;
+                ch3Entries.add(new Entry(xValue, result));
             }
-            addVoltageEntry();
-        }
-        if(maxXvalueCheck != maxXvalue){
-            maxXvalue = maxXvalueCheck;
-            updateVoltageGraphBounds();
-        }
-        addVoltageGraphSeries();
-    }
+            lastX = 0;
+            LineDataSet ch3Set = new LineDataSet(ch3Entries, "Channel 1");
+            ch3Set.setDrawValues(false);
+            ch3Set.setAxisDependency(YAxis.AxisDependency.LEFT);
+            ch3Set.setCircleRadius(3);
+            ch3Set.setCircleHoleColor(ch3Set.getColor());
 
-    private void addVoltageEntry() {
-        lastX = lastX + increment;
-        series1.appendData(new DataPoint(lastX - increment, y1), false, 70);
-        series2.appendData(new DataPoint(lastX - increment, y2), false, 70);
-        series3.appendData(new DataPoint(lastX - increment, y3), false, 70);
-    }
+            List<ILineDataSet> ch3DataSet = new ArrayList<>();
+            ch3DataSet.add(ch3Set);
 
-    private void addVoltageGraphSeries(){
-        voltageGraph1.removeAllSeries();
-        voltageGraph2.removeAllSeries();
-        voltageGraph3.removeAllSeries();
+            LineData ch3Data = new LineData(ch3DataSet);
 
-        LineGraphSeries<DataPoint>  series = new LineGraphSeries<>();
-        series.appendData(new DataPoint(60, 0), false, 100);
-        series.appendData(new DataPoint(60, maxYvalue), false, 100);
-        series.setThickness(2);
-        series.setColor(Color.parseColor("#808080"));
-        voltageGraph1.addSeries(series);
-        voltageGraph2.addSeries(series);
-        voltageGraph3.addSeries(series);
-
-        voltageGraph1.addSeries(series1);
-        voltageGraph2.addSeries(series2);
-        voltageGraph3.addSeries(series3);
-        lastX = 0;
-    }
-
-    private void roundMaxY(int num){
-        double value = num;
-        double roundTo = 10;
-        value = roundTo * Math.round(value / roundTo);
-        if(value < num){
-            maxYvalue = (int) value + 10;
-        } else {
-            maxYvalue = (int) value;
-        }
-        Log.d(TAG, "Rounded: " + num + " to: " + maxYvalue);
-    }
-
-    private int roundX(int num){
-        double value = num;
-        double roundTo = 50;
-        value = roundTo * Math.round(value / roundTo);
-        if(value < num){
-            return (int) (value + 50);
-        } else {
-            return (int) value;
+            voltageGraph3.setData(ch3Data);
+            voltageGraph3.invalidate();
         }
     }
 
-    private void updateVoltageGraphBounds(){
-        Log.d(TAG, "Max Y value: " + maxYvalue);
-        Log.d(TAG, "Max X value: " + maxXvalue);
-
-        voltageGraph1.getViewport().setMaxY(maxYvalue);
-        voltageGraph1.getViewport().setMaxX(maxXvalue);
-
-        voltageGraph2.getViewport().setMaxY(maxYvalue);
-        voltageGraph2.getViewport().setMaxX(maxXvalue);
-
-        voltageGraph3.getViewport().setMaxY(maxYvalue);
-        voltageGraph3.getViewport().setMaxX(maxXvalue);
-
-        voltageGraph1.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
-        voltageGraph2.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
-        voltageGraph3.getGridLabelRenderer().setNumHorizontalLabels(roundX(maxXvalue)/50);
-    }
-
+    int i = 0;
     public void updateAccelerometerGraph(AccelerometerData accelerometerData){
-        accelerometerXseries.appendData(new DataPoint(accelerometerData.getDate(), accelerometerData.getxValue()), false, 300);
-        accelerometerYseries.appendData(new DataPoint(accelerometerData.getDate(), accelerometerData.getyValue()), false, 300);
-        accelerometerZseries.appendData(new DataPoint(accelerometerData.getDate(), accelerometerData.getzValue()), false, 300);
+        i++;
+        if(accelerationGraph1 != null ){
+            LineData data1 = accelerationGraph1.getData();
+            if (data1 != null) {
 
-        if(accelerationGraph1 != null && accelerationGraph2 != null && accelerationGraph3 != null){
-            accelerationGraph1.getViewport().setMinX(accelerometerXseries.getLowestValueX());
-            accelerationGraph1.getViewport().setMaxX(accelerometerXseries.getHighestValueX());
-            accelerationGraph1.getViewport().setMinY(accelerometerXseries.getLowestValueY());
-            accelerationGraph1.getViewport().setMaxY(accelerometerXseries.getHighestValueY());
+                ILineDataSet set = data1.getDataSetByIndex(0);
+                // set.addEntry(...); // can be called as well
 
-            accelerationGraph2.getViewport().setMinX(accelerometerYseries.getLowestValueX());
-            accelerationGraph2.getViewport().setMaxX(accelerometerYseries.getHighestValueX());
-            accelerationGraph2.getViewport().setMinY(accelerometerYseries.getLowestValueY());
-            accelerationGraph2.getViewport().setMaxY(accelerometerYseries.getHighestValueY());
+                if (set == null) {
+                    set = createSet();
+                    data1.addDataSet(set);
+                }
 
-            accelerationGraph3.getViewport().setMinX(accelerometerZseries.getLowestValueX());
-            accelerationGraph3.getViewport().setMaxX(accelerometerZseries.getHighestValueX());
-            accelerationGraph3.getViewport().setMinY(accelerometerZseries.getLowestValueY());
-            accelerationGraph3.getViewport().setMaxY(accelerometerZseries.getHighestValueY());
-        }
-    }
+                data1.addEntry(new Entry(i, (float) accelerometerData.getxValue()), 0);
+                data1.notifyDataChanged();
 
-    public void updateTempHumidityPressureGraph(TempHumidPressure tempHumidPressure){
-        temperatureSeries.appendData(new DataPoint(tempHumidPressure.getDate(), tempHumidPressure.getTemp()), false, 300);
-        humiditySeries.appendData(new DataPoint(tempHumidPressure.getDate(), tempHumidPressure.getHumid()), false, 300);
-        pressureSeries.appendData(new DataPoint(tempHumidPressure.getDate(), tempHumidPressure.getPres()), false, 300);
+                // let the chart know it's data has changed
+                accelerationGraph1.notifyDataSetChanged();
 
-        if(tempGraph != null && humidityGraph != null){
-            tempGraph.getViewport().setMinX(temperatureSeries.getLowestValueX());
-            tempGraph.getViewport().setMaxX(temperatureSeries.getHighestValueX());
-            tempGraph.getViewport().setMinY(temperatureSeries.getLowestValueY());
-            tempGraph.getViewport().setMaxY(temperatureSeries.getHighestValueY());
+                // limit the number of visible entries
+                accelerationGraph1.setVisibleXRangeMaximum(40);
+                // chart.setVisibleYRange(30, AxisDependency.LEFT);
 
-            humidityGraph.getViewport().setMinX(humiditySeries.getLowestValueX());
-            humidityGraph.getViewport().setMaxX(humiditySeries.getHighestValueX());
-            humidityGraph.getViewport().setMinY(humiditySeries.getLowestValueY());
-            humidityGraph.getViewport().setMaxY(humiditySeries.getHighestValueY());
-
-            pressureGraph.getViewport().setMinX(pressureSeries.getLowestValueX());
-            pressureGraph.getViewport().setMaxX(pressureSeries.getHighestValueX());
-            pressureGraph.getViewport().setMinY(pressureSeries.getLowestValueY());
-            pressureGraph.getViewport().setMaxY(pressureSeries.getHighestValueY());
-        }
-    }
-
-    LabelFormatter simpleTimeLabel = new LabelFormatter() {
-        @Override
-        public String formatLabel(double value, boolean isValueX) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-            if(isValueX){
-                Date d = new Date((long) value);
-                return (dateFormat.format(d));
+                // move to the latest entry
+                accelerationGraph1.moveViewToX(data1.getEntryCount());
             }
-            return "" + (int) value;
         }
+        if(accelerationGraph2 != null ){
+            LineData data2 = accelerationGraph2.getData();
+            if (data2 != null) {
 
-        @Override
-        public void setViewport(Viewport viewport) {
+                ILineDataSet set = data2.getDataSetByIndex(0);
+                // set.addEntry(...); // can be called as well
 
+                if (set == null) {
+                    set = createSet();
+                    data2.addDataSet(set);
+                }
+
+                data2.addEntry(new Entry(i, (float) accelerometerData.getyValue()), 0);
+                data2.notifyDataChanged();
+
+                // let the chart know it's data has changed
+                accelerationGraph2.notifyDataSetChanged();
+
+                // limit the number of visible entries
+                accelerationGraph2.setVisibleXRangeMaximum(40);
+                // chart.setVisibleYRange(30, AxisDependency.LEFT);
+
+                // move to the latest entry
+                accelerationGraph2.moveViewToX(data2.getEntryCount());
+            }
         }
-    };
+        if(accelerationGraph3 != null ){
+            LineData data3 = accelerationGraph3.getData();
+            if (data3 != null) {
+
+                ILineDataSet set = data3.getDataSetByIndex(0);
+                // set.addEntry(...); // can be called as well
+
+                if (set == null) {
+                    set = createSet();
+                    data3.addDataSet(set);
+                }
+
+                data3.addEntry(new Entry(i2, (float) accelerometerData.getzValue()), 0);
+                data3.notifyDataChanged();
+
+                // let the chart know it's data has changed
+                accelerationGraph3.notifyDataSetChanged();
+
+                // limit the number of visible entries
+                accelerationGraph3.setVisibleXRangeMaximum(40);
+                // chart.setVisibleYRange(30, AxisDependency.LEFT);
+
+                // move to the latest entry
+                accelerationGraph3.moveViewToX(data3.getEntryCount());
+            }
+        }
+    }
+
+    int i2 = 0;
+    public void updateTempHumidityPressureGraph(TempHumidPressure tempHumidPressure){
+        i2++;
+        if(tempGraph != null ){
+            LineData data1 = tempGraph.getData();
+            if (data1 != null) {
+
+                ILineDataSet set = data1.getDataSetByIndex(0);
+                // set.addEntry(...); // can be called as well
+
+                if (set == null) {
+                    set = createSet();
+                    data1.addDataSet(set);
+                }
+
+                data1.addEntry(new Entry(i2, (float) tempHumidPressure.getTemp()), 0);
+                data1.notifyDataChanged();
+
+                // let the chart know it's data has changed
+                tempGraph.notifyDataSetChanged();
+
+                // limit the number of visible entries
+                tempGraph.setVisibleXRangeMaximum(40);
+                // chart.setVisibleYRange(30, AxisDependency.LEFT);
+
+                // move to the latest entry
+                tempGraph.moveViewToX(data1.getEntryCount());
+            }
+        }
+        if(humidityGraph != null ){
+            LineData data2 = humidityGraph.getData();
+            if (data2 != null) {
+
+                ILineDataSet set = data2.getDataSetByIndex(0);
+                // set.addEntry(...); // can be called as well
+
+                if (set == null) {
+                    set = createSet();
+                    data2.addDataSet(set);
+                }
+
+                data2.addEntry(new Entry(i2, (float) tempHumidPressure.getHumid()), 0);
+                data2.notifyDataChanged();
+
+                // let the chart know it's data has changed
+                humidityGraph.notifyDataSetChanged();
+
+                // limit the number of visible entries
+                humidityGraph.setVisibleXRangeMaximum(40);
+                // chart.setVisibleYRange(30, AxisDependency.LEFT);
+
+                // move to the latest entry
+                humidityGraph.moveViewToX(data2.getEntryCount());
+            }
+        }
+        if(pressureGraph != null ){
+            LineData data3 = pressureGraph.getData();
+            if (data3 != null) {
+
+                ILineDataSet set = data3.getDataSetByIndex(0);
+                // set.addEntry(...); // can be called as well
+
+                if (set == null) {
+                    set = createSet();
+                    data3.addDataSet(set);
+                }
+
+                data3.addEntry(new Entry(i2, (float) tempHumidPressure.getPres()), 0);
+                data3.notifyDataChanged();
+
+                // let the chart know it's data has changed
+                pressureGraph.notifyDataSetChanged();
+
+                // limit the number of visible entries
+                pressureGraph.setVisibleXRangeMaximum(40);
+                // chart.setVisibleYRange(30, AxisDependency.LEFT);
+
+                // move to the latest entry
+                pressureGraph.moveViewToX(data3.getEntryCount());
+            }
+        }
+    }
 
     public void initializeVoltageGraphs(){
         LinearLayout expandableLayout1 = rootView.findViewById(R.id.collapsibleContainer1);
@@ -322,36 +372,91 @@ public class HistoryTabFragment extends Fragment {
             }
         });
 
-        // get graph view instance
-        Log.d(TAG, "Getting graph objects");
         voltageGraph1 = rootView.findViewById(R.id.voltage_sensor_graph_1);
-        Viewport voltageGraphViewport1 = voltageGraph1.getViewport();
-        voltageGraphViewport1.setYAxisBoundsManual(true);
-        voltageGraphViewport1.setXAxisBoundsManual(true);
-        voltageGraphViewport1.setMinY(0);
-        GridLabelRenderer gridLabel1 = voltageGraph1.getGridLabelRenderer();
-        gridLabel1.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
-        gridLabel1.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
+        voltageGraph1.setDragEnabled(true);
+        voltageGraph1.setScaleEnabled(true);
+        voltageGraph1.setDrawGridBackground(false);
 
-        // second graph
+        voltageGraph1.setPinchZoom(true);
+
+        LineData data1 = new LineData();
+        data1.setValueTextColor(Color.RED);
+
+        voltageGraph1.setData(data1);
+
+        XAxis x1 = voltageGraph1.getXAxis();
+        x1.setTypeface(Typeface.SANS_SERIF);
+        x1.setTextColor(Color.BLACK);
+        x1.setDrawGridLines(true);
+        x1.setEnabled(true);
+        x1.setDrawGridLines(true);
+        //x1.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxis = voltageGraph1.getAxisLeft();
+        leftAxis.setTypeface(Typeface.SANS_SERIF);
+        leftAxis.setTextColor(Color.BLACK);
+        leftAxis.setDrawGridLines(true);
+
+        YAxis rightAxis = voltageGraph1.getAxisRight();
+        rightAxis.setEnabled(false);
+
+        // second acceleration graph
         voltageGraph2 = rootView.findViewById(R.id.voltage_sensor_graph_2);
-        Viewport voltageGraphViewport2 = voltageGraph2.getViewport();
-        voltageGraphViewport2.setYAxisBoundsManual(true);
-        voltageGraphViewport2.setXAxisBoundsManual(true);
-        voltageGraphViewport2.setMinY(0);
-        GridLabelRenderer gridLabel2 = voltageGraph2.getGridLabelRenderer();
-        gridLabel2.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
-        gridLabel2.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
+        voltageGraph2.setDragEnabled(true);
+        voltageGraph2.setScaleEnabled(true);
+        voltageGraph2.setDrawGridBackground(false);
 
-        // third graph
+        voltageGraph2.setPinchZoom(true);
+
+        LineData data2 = new LineData();
+        data2.setValueTextColor(Color.RED);
+
+        voltageGraph2.setData(data2);
+
+        XAxis x2 = voltageGraph2.getXAxis();
+        x2.setTypeface(Typeface.SANS_SERIF);
+        x2.setTextColor(Color.BLACK);
+        x2.setDrawGridLines(true);
+        x2.setEnabled(true);
+        x2.setDrawGridLines(true);
+        //x2.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxis2 = voltageGraph2.getAxisLeft();
+        leftAxis2.setTypeface(Typeface.SANS_SERIF);
+        leftAxis2.setTextColor(Color.BLACK);
+        leftAxis2.setDrawGridLines(true);
+
+        YAxis rightAxis2 = voltageGraph2.getAxisRight();
+        rightAxis2.setEnabled(false);
+
+        // third acceleration graph
         voltageGraph3 = rootView.findViewById(R.id.voltage_sensor_graph_3);
-        Viewport voltageGraphViewport3 = voltageGraph3.getViewport();
-        voltageGraphViewport3.setYAxisBoundsManual(true);
-        voltageGraphViewport3.setXAxisBoundsManual(true);
-        voltageGraphViewport3.setMinY(0);
-        GridLabelRenderer gridLabel3 = voltageGraph3.getGridLabelRenderer();
-        gridLabel3.setHorizontalAxisTitle(getString(R.string.voltage_channel_graph_x_axis_label));
-        gridLabel3.setVerticalAxisTitle(getString(R.string.voltage_channel_graph_y_axis_label));
+        voltageGraph3.setDragEnabled(true);
+        voltageGraph3.setScaleEnabled(true);
+        voltageGraph3.setDrawGridBackground(false);
+
+        voltageGraph3.setPinchZoom(true);
+
+        LineData data3 = new LineData();
+        data3.setValueTextColor(Color.RED);
+
+        voltageGraph3.setData(data3);
+
+        XAxis x3 = voltageGraph3.getXAxis();
+        x3.setTypeface(Typeface.SANS_SERIF);
+        x3.setTextColor(Color.BLACK);
+        x3.setDrawGridLines(true);
+        x3.setEnabled(true);
+        x3.setDrawGridLines(true);
+        //x3.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxis3 = voltageGraph3.getAxisLeft();
+        leftAxis3.setTypeface(Typeface.SANS_SERIF);
+        leftAxis3.setTextColor(Color.BLACK);
+        leftAxis3.setDrawGridLines(true);
+
+        YAxis rightAxis3 = voltageGraph3.getAxisRight();
+        rightAxis3.setEnabled(false);
     }
 
     public void initializeAccelerationGraphs(){
@@ -370,36 +475,90 @@ public class HistoryTabFragment extends Fragment {
 
         //Acceleration Graphs
         accelerationGraph1 = rootView.findViewById(R.id.acceleration_sensor_graph_1);
-        Viewport accelerationGraphViewport1 = accelerationGraph1.getViewport();
-        accelerationGraphViewport1.setYAxisBoundsManual(true);
-        accelerationGraphViewport1.setXAxisBoundsManual(true);
-        accelerationGraph1.addSeries(accelerometerXseries);
-        GridLabelRenderer accelerationGridLabel1 = accelerationGraph1.getGridLabelRenderer();
-        accelerationGridLabel1.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
-        accelerationGridLabel1.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
-        accelerationGraph1.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+        accelerationGraph1.setDragEnabled(true);
+        accelerationGraph1.setScaleEnabled(true);
+        accelerationGraph1.setDrawGridBackground(false);
+
+        accelerationGraph1.setPinchZoom(true);
+
+        LineData data1 = new LineData();
+        data1.setValueTextColor(Color.RED);
+
+        accelerationGraph1.setData(data1);
+
+        XAxis x1 = accelerationGraph1.getXAxis();
+        x1.setTypeface(Typeface.SANS_SERIF);
+        x1.setTextColor(Color.BLACK);
+        x1.setDrawGridLines(true);
+        x1.setEnabled(true);
+        x1.setDrawGridLines(true);
+        x1.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxis = accelerationGraph1.getAxisLeft();
+        leftAxis.setTypeface(Typeface.SANS_SERIF);
+        leftAxis.setTextColor(Color.BLACK);
+        leftAxis.setDrawGridLines(true);
+
+        YAxis rightAxis = accelerationGraph1.getAxisRight();
+        rightAxis.setEnabled(false);
 
         // second acceleration graph
         accelerationGraph2 = rootView.findViewById(R.id.acceleration_sensor_graph_2);
-        Viewport accelerationGraphViewport2 = accelerationGraph2.getViewport();
-        accelerationGraphViewport2.setYAxisBoundsManual(true);
-        accelerationGraphViewport2.setXAxisBoundsManual(true);
-        accelerationGraph2.addSeries(accelerometerYseries);
-        GridLabelRenderer accelerationGridLabel2 = accelerationGraph2.getGridLabelRenderer();
-        accelerationGridLabel2.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
-        accelerationGridLabel2.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
-        accelerationGraph2.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+        accelerationGraph2.setDragEnabled(true);
+        accelerationGraph2.setScaleEnabled(true);
+        accelerationGraph2.setDrawGridBackground(false);
+
+        accelerationGraph2.setPinchZoom(true);
+
+        LineData data2 = new LineData();
+        data2.setValueTextColor(Color.RED);
+
+        accelerationGraph2.setData(data2);
+
+        XAxis x2 = accelerationGraph2.getXAxis();
+        x2.setTypeface(Typeface.SANS_SERIF);
+        x2.setTextColor(Color.BLACK);
+        x2.setDrawGridLines(true);
+        x2.setEnabled(true);
+        x2.setDrawGridLines(true);
+        x2.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxis2 = accelerationGraph2.getAxisLeft();
+        leftAxis2.setTypeface(Typeface.SANS_SERIF);
+        leftAxis2.setTextColor(Color.BLACK);
+        leftAxis2.setDrawGridLines(true);
+
+        YAxis rightAxis2 = accelerationGraph2.getAxisRight();
+        rightAxis2.setEnabled(false);
 
         // third acceleration graph
         accelerationGraph3 = rootView.findViewById(R.id.acceleration_sensor_graph_3);
-        Viewport accelerationGraphViewport3 = accelerationGraph3.getViewport();
-        accelerationGraphViewport3.setYAxisBoundsManual(true);
-        accelerationGraphViewport3.setXAxisBoundsManual(true);
-        accelerationGraph3.addSeries(accelerometerZseries);
-        GridLabelRenderer accelerationGridLabel3 = accelerationGraph3.getGridLabelRenderer();
-        accelerationGridLabel3.setHorizontalAxisTitle(getString(R.string.acceleration_graph_x_axis_label));
-        accelerationGridLabel3.setVerticalAxisTitle(getString(R.string.acceleration_graph_y_axis_label));
-        accelerationGraph3.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+        accelerationGraph3.setDragEnabled(true);
+        accelerationGraph3.setScaleEnabled(true);
+        accelerationGraph3.setDrawGridBackground(false);
+
+        accelerationGraph3.setPinchZoom(true);
+
+        LineData data3 = new LineData();
+        data3.setValueTextColor(Color.RED);
+
+        accelerationGraph3.setData(data3);
+
+        XAxis x3 = accelerationGraph3.getXAxis();
+        x3.setTypeface(Typeface.SANS_SERIF);
+        x3.setTextColor(Color.BLACK);
+        x3.setDrawGridLines(true);
+        x3.setEnabled(true);
+        x3.setDrawGridLines(true);
+        x3.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxis3 = accelerationGraph3.getAxisLeft();
+        leftAxis3.setTypeface(Typeface.SANS_SERIF);
+        leftAxis3.setTextColor(Color.BLACK);
+        leftAxis3.setDrawGridLines(true);
+
+        YAxis rightAxis3 = accelerationGraph3.getAxisRight();
+        rightAxis3.setEnabled(false);
     }
 
     public void initializeTempHumidPressureGraphs(){
@@ -416,35 +575,116 @@ public class HistoryTabFragment extends Fragment {
             }
         });
 
+        //temp graph
         tempGraph = rootView.findViewById(R.id.temperature_graph);
-        Viewport tempGraphViewport = tempGraph.getViewport();
-        tempGraphViewport.setYAxisBoundsManual(true);
-        tempGraphViewport.setXAxisBoundsManual(true);
-        tempGraph.addSeries(temperatureSeries);
-        GridLabelRenderer tempGridLabel = tempGraph.getGridLabelRenderer();
-        tempGridLabel.setHorizontalAxisTitle(getString(R.string.temperature_graph_x_axis_label));
-        tempGridLabel.setVerticalAxisTitle(getString(R.string.temperature_graph_y_axis_label));
-        tempGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+        tempGraph.setDragEnabled(true);
+        tempGraph.setScaleEnabled(true);
+        tempGraph.setDrawGridBackground(false);
 
+        tempGraph.setPinchZoom(true);
+
+        LineData tempData = new LineData();
+        tempData.setValueTextColor(Color.RED);
+
+        tempGraph.setData(tempData);
+
+        XAxis tempX = tempGraph.getXAxis();
+        tempX.setTypeface(Typeface.SANS_SERIF);
+        tempX.setTextColor(Color.BLACK);
+        tempX.setDrawGridLines(true);
+        tempX.setEnabled(true);
+        tempX.setDrawGridLines(true);
+        tempX.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxisTemp = tempGraph.getAxisLeft();
+        leftAxisTemp.setTypeface(Typeface.SANS_SERIF);
+        leftAxisTemp.setTextColor(Color.BLACK);
+        leftAxisTemp.setDrawGridLines(true);
+
+        YAxis rightAxisTemp = tempGraph.getAxisRight();
+        rightAxisTemp.setEnabled(false);
+
+        //humidity graph
         humidityGraph = rootView.findViewById(R.id.humidity_graph);
-        Viewport humidityGraphViewport = humidityGraph.getViewport();
-        humidityGraphViewport.setYAxisBoundsManual(true);
-        humidityGraphViewport.setXAxisBoundsManual(true);
-        humidityGraph.addSeries(humiditySeries);
-        GridLabelRenderer humidityGridLabel = humidityGraph.getGridLabelRenderer();
-        humidityGridLabel.setHorizontalAxisTitle(getString(R.string.humidity_graph_x_axis_label));
-        humidityGridLabel.setVerticalAxisTitle(getString(R.string.humidity_graph_y_axis_label));
-        humidityGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+        humidityGraph.setDragEnabled(true);
+        humidityGraph.setScaleEnabled(true);
+        humidityGraph.setDrawGridBackground(false);
 
+        humidityGraph.setPinchZoom(true);
+
+        LineData humudData = new LineData();
+        humudData.setValueTextColor(Color.RED);
+
+        humidityGraph.setData(humudData);
+
+        XAxis humidX = humidityGraph.getXAxis();
+        humidX.setTypeface(Typeface.SANS_SERIF);
+        humidX.setTextColor(Color.BLACK);
+        humidX.setDrawGridLines(true);
+        humidX.setEnabled(true);
+        humidX.setDrawGridLines(true);
+        humidX.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxisHumid = humidityGraph.getAxisLeft();
+        leftAxisHumid.setTypeface(Typeface.SANS_SERIF);
+        leftAxisHumid.setTextColor(Color.BLACK);
+        leftAxisHumid.setDrawGridLines(true);
+
+        YAxis rightAxisHumid = humidityGraph.getAxisRight();
+        rightAxisHumid.setEnabled(false);
+
+        //pressure graph
         pressureGraph = rootView.findViewById(R.id.pressure_graph);
-        Viewport pressureGraphViewport = pressureGraph.getViewport();
-        pressureGraphViewport.setYAxisBoundsManual(true);
-        pressureGraphViewport.setXAxisBoundsManual(true);
-        pressureGraph.addSeries(pressureSeries);
-        GridLabelRenderer pressureGridLabel = pressureGraph.getGridLabelRenderer();
-        pressureGridLabel.setHorizontalAxisTitle(getString(R.string.pressure_graph_x_axis_label));
-        pressureGridLabel.setVerticalAxisTitle(getString(R.string.pressure_graph_y_axis_label));
-        pressureGraph.getGridLabelRenderer().setLabelFormatter(simpleTimeLabel);
+        pressureGraph.setDragEnabled(true);
+        pressureGraph.setScaleEnabled(true);
+        pressureGraph.setDrawGridBackground(false);
+
+        pressureGraph.setPinchZoom(true);
+
+        LineData presData = new LineData();
+        presData.setValueTextColor(Color.RED);
+
+        pressureGraph.setData(presData);
+
+        XAxis presX = pressureGraph.getXAxis();
+        presX.setTypeface(Typeface.SANS_SERIF);
+        presX.setTextColor(Color.BLACK);
+        presX.setDrawGridLines(true);
+        presX.setEnabled(true);
+        presX.setDrawGridLines(true);
+        presX.setValueFormatter(new DateValueFormatter());
+
+        YAxis leftAxisPres = pressureGraph.getAxisLeft();
+        leftAxisPres.setTypeface(Typeface.SANS_SERIF);
+        leftAxisPres.setTextColor(Color.BLACK);
+        leftAxisPres.setDrawGridLines(true);
+
+        YAxis rightAxisPres = pressureGraph.getAxisRight();
+        rightAxisPres.setEnabled(false);
     }
 
+    public class DateValueFormatter implements IAxisValueFormatter {
+        @Override
+        public String getFormattedValue(float value, AxisBase axis){
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+            Date d = new Date();
+            return (dateFormat.format(d));
+        }
+    }
+
+    private LineDataSet createSet() {
+        LineDataSet set = new LineDataSet(null, "Dynamic Data");
+        set.setAxisDependency(YAxis.AxisDependency.LEFT);
+        set.setColor(ColorTemplate.getHoloBlue());
+        set.setCircleColor(Color.WHITE);
+        set.setLineWidth(2f);
+        set.setCircleRadius(4f);
+        set.setFillAlpha(65);
+        set.setFillColor(ColorTemplate.getHoloBlue());
+        set.setHighLightColor(Color.rgb(244, 117, 117));
+        set.setValueTextColor(Color.WHITE);
+        set.setValueTextSize(9f);
+        set.setDrawValues(false);
+        return set;
+    }
 }

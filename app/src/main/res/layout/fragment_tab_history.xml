@@ -62,12 +62,11 @@
                 android:text="@string/voltage_channel_one_graph_title"
                  />
 
-            <com.jjoe64.graphview.GraphView
+            <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/voltage_sensor_graph_1"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
-                android:layout_marginBottom="8dp"
-              />
+                android:layout_marginBottom="8dp"/>
 
             <TextView
                 android:id="@+id/sensor_name_a2"
@@ -78,13 +77,12 @@
                 android:text="@string/voltage_channel_two_graph_title"
                  />
 
-            <com.jjoe64.graphview.GraphView
+            <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/voltage_sensor_graph_2"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-               />
+                android:layout_marginBottom="8dp"/>
 
             <TextView
                 android:id="@+id/sensor_name_a3"
@@ -95,12 +93,11 @@
                 android:text="@string/voltage_channel_three_graph_title"
                 />
 
-            <com.jjoe64.graphview.GraphView
+            <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/voltage_sensor_graph_3"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
-                android:layout_marginBottom="8dp"
-                />
+                android:layout_marginBottom="8dp"/>
 
         </LinearLayout>
 
@@ -150,13 +147,11 @@
                 android:text="@string/acceleration_x_graph_title"
                 android:textStyle="bold" />
 
-            <com.jjoe64.graphview.GraphView
+            <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/acceleration_sensor_graph_1"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
-                android:layout_marginBottom="8dp"
-                />
-
+                android:layout_marginBottom="8dp"/>
 
             <TextView
                 android:id="@+id/sensor_name_b2"
@@ -166,14 +161,12 @@
                 android:text="@string/acceleration_y_graph_title"
                 android:textStyle="bold" />
 
-            <com.jjoe64.graphview.GraphView
+            <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/acceleration_sensor_graph_2"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                />
-
+                android:layout_marginBottom="8dp"/>
 
             <TextView
                 android:id="@+id/sensor_name_b3"
@@ -183,13 +176,12 @@
                 android:textStyle="bold"
                 android:text="@string/acceleration_z_graph_title" />
 
-            <com.jjoe64.graphview.GraphView
+            <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/acceleration_sensor_graph_3"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                />
+                android:layout_marginBottom="8dp"/>
 
         </LinearLayout>
 
@@ -238,13 +230,11 @@
                 android:text="@string/temperature_graph_title"
                 android:textStyle="bold" />
 
-            <com.jjoe64.graphview.GraphView
+            <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/temperature_graph"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
-                android:layout_marginBottom="8dp"
-                />
-
+                android:layout_marginBottom="8dp"/>
 
             <TextView
                 android:id="@+id/sensor_name_c2"
@@ -254,13 +244,12 @@
                 android:text="@string/humidity_graph_title"
                 android:textStyle="bold" />
 
-            <com.jjoe64.graphview.GraphView
+            <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/humidity_graph"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                />
+                android:layout_marginBottom="8dp"/>
 
             <TextView
                 android:id="@+id/sensor_name_c3"
@@ -270,13 +259,12 @@
                 android:text="@string/pressure_graph_title"
                 android:textStyle="bold" />
 
-            <com.jjoe64.graphview.GraphView
+            <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/pressure_graph"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                />
+                android:layout_marginBottom="8dp"/>
 
         </LinearLayout>
 
