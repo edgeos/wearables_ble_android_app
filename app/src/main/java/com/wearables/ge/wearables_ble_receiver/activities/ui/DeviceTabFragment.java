@@ -55,6 +55,7 @@ public class DeviceTabFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate called");
         rootView = inflater.inflate(R.layout.fragment_tab_device, container, false);
 
         logThresholdBar = rootView.findViewById(R.id.logThresholdBar);
@@ -107,6 +108,8 @@ public class DeviceTabFragment extends Fragment {
         initializeEventChart();
 
         setConnectedMessage(isConnected);
+
+        setRetainInstance(true);
 
         return rootView;
     }

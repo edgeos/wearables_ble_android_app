@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -85,32 +86,29 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate called");
         setContentView(R.layout.activity_tabbed_main);
 
-        // Create the adapter that will return a fragment for each of the three primary sections
-        // of the app.
+        // Create the adapter that will return a fragment for each of the three primary sections of the app.
         mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the action bar.
         final ActionBar actionBar = getActionBar();
 
-        // Specify that the Home/Up button should not be enabled, since there is no hierarchical
-        // parent.
+        // Specify that the Home/Up button should not be enabled, since there is no hierarchical parent.
         actionBar.setHomeButtonEnabled(false);
 
         // Specify that we will be displaying tabs in the action bar.
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-        // Set up the ViewPager, attaching the adapter and setting up a listener for when the
-        // user swipes between sections.
+        // Set up the ViewPager, attaching the adapter and setting up a listener for when the user swipes between sections.
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mAppSectionsPagerAdapter);
         mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
                 // When swiping between different app sections, select the corresponding tab.
-                // We can also use ActionBar.Tab#select() to do this if we have a reference to the
-                // Tab.
+                // We can also use ActionBar.Tab#select() to do this if we have a reference to the Tab.
                 actionBar.setSelectedNavigationItem(position);
             }
         });
@@ -118,18 +116,20 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         // For each of the sections in the app, add a tab to the action bar.
         for (int i = 0; i < mAppSectionsPagerAdapter.getCount(); i++) {
             // Create a tab with text corresponding to the page title defined by the adapter.
-            // Also specify this Activity object, which implements the TabListener interface, as the
-            // listener for when this tab is selected.
+            // Also specify this Activity object, which implements the TabListener interface, as the listener for when this tab is selected.
             actionBar.addTab(
                     actionBar.newTab()
                             .setText(mAppSectionsPagerAdapter.getPageTitle(i))
                             .setTabListener(this));
         }
 
+
         //bind this activity to bluetooth service
         Intent intent = new Intent(this, BluetoothService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        mBound = true;
+        if(!mBound){
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+            mBound = true;
+        }
 
         //start location service
         //Location service is not an extension of the service class and doesn't need to be bound to.
@@ -144,6 +144,37 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         getMenuInflater().inflate(R.menu.menu_items, menu);
         this.menuBar = menu;
         return true;
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+
+        Intent intent = new Intent(this, BluetoothService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        mBound = true;
+        registerReceiver(mGattUpdateReceiver, createIntentFilter());
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        if(mConnection != null){
+            unbindService(mConnection);
+            unregisterReceiver(mGattUpdateReceiver);
+            mBound = false;
+        }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Log.d(TAG, "Screen orientation is landscape");
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            Log.d(TAG, "Screen orientation is portrait");
+        }
     }
 
     //switch case logic for menu button
@@ -240,6 +271,15 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
             alert.setMessage("No device connected");
             alert.show();
+        }
+    }
+
+    public void switchDevModeMenuItems() {
+        MenuItem devModeItem = menuBar.findItem(R.id.dev_mode);
+        if(devMode){
+            devModeItem.setTitle(R.string.normal_mode_menu_item);
+        } else {
+            devModeItem.setTitle(R.string.dev_mode_menu_item);
         }
     }
 
@@ -460,6 +500,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
                 VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
                 if(voltageAlarmState.getDevMode()){
+                    if(!devMode){
+                        devMode = true;
+                        switchDevModeMenuItems();
+                    }
                     mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
                     //get peak between 40 and 70Hz bins
                     int start = Math.round(40/voltageAlarmState.getFft_bin_size()) + 1;
@@ -493,6 +537,11 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                     mDeviceTabFragment.updateGraph(voltageEvent);
                     if(mDeviceTabFragment.isVisible()){
                         mDeviceTabFragment.updateVoltageLevel(peak);
+                    }
+                } else {
+                    if(devMode){
+                        devMode = false;
+                        switchDevModeMenuItems();
                     }
                 }
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){

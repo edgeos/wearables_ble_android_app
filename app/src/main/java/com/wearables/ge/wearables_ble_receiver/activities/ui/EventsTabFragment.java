@@ -1,13 +1,21 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -23,8 +31,15 @@ import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -41,9 +56,12 @@ public class EventsTabFragment extends Fragment {
 
     TextView deviceName;
 
+    File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "voltage_sensor");
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate called");
         rootView = inflater.inflate(R.layout.fragment_tab_events, container, false);
 
         refreshEventsLog();
@@ -53,6 +71,32 @@ public class EventsTabFragment extends Fragment {
         // Device name shown at the top of the page
         deviceName = rootView.findViewById(R.id.deviceNameView);
         deviceName.setText(MainTabbedActivity.connectedDeviceName);
+
+        Button scanAgainButton = rootView.findViewById(R.id.button1);
+        scanAgainButton.setOnClickListener(v -> {
+            Log.d(TAG, "Save file to device button pressed");
+            saveFile();
+        });
+
+        Button saveToCloudButton = rootView.findViewById(R.id.button2);
+        saveToCloudButton.setOnClickListener(v -> {
+            Log.d(TAG, "Save file to cloud button pressed");
+            saveFileToCloud();
+        });
+
+        Button clearLogButton = rootView.findViewById(R.id.button3);
+        clearLogButton.setOnClickListener(v -> {
+            Log.d(TAG, "Clear Log button pressed");
+            clearLog();
+        });
+
+        Button findFilesButton = rootView.findViewById(R.id.button4);
+        findFilesButton.setOnClickListener(v -> {
+            Log.d(TAG, "Find local files button pressed");
+            findLocalFiles();
+        });
+
+        setRetainInstance(true);
 
         return rootView;
     }
@@ -139,9 +183,8 @@ public class EventsTabFragment extends Fragment {
         }
     }
 
+    List<String> lines = new ArrayList<>();
     public void addEventItem(VoltageEvent voltageEvent){
-        LinearLayout logEventsList = rootView.findViewById(R.id.logEventList);
-
         Double latitude = null;
         Double longitude = null;
         if(voltageEvent.getLocation() != null){
@@ -152,27 +195,24 @@ public class EventsTabFragment extends Fragment {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
         Date d = new Date((voltageEvent.getTime()));
         String date = dateFormat.format(d);
-        TextView dateTimeTextView = new TextView(rootView.getContext());
-        dateTimeTextView.setText(date);
-        dateTimeTextView.setGravity(Gravity.CENTER);
+
 
         String message = "Level " + voltageEvent.getVoltage() + ", lasted " + voltageEvent.getDuration() + " milliseconds";
-        TextView messageTextView = new TextView(rootView.getContext());
-        messageTextView.setText(message);
-        messageTextView.setGravity(Gravity.CENTER);
 
         String coordinates = "No coordinates found for event.";
         if(latitude != null){
             coordinates = "(" + latitude.toString() + "," + longitude.toString() + ")";
         }
-        TextView locationTextView = new TextView(rootView.getContext());
-        locationTextView.setText(coordinates);
-        locationTextView.setGravity(Gravity.CENTER);
-        locationTextView.setPadding(0,0,0,30);
 
-        logEventsList.addView(locationTextView, 0);
-        logEventsList.addView(messageTextView, 0);
-        logEventsList.addView(dateTimeTextView, 0);
+        String logMessage = date + " " + message + " " + coordinates;
+        lines.add(logMessage);
+
+        if(rootView != null && !viewingOldFile){
+            LinearLayout logEventsList = rootView.findViewById(R.id.logEventList);
+            TextView logTextView = new TextView(rootView.getContext());
+            logTextView.setText(logMessage);
+            logEventsList.addView(logTextView);
+        }
 
         updateGraph(voltageEvent);
     }
@@ -197,5 +237,111 @@ public class EventsTabFragment extends Fragment {
         } else {
             Log.d(TAG, "Log graph uninitialised");
         }
+    }
+
+    public void saveFile(){
+        if(ContextCompat.checkSelfPermission(rootView.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(getActivity(),
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    1);
+            return;
+        }
+        if(lines.isEmpty()){
+            AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(rootView.getContext(), R.style.AlertDialogCustom));
+            alert.setTitle("Current Log is empty");
+            alert.show();
+            return;
+        }
+        Long time = Calendar.getInstance().getTimeInMillis();
+        String filename = String.valueOf(time) + "_gas_sensor_log.txt";
+
+        Log.d(TAG, "Files Dir: " + path.getPath());
+        Boolean pathCreated = true;
+        if(!path.exists()){
+            Log.d(TAG, "Path doesn't exist");
+            pathCreated = path.mkdirs();
+        }
+        if(!pathCreated){
+            Log.d(TAG, "Unable to create path");
+            return;
+        }
+        File file = new File(path, filename);
+        try {
+            FileWriter writer = new FileWriter(file);
+            String headerLine = "Device: " + MainTabbedActivity.connectedDevice.getAddress() + " Name: " + MainTabbedActivity.connectedDeviceName;
+            writer.append(headerLine + System.lineSeparator());
+            for(String line : lines){
+                writer.append(line + System.lineSeparator());
+            }
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    boolean viewingOldFile = false;
+    File selectedFile;
+    String selectedFileName;
+    public void findLocalFiles(){
+        if(ContextCompat.checkSelfPermission(rootView.getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(getActivity(),
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    1);
+            return;
+        }
+        File[] files = path.listFiles();
+        List<String> optionsList = new ArrayList<>();
+        if(files == null){
+            AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(rootView.getContext(), R.style.AlertDialogCustom));
+            alert.setTitle("No log files found in " + path.toString());
+            alert.show();
+            return;
+        }
+        for(File file : files){
+            Log.d(TAG, "File: " + file.getName());
+            optionsList.add(file.getName());
+        }
+
+        String[] optionsArray = new String[optionsList.size()];
+        optionsList.toArray(optionsArray);
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(rootView.getContext(), R.style.AlertDialogCustom));
+        alert.setTitle("Select a file");
+        alert.setItems(optionsArray, (dialog, which) -> {
+            Log.d(TAG, "Chose option #" + which + " filename: " + optionsList.get(which));
+            selectedFileName = optionsList.get(which);
+            selectedFile = new File(path, selectedFileName);
+            viewingOldFile = true;
+            try {
+                FileInputStream is = new FileInputStream(selectedFile);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                String line = reader.readLine();
+                LinearLayout logEventsList = rootView.findViewById(R.id.logEventList);
+                logEventsList.removeAllViews();
+                while(line != null){
+                    Log.d(TAG, "Line read: " + line);
+                    TextView textView = new TextView(rootView.getContext());
+                    textView.setText(line);
+                    textView.setGravity(Gravity.START);
+                    logEventsList.addView(textView);
+                    line = reader.readLine();
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "Unable to read file: " + e.getMessage());
+            }
+        });
+        alert.show();
+    }
+
+    public void clearLog(){
+        viewingOldFile = false;
+        LinearLayout logEventsList = rootView.findViewById(R.id.logEventList);
+        logEventsList.removeAllViews();
+        lines = new ArrayList<>();
+    }
+
+    public void saveFileToCloud(){
+
     }
 }

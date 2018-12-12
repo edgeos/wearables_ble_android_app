@@ -49,7 +49,7 @@ public class PairingTabFragment extends Fragment {
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_FINE_LOCATION = 2;
-    private static final int SCAN_PERIOD = 50000;
+    private static final int SCAN_PERIOD = 10000;
 
     private boolean mScanning;
     private Handler mHandler;
@@ -72,6 +72,7 @@ public class PairingTabFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate called");
         rootView = inflater.inflate(R.layout.fragment_tab_pairing, container, false);
         linLayout = rootView.findViewById(R.id.device_list);
         this.inflater = inflater;
@@ -80,6 +81,8 @@ public class PairingTabFragment extends Fragment {
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
         startScan();
+
+        setRetainInstance(true);
 
         return rootView;
     }
@@ -183,7 +186,7 @@ public class PairingTabFragment extends Fragment {
         });
         //END SIMULATOR CODE CHUNK
 
-        Button scanAgainButton = new Button(this.getContext());
+        Button scanAgainButton = new Button(rootView.getContext());
         scanAgainButton.setText(R.string.scan_button);
         scanAgainButton.setId(R.id.scan_button);
         scanAgainButton.setOnClickListener(v -> {
