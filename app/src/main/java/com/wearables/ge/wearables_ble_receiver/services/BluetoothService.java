@@ -84,8 +84,10 @@ public class BluetoothService extends Service {
 
     public void connectDevice(BluetoothDevice device) {
         BluetoothService.GattClientCallback gattClientCallback = new BluetoothService.GattClientCallback();
+        device.fetchUuidsWithSdp();
         connectedGatt = device.connectGatt(this, false, gattClientCallback);
-        //Boolean refreshed = refreshDeviceCache(connectedGatt);
+        /*Boolean refreshed = refreshDeviceCache(connectedGatt);
+        Log.d(TAG, "Device cache refreshed: " + refreshed);*/
         Log.d(TAG, "Device " + deviceName + " connected");
     }
 
@@ -180,8 +182,8 @@ public class BluetoothService extends Service {
                 //set global variables for connected device and device name
                 if(gatt != null){
                     connectedGatt = gatt;
-                    //Boolean refreshed = refreshDeviceCache(connectedGatt);
-                    //Log.d(TAG, "Device cache refreshed: " + refreshed);
+                    Boolean refreshed = refreshDeviceCache(connectedGatt);
+                    Log.d(TAG, "Device cache refreshed: " + refreshed);
                     deviceName = gatt.getDevice().getName() == null ? gatt.getDevice().getAddress() : gatt.getDevice().getName();
                     Log.d(TAG, "Device connected: " + deviceName);
                 }

@@ -34,5 +34,6 @@
     <item type="id" name="gas_sensor_data" />
     <item type="id" name="num_sensors_bar" />
     <item type="id" name="num_sensors_bar_text" />
+    <item type="id" name="connected_button" />
 
 </resources>

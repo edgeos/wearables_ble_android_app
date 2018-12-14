@@ -26,6 +26,7 @@ import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.wearables.ge.wearables_ble_receiver.R;
@@ -220,6 +221,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             alert.setView(input);
 
             alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
+                connectedDevice.fetchUuidsWithSdp();
                 mService.writeToVoltageAlarmConfigChar(GattAttributes.MESSAGE_TYPE_RENAME, input.getText().toString());
             });
 
@@ -243,6 +245,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         mService.disconnectGattServer();
         connectedDevice = null;
         connectedDeviceName = null;
+        Switch button = findViewById(R.id.connected_button);
+        if(button != null){
+            button.setChecked(false);
+        }
     }
 
     public void showDeviceID(){
