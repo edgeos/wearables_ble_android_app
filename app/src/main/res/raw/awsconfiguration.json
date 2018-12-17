@@ -1,3 +1,31 @@
 {
-
+  "UserAgent": "MobileHub/1.0",
+  "Version": "1.0",
+  "CredentialsProvider": {
+    "CognitoIdentity": {
+      "Default": {
+        "PoolId": "us-east-1:e1be3f04-f7c7-465c-9de6-bd04a56239d1",
+        "Region": "us-east-1"
+      }
+    }
+  },
+  "IdentityManager": {
+    "Default": {}
+  },
+  "CognitoUserPool": {
+    "Default": {
+      "PoolId": "us-east-1_FkaBEynFn",
+      "AppClientId": "7knuklkbkqiq80lr3e1kab4pra",
+      "AppClientSecret": "1c7ctlogjuvm22e1sopas6tmhms15qlqukple244qk4ubmnhi0gh",
+      "Region": "us-east-1"
+    }
+  },
+"IoTConfig": {
+"Default":
+{
+  "IoTEndpoint": "a3bx6ijnr5v29n-ats.iot.us-east-1.amazonaws.com",
+  "IoTRegion": "us-east-1",
+  "IoTPolicy": "thing-policy"
+}
+}
 }
