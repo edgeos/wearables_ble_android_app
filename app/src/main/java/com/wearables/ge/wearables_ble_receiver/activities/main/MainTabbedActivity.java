@@ -39,6 +39,7 @@ import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerData;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
+import com.wearables.ge.wearables_ble_receiver.utils.MqttManager;
 import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
@@ -84,6 +85,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     public int lastPeak;
     public Long lastPeakTime;
+
+    private MqttManager mMqttMgr;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -137,6 +140,11 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         //This is because we don't need the location service to send updates to the UI.
         //We only need to grab the latest coordinates from the location service.
         LocationService.startLocationService(this);
+
+        //Let's connect to AWS IoT
+        mMqttMgr = MqttManager.getInstance(this);
+        mMqttMgr.connect();
+        Log.i("Mqtt","Connected to AWS IoT");
 
     }
 
@@ -579,6 +587,19 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 Log.d(TAG, "STREAMING_DATA value: " + value);
             } else {
                 Log.d(TAG, "Received message: " + value + " with UUID: " + extraUuid);
+            }
+
+            /****
+             * Send data to AWS IoT, in the next phase if real-time streaming is not required and App based storage
+             * is the way to go, the data needs to be send to local storage
+              */
+            if(value != null && mMqttMgr.getConnectionStatus() == MqttManager.ConnectionStatus.CONNECTED) {
+                Log.d(TAG, "{ \"data\":\"" + value + "\"}");
+                mMqttMgr.publish("ge/sensor/telemetry/data", "{ \"data\":\"" + value + "\"}");
+            }
+            else
+            {
+                Log.e(TAG, "Skipping  message as we are either not Connected to AWS IoT or the message is null");
             }
         }
     }

@@ -1,19 +1,5 @@
 package com.wearables.ge.wearables_ble_receiver.activities.ui;
 
-import android.bluetooth.BluetoothGatt;
-import android.graphics.Color;
-import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ProgressBar;
-
-import com.wearables.ge.wearables_ble_receiver.R;
-import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
-
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -25,12 +11,25 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.amazonaws.mobile.auth.core.IdentityManager;
+import com.wearables.ge.wearables_ble_receiver.R;
+import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -197,6 +196,17 @@ public class PairingTabFragment extends Fragment {
             Log.d(TAG, "Scan again button pressed");
         });
         linLayout.addView(scanAgainButton);
+
+        Button logoutButton = new Button(this.getContext());
+        logoutButton.setText(R.string.logout_button);
+        logoutButton.setId(R.id.logout_button);
+        logoutButton.setOnClickListener(v -> {
+
+            /*TODO : Disconnect from the Bluetooth Device*/
+            IdentityManager.getDefaultIdentityManager().signOut();
+
+        });
+        linLayout.addView(logoutButton);
     }
 
     //BEGIN SIMULATOR CODE CHUNK
