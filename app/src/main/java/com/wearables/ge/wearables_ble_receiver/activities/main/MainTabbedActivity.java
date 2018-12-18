@@ -442,7 +442,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             for(byte byteChar : extraData){
                 stringBuilder.append(String.format("%02x ", byteChar));
             }
-            //TODO: send this data to AWS for storage
             value = stringBuilder.toString();
         } catch (Exception e) {
             Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());

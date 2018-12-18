@@ -222,14 +222,12 @@ public class PairingTabFragment extends Fragment {
 
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            //result.getDevice().fetchUuidsWithSdp();
             addScanResult(result);
         }
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
             for (ScanResult result : results) {
-                //result.getDevice().fetchUuidsWithSdp();
                 addScanResult(result);
             }
         }
@@ -242,7 +240,6 @@ public class PairingTabFragment extends Fragment {
         Boolean grey = true;
         private void addScanResult(ScanResult result) {
             BluetoothDevice obj = result.getDevice();
-            //obj.fetchUuidsWithSdp();
             String deviceAddress = obj.getAddress();
             String objName = obj.getName() == null ? deviceAddress : obj.getName();
             Log.d(TAG, "Found device: " + objName);
