@@ -138,11 +138,6 @@ public class PairingTabFragment extends Fragment {
         //on completed scan, remove spinner
         spinner.setVisibility(View.GONE);
 
-        //if no results, stop here
-        /*if (mScanResults.isEmpty()) {
-            return;
-        }*/
-
         if(MainTabbedActivity.connectedDevice != null && !checkedWhileScanning){
             View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
             linLayout.addView(view, 0);
@@ -166,26 +161,6 @@ public class PairingTabFragment extends Fragment {
             Log.d(TAG, "No connected device found");
         }
 
-        //BEGIN SIMULATOR CODE CHUNK
-        View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
-        linLayout.addView(view);
-        ((TextView) view.findViewById(R.id.text)).setText("Simulator");
-
-        Switch switchButton = view.findViewById(R.id.button);
-        switchButton.setChecked(false);
-        switchButton.setOnClickListener( v -> {
-            if (switchButton.isChecked()) {
-                deviceName = "Simulator";
-                connectedDevice = null;
-                startSimulator();
-                Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
-                disconnectDevice();
-            }
-        });
-        //END SIMULATOR CODE CHUNK
-
         Button scanAgainButton = new Button(rootView.getContext());
         scanAgainButton.setText(R.string.scan_button);
         scanAgainButton.setId(R.id.scan_button);
@@ -197,19 +172,6 @@ public class PairingTabFragment extends Fragment {
         });
         linLayout.addView(scanAgainButton);
     }
-
-    //BEGIN SIMULATOR CODE CHUNK
-    private void startSimulator(){
-        for(int i = 0; i < 10000; i++){
-            ((MainTabbedActivity)Objects.requireNonNull(getActivity())).readAvailableData(null);
-            try {
-                TimeUnit.MILLISECONDS.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    //END SIMULATOR CODE CHUNK
 
     private boolean hasPermissions() {
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
