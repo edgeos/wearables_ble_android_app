@@ -29,6 +29,7 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
+import com.wearables.ge.wearables_ble_receiver.utils.MqttManager;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
 
 import java.io.BufferedReader;
@@ -57,6 +58,8 @@ public class EventsTabFragment extends Fragment {
     TextView deviceName;
 
     File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "voltage_sensor");
+
+    private MqttManager mMqttMgr;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -97,6 +100,9 @@ public class EventsTabFragment extends Fragment {
         });
 
         setRetainInstance(true);
+
+        mMqttMgr = MqttManager.getInstance(rootView.getContext());
+        mMqttMgr.connect();
 
         return rootView;
     }
@@ -239,24 +245,34 @@ public class EventsTabFragment extends Fragment {
         }
     }
 
+    public String savedFileName;
     public void saveFile(){
+        //check for file write permissions
         if(ContextCompat.checkSelfPermission(rootView.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(getActivity(),
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     1);
             return;
         }
+
+        //if there is nothing in the current log, don't save anything
         if(lines.isEmpty()){
             AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(rootView.getContext(), R.style.AlertDialogCustom));
             alert.setTitle("Current Log is empty");
             alert.show();
             return;
         }
-        Long time = Calendar.getInstance().getTimeInMillis();
-        String filename = String.valueOf(time) + "_gas_sensor_log.txt";
 
+        //use time epoch ms for filename
+        Long time = Calendar.getInstance().getTimeInMillis();
+        savedFileName = String.valueOf(time) + "_gas_sensor_log.txt";
+
+        //log path for debugging
         Log.d(TAG, "Files Dir: " + path.getPath());
         Boolean pathCreated = true;
+
+        //make sure path exists
+        //it should, when this main class is created it should grab the downloads directory
         if(!path.exists()){
             Log.d(TAG, "Path doesn't exist");
             pathCreated = path.mkdirs();
@@ -265,13 +281,19 @@ public class EventsTabFragment extends Fragment {
             Log.d(TAG, "Unable to create path");
             return;
         }
-        File file = new File(path, filename);
+
+        //create the file to save
+        File file = new File(path, savedFileName);
+
+        //write all the lines in the saved array to the file
         try {
             FileWriter writer = new FileWriter(file);
-            String headerLine = "Device: " + MainTabbedActivity.connectedDevice.getAddress() + " Name: " + MainTabbedActivity.connectedDeviceName;
-            writer.append(headerLine + System.lineSeparator());
+            //head the file with some device info
+            String headerLine = "Device: " + MainTabbedActivity.connectedDevice.getAddress() + " Name: " + MainTabbedActivity.connectedDeviceName + System.lineSeparator();
+            writer.append(headerLine);
             for(String line : lines){
-                writer.append(line + System.lineSeparator());
+                writer.append(line);
+                writer.append(System.lineSeparator());
             }
             writer.flush();
             writer.close();
@@ -284,20 +306,27 @@ public class EventsTabFragment extends Fragment {
     File selectedFile;
     String selectedFileName;
     public void findLocalFiles(){
+        //check for file read/write permissions
         if(ContextCompat.checkSelfPermission(rootView.getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(getActivity(),
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     1);
             return;
         }
+
+        //get a list of all files in the path directory
         File[] files = path.listFiles();
         List<String> optionsList = new ArrayList<>();
+
+        //if no files were found send a message and return
         if(files == null){
             AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(rootView.getContext(), R.style.AlertDialogCustom));
             alert.setTitle("No log files found in " + path.toString());
             alert.show();
             return;
         }
+
+        //add each item to a list of options
         for(File file : files){
             Log.d(TAG, "File: " + file.getName());
             optionsList.add(file.getName());
@@ -310,8 +339,10 @@ public class EventsTabFragment extends Fragment {
         alert.setTitle("Select a file");
         alert.setItems(optionsArray, (dialog, which) -> {
             Log.d(TAG, "Chose option #" + which + " filename: " + optionsList.get(which));
+            //grab the name of the file based o nthe index of the option selected
             selectedFileName = optionsList.get(which);
             selectedFile = new File(path, selectedFileName);
+            //boolean for viewing an old file so the bluetooth service in the background doesn't update the list while you are viewing an old file
             viewingOldFile = true;
             try {
                 FileInputStream is = new FileInputStream(selectedFile);
@@ -319,8 +350,10 @@ public class EventsTabFragment extends Fragment {
                 String line = reader.readLine();
                 LinearLayout logEventsList = rootView.findViewById(R.id.logEventList);
                 logEventsList.removeAllViews();
+                lines = new ArrayList<>();
                 while(line != null){
-                    Log.d(TAG, "Line read: " + line);
+                    //Log.d(TAG, "Line read: " + line);
+                    lines.add(line);
                     TextView textView = new TextView(rootView.getContext());
                     textView.setText(line);
                     textView.setGravity(Gravity.START);
@@ -342,6 +375,22 @@ public class EventsTabFragment extends Fragment {
     }
 
     public void saveFileToCloud(){
+        //if there is nothing in the current log, don't save anything
+        if(lines.isEmpty()){
+            AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(rootView.getContext(), R.style.AlertDialogCustom));
+            alert.setTitle("Current Log is empty");
+            alert.show();
+            return;
+        }
 
+        String message = "Device: " + MainTabbedActivity.connectedDevice.getAddress() + " Name: " + MainTabbedActivity.connectedDeviceName;
+        for(String line : lines){
+            message = message + " " + line;
+        }
+
+        if(mMqttMgr.getConnectionStatus() == MqttManager.ConnectionStatus.CONNECTED) {
+            Log.d(TAG, "{ \"data\":\"" + message + "\"}");
+            mMqttMgr.publish("ge/test/data", "{ \"data\":\"" + message + "\"}");
+        }
     }
 }

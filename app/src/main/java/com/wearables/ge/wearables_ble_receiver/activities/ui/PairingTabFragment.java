@@ -196,17 +196,6 @@ public class PairingTabFragment extends Fragment {
             Log.d(TAG, "Scan again button pressed");
         });
         linLayout.addView(scanAgainButton);
-
-        Button logoutButton = new Button(this.getContext());
-        logoutButton.setText(R.string.logout_button);
-        logoutButton.setId(R.id.logout_button);
-        logoutButton.setOnClickListener(v -> {
-
-            /*TODO : Disconnect from the Bluetooth Device*/
-            IdentityManager.getDefaultIdentityManager().signOut();
-
-        });
-        linLayout.addView(logoutButton);
     }
 
     //BEGIN SIMULATOR CODE CHUNK

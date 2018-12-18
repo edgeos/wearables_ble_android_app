@@ -29,6 +29,7 @@ import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.amazonaws.mobile.auth.core.IdentityManager;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.ui.DeviceTabFragment;
 import com.wearables.ge.wearables_ble_receiver.activities.ui.EventsTabFragment;
@@ -142,9 +143,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         LocationService.startLocationService(this);
 
         //Let's connect to AWS IoT
-        mMqttMgr = MqttManager.getInstance(this);
+        /*mMqttMgr = MqttManager.getInstance(this);
         mMqttMgr.connect();
-        Log.i("Mqtt","Connected to AWS IoT");
+        Log.i("Mqtt","Connected to AWS IoT");*/
 
     }
 
@@ -204,6 +205,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 if(connectedDevice != null){
                     disconnectDevice();
                 }
+                return true;
+            case R.id.logout:
+                logout();
                 return true;
             case R.id.dev_mode:
                 Log.d(TAG, "dev_mode button pushed");
@@ -295,6 +299,11 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         } else {
             devModeItem.setTitle(R.string.dev_mode_menu_item);
         }
+    }
+
+    public void logout(){
+        IdentityManager.getDefaultIdentityManager().signOut();
+        disconnectDevice();
     }
 
     //connection callback for bluetooth service
@@ -593,14 +602,14 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
              * Send data to AWS IoT, in the next phase if real-time streaming is not required and App based storage
              * is the way to go, the data needs to be send to local storage
               */
-            if(value != null && mMqttMgr.getConnectionStatus() == MqttManager.ConnectionStatus.CONNECTED) {
+            /*if(value != null && mMqttMgr.getConnectionStatus() == MqttManager.ConnectionStatus.CONNECTED) {
                 Log.d(TAG, "{ \"data\":\"" + value + "\"}");
                 mMqttMgr.publish("ge/sensor/telemetry/data", "{ \"data\":\"" + value + "\"}");
             }
             else
             {
                 Log.e(TAG, "Skipping  message as we are either not Connected to AWS IoT or the message is null");
-            }
+            }*/
         }
     }
 }
