@@ -100,7 +100,7 @@ public class AuthenticatorActivity extends AppCompatActivity {
         AuthUIConfiguration config =
                 new AuthUIConfiguration.Builder()
                         .userPools(true)  // true? show the Email and Password UI
-                        .logoResId(R.drawable.logo) // Change the logo
+                        .logoResId(R.mipmap.ge_logo_hd_foreground) // Change the logo
                         .backgroundColor(Color.WHITE) // Change the backgroundColor
                         .isBackgroundColorFullScreen(true) // Full screen backgroundColor the backgroundColor full screenff
                         .fontFamily("sans-serif-light") // Apply sans-serif-light as the global font

@@ -597,19 +597,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             } else {
                 Log.d(TAG, "Received message: " + value + " with UUID: " + extraUuid);
             }
-
-            /****
-             * Send data to AWS IoT, in the next phase if real-time streaming is not required and App based storage
-             * is the way to go, the data needs to be send to local storage
-              */
-            /*if(value != null && mMqttMgr.getConnectionStatus() == MqttManager.ConnectionStatus.CONNECTED) {
-                Log.d(TAG, "{ \"data\":\"" + value + "\"}");
-                mMqttMgr.publish("ge/sensor/telemetry/data", "{ \"data\":\"" + value + "\"}");
-            }
-            else
-            {
-                Log.e(TAG, "Skipping  message as we are either not Connected to AWS IoT or the message is null");
-            }*/
         }
     }
 }
