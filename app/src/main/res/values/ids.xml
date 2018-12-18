@@ -35,5 +35,6 @@
     <item type="id" name="num_sensors_bar" />
     <item type="id" name="num_sensors_bar_text" />
     <item type="id" name="connected_button" />
+    <item type="id" name="logout_button" />
 
 </resources>
