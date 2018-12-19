@@ -187,8 +187,9 @@ public class HistoryTabFragment extends Fragment {
                 ch1Set.setColor(ColorTemplate.getHoloBlue());
                 ch1Set.setDrawValues(false);
                 ch1Set.setAxisDependency(YAxis.AxisDependency.LEFT);
-                ch1Set.setCircleRadius(3);
+                ch1Set.setCircleRadius(1);
                 ch1Set.setCircleHoleColor(ch1Set.getColor());
+                ch1Set.setCircleColor(ch1Set.getColor());
 
                 List<ILineDataSet> ch1DataSet = new ArrayList<>();
                 ch1DataSet.add(ch1Set);
@@ -207,6 +208,7 @@ public class HistoryTabFragment extends Fragment {
                 ch1AvgSet.setAxisDependency(YAxis.AxisDependency.LEFT);
                 ch1AvgSet.setCircleRadius(1);
                 ch1AvgSet.setCircleHoleColor(ch1AvgSet.getColor());
+                ch1AvgSet.setCircleColor(ch1AvgSet.getColor());
 
                 ch1DataSet.add(ch1AvgSet);
 
@@ -228,8 +230,9 @@ public class HistoryTabFragment extends Fragment {
                 ch2Set.setColor(ColorTemplate.getHoloBlue());
                 ch2Set.setDrawValues(false);
                 ch2Set.setAxisDependency(YAxis.AxisDependency.LEFT);
-                ch2Set.setCircleRadius(3);
+                ch2Set.setCircleRadius(1);
                 ch2Set.setCircleHoleColor(ch2Set.getColor());
+                ch2Set.setCircleColor(ch2Set.getColor());
 
                 List<ILineDataSet> ch2DataSet = new ArrayList<>();
                 ch2DataSet.add(ch2Set);
@@ -248,6 +251,7 @@ public class HistoryTabFragment extends Fragment {
                 ch2AvgSet.setAxisDependency(YAxis.AxisDependency.LEFT);
                 ch2AvgSet.setCircleRadius(1);
                 ch2AvgSet.setCircleHoleColor(ch2AvgSet.getColor());
+                ch2AvgSet.setCircleColor(ch2AvgSet.getColor());
 
                 ch2DataSet.add(ch2AvgSet);
 
@@ -269,8 +273,9 @@ public class HistoryTabFragment extends Fragment {
                 ch3Set.setColor(ColorTemplate.getHoloBlue());
                 ch3Set.setDrawValues(false);
                 ch3Set.setAxisDependency(YAxis.AxisDependency.LEFT);
-                ch3Set.setCircleRadius(3);
+                ch3Set.setCircleRadius(1);
                 ch3Set.setCircleHoleColor(ch3Set.getColor());
+                ch3Set.setCircleColor(ch3Set.getColor());
 
                 List<ILineDataSet> ch3DataSet = new ArrayList<>();
                 ch3DataSet.add(ch3Set);
@@ -289,6 +294,7 @@ public class HistoryTabFragment extends Fragment {
                 ch3AvgSet.setAxisDependency(YAxis.AxisDependency.LEFT);
                 ch3AvgSet.setCircleRadius(1);
                 ch3AvgSet.setCircleHoleColor(ch3AvgSet.getColor());
+                ch3AvgSet.setCircleColor(ch3AvgSet.getColor());
 
                 ch3DataSet.add(ch3AvgSet);
 
@@ -298,10 +304,6 @@ public class HistoryTabFragment extends Fragment {
                 voltageGraph3.invalidate();
             }
         }
-    }
-
-    public void showAverageLine(){
-
     }
 
     int i = 0;
