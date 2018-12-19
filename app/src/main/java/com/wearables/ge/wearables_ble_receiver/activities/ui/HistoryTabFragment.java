@@ -43,12 +43,12 @@ public class HistoryTabFragment extends Fragment {
     private ScaleAnimation expandAnimation = new ScaleAnimation(1, 1, 0, 1);
     private ScaleAnimation collapseAnimation = new ScaleAnimation(1, 1, 1, 0);
 
-    LineChart voltageGraph1;
-    LineChart voltageGraph2;
-    LineChart voltageGraph3;
-    LineChart accelerationGraph1;
-    LineChart accelerationGraph2;
-    LineChart accelerationGraph3;
+    LineChart Ch1VoltageGraph;
+    LineChart Ch2VoltageGraph;
+    LineChart Ch3VoltageGraph;
+    LineChart accelerationGraphX;
+    LineChart accelerationGraphY;
+    LineChart accelerationGraphZ;
     LineChart tempGraph;
     LineChart humidityGraph;
     LineChart pressureGraph;
@@ -61,7 +61,6 @@ public class HistoryTabFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.d(TAG, "onCreate called");
         rootView = inflater.inflate(R.layout.fragment_tab_history, container, false);
         initializeVoltageGraphs();
         initializeAccelerationGraphs();
@@ -127,12 +126,16 @@ public class HistoryTabFragment extends Fragment {
     List<Integer> ch3Avgs = new ArrayList<>();
     public void updateVoltageGraph(VoltageAlarmStateChar voltageAlarmState) {
         increment = voltageAlarmState.getFft_bin_size();
+
+        //first gather 5 data points to use to take the average
         if(averageList.size() < 5){
             averageList.add(voltageAlarmState);
         } else if (averageList.size() == 5) {
+            //once we have all 5, get the average for every point in the fft_result lists
             ch1Avgs = new ArrayList<>();
             ch2Avgs = new ArrayList<>();
             ch3Avgs = new ArrayList<>();
+            //just use the size of the ch1 list, they should all be the same size
             for(int i = 0; i < averageList.get(0).getCh1_fft_results().size(); i++){
                 int ch1Avg = (averageList.get(0).getCh1_fft_results().get(i)
                         + averageList.get(1).getCh1_fft_results().get(i)
@@ -156,8 +159,10 @@ public class HistoryTabFragment extends Fragment {
                 ch3Avgs.add(ch3Avg);
             }
 
+            //create a new VoltageAlarmStateChar object with just the new averages and add it to the list
             averageList.add(new VoltageAlarmStateChar(ch1Avgs, ch2Avgs, ch3Avgs));
         } else {
+            //once we have over 5 items, we use a new formula to compute average
             List<Integer> ch1AvgsNew = new ArrayList<>();
             List<Integer> ch2AvgsNew = new ArrayList<>();
             List<Integer> ch3AvgsNew = new ArrayList<>();
@@ -169,40 +174,57 @@ public class HistoryTabFragment extends Fragment {
                 ch2AvgsNew.add(ch2Avg);
                 ch3AvgsNew.add(ch3Avg);
             }
+
+            //FIFO the list and keep only 5 items in it
             averageList.remove(0);
             ch1Avgs = ch1AvgsNew;
             ch2Avgs = ch2AvgsNew;
             ch3Avgs = ch3AvgsNew;
             averageList.add(new VoltageAlarmStateChar(ch1Avgs, ch2Avgs, ch3Avgs));
 
-            if(voltageGraph1 != null){
+            //now graph normal data with averaged data
+            if(Ch1VoltageGraph != null){
                 ArrayList<Entry> ch1Entries = new ArrayList<>();
+                //add each fft result value to a list of Entry objects incrementing by the step size
                 for(int result : voltageAlarmState.getCh1_fft_results()){
                     lastX = lastX + increment;
                     float xValue = lastX - increment;
                     ch1Entries.add(new Entry(xValue, result));
                 }
+                //reset increment
                 lastX = 0;
-                LineDataSet ch1Set = new LineDataSet(ch1Entries, "Channel 1");
+
+                //create a data set for the live values
+                LineDataSet ch1Set = new LineDataSet(ch1Entries, "Live");
+                //set line color
                 ch1Set.setColor(ColorTemplate.getHoloBlue());
+                //don't draw numerical value on each point
                 ch1Set.setDrawValues(false);
                 ch1Set.setAxisDependency(YAxis.AxisDependency.LEFT);
+                //size the circles on each individual point
                 ch1Set.setCircleRadius(1);
+                //set circle color to blend with color of data set
                 ch1Set.setCircleHoleColor(ch1Set.getColor());
                 ch1Set.setCircleColor(ch1Set.getColor());
 
+                //create data set array to add more data sets later
                 List<ILineDataSet> ch1DataSet = new ArrayList<>();
+                //add live data set
                 ch1DataSet.add(ch1Set);
 
-                //add average line
+                //create new Entry object array for the average line
                 ArrayList<Entry> ch1AvgEntries = new ArrayList<>();
+                //ch1Avgs is now the latest averages
                 for(int result : ch1Avgs){
                     lastX = lastX + increment;
                     float xValue = lastX - increment;
                     ch1AvgEntries.add(new Entry(xValue, result));
                 }
+                //reset increment  again
                 lastX = 0;
-                LineDataSet ch1AvgSet = new LineDataSet(ch1AvgEntries, "Channel 1 Average");
+
+                //create new data set for the average line as before
+                LineDataSet ch1AvgSet = new LineDataSet(ch1AvgEntries, "Average");
                 ch1AvgSet.setColor(Color.RED);
                 ch1AvgSet.setDrawValues(false);
                 ch1AvgSet.setAxisDependency(YAxis.AxisDependency.LEFT);
@@ -210,15 +232,19 @@ public class HistoryTabFragment extends Fragment {
                 ch1AvgSet.setCircleHoleColor(ch1AvgSet.getColor());
                 ch1AvgSet.setCircleColor(ch1AvgSet.getColor());
 
+                //add average data set to the data set array from before
                 ch1DataSet.add(ch1AvgSet);
 
+                //create a LineData object out of the data set array
                 LineData ch1Data = new LineData(ch1DataSet);
 
-                voltageGraph1.setData(ch1Data);
-                voltageGraph1.invalidate();
+                //set the graph data to the new data object
+                Ch1VoltageGraph.setData(ch1Data);
+                //refresh the graph
+                Ch1VoltageGraph.invalidate();
             }
 
-            if(voltageGraph2 != null){
+            if(Ch2VoltageGraph != null){
                 ArrayList<Entry> ch2Entries = new ArrayList<>();
                 for(int result : voltageAlarmState.getCh2_fft_results()){
                     lastX = lastX + increment;
@@ -226,7 +252,7 @@ public class HistoryTabFragment extends Fragment {
                     ch2Entries.add(new Entry(xValue, result));
                 }
                 lastX = 0;
-                LineDataSet ch2Set = new LineDataSet(ch2Entries, "Channel 1");
+                LineDataSet ch2Set = new LineDataSet(ch2Entries, "Live");
                 ch2Set.setColor(ColorTemplate.getHoloBlue());
                 ch2Set.setDrawValues(false);
                 ch2Set.setAxisDependency(YAxis.AxisDependency.LEFT);
@@ -245,7 +271,7 @@ public class HistoryTabFragment extends Fragment {
                     ch2AvgEntries.add(new Entry(xValue, result));
                 }
                 lastX = 0;
-                LineDataSet ch2AvgSet = new LineDataSet(ch2AvgEntries, "Channel 1 Average");
+                LineDataSet ch2AvgSet = new LineDataSet(ch2AvgEntries, "Average");
                 ch2AvgSet.setColor(Color.RED);
                 ch2AvgSet.setDrawValues(false);
                 ch2AvgSet.setAxisDependency(YAxis.AxisDependency.LEFT);
@@ -257,11 +283,11 @@ public class HistoryTabFragment extends Fragment {
 
                 LineData ch2Data = new LineData(ch2DataSet);
 
-                voltageGraph2.setData(ch2Data);
-                voltageGraph2.invalidate();
+                Ch2VoltageGraph.setData(ch2Data);
+                Ch2VoltageGraph.invalidate();
             }
 
-            if(voltageGraph3 != null){
+            if(Ch3VoltageGraph != null){
                 ArrayList<Entry> ch3Entries = new ArrayList<>();
                 for(int result : voltageAlarmState.getCh3_fft_results()){
                     lastX = lastX + increment;
@@ -269,7 +295,7 @@ public class HistoryTabFragment extends Fragment {
                     ch3Entries.add(new Entry(xValue, result));
                 }
                 lastX = 0;
-                LineDataSet ch3Set = new LineDataSet(ch3Entries, "Channel 1");
+                LineDataSet ch3Set = new LineDataSet(ch3Entries, "Live");
                 ch3Set.setColor(ColorTemplate.getHoloBlue());
                 ch3Set.setDrawValues(false);
                 ch3Set.setAxisDependency(YAxis.AxisDependency.LEFT);
@@ -288,7 +314,7 @@ public class HistoryTabFragment extends Fragment {
                     ch3AvgEntries.add(new Entry(xValue, result));
                 }
                 lastX = 0;
-                LineDataSet ch3AvgSet = new LineDataSet(ch3AvgEntries, "Channel 1 Average");
+                LineDataSet ch3AvgSet = new LineDataSet(ch3AvgEntries, "Average");
                 ch3AvgSet.setColor(Color.RED);
                 ch3AvgSet.setDrawValues(false);
                 ch3AvgSet.setAxisDependency(YAxis.AxisDependency.LEFT);
@@ -300,8 +326,8 @@ public class HistoryTabFragment extends Fragment {
 
                 LineData ch3Data = new LineData(ch3DataSet);
 
-                voltageGraph3.setData(ch3Data);
-                voltageGraph3.invalidate();
+                Ch3VoltageGraph.setData(ch3Data);
+                Ch3VoltageGraph.invalidate();
             }
         }
     }
@@ -309,35 +335,41 @@ public class HistoryTabFragment extends Fragment {
     int i = 0;
     public void updateAccelerometerGraph(AccelerometerData accelerometerData){
         i++;
-        if(accelerationGraph1 != null ){
-            LineData data1 = accelerationGraph1.getData();
+        //acceleration (and temp/humid/pressure) graphs are not update like the voltage graphs
+        //these are continued lists that are added to instead of a whole new data set every time
+        if(accelerationGraphX != null ){
+            //get the current dataset
+            LineData data1 = accelerationGraphX.getData();
             if (data1 != null) {
 
+                //LineData object could be multiple LineDataSets so grab the first one in the list
+                //we assume here that there is only one data set and we only care about the first
                 ILineDataSet set = data1.getDataSetByIndex(0);
                 // set.addEntry(...); // can be called as well
 
                 if (set == null) {
+                    //create a new set if there is none
                     set = createSet("X");
                     data1.addDataSet(set);
                 }
 
-
+                //add the new entry
                 data1.addEntry(new Entry(i, (float) accelerometerData.getxValue()), 0);
                 data1.notifyDataChanged();
 
                 // let the chart know it's data has changed
-                accelerationGraph1.notifyDataSetChanged();
+                accelerationGraphX.notifyDataSetChanged();
 
                 // limit the number of visible entries
-                accelerationGraph1.setVisibleXRangeMaximum(40);
+                accelerationGraphX.setVisibleXRangeMaximum(40);
                 // chart.setVisibleYRange(30, AxisDependency.LEFT);
 
                 // move to the latest entry
-                accelerationGraph1.moveViewToX(data1.getEntryCount());
+                accelerationGraphX.moveViewToX(data1.getEntryCount());
             }
         }
-        if(accelerationGraph2 != null ){
-            LineData data2 = accelerationGraph2.getData();
+        if(accelerationGraphY != null ){
+            LineData data2 = accelerationGraphY.getData();
             if (data2 != null) {
 
                 ILineDataSet set = data2.getDataSetByIndex(0);
@@ -350,14 +382,14 @@ public class HistoryTabFragment extends Fragment {
                 data2.addEntry(new Entry(i, (float) accelerometerData.getyValue()), 0);
                 data2.notifyDataChanged();
 
-                accelerationGraph2.notifyDataSetChanged();
+                accelerationGraphY.notifyDataSetChanged();
 
-                accelerationGraph2.setVisibleXRangeMaximum(40);
-                accelerationGraph2.moveViewToX(data2.getEntryCount());
+                accelerationGraphY.setVisibleXRangeMaximum(40);
+                accelerationGraphY.moveViewToX(data2.getEntryCount());
             }
         }
-        if(accelerationGraph3 != null ){
-            LineData data3 = accelerationGraph3.getData();
+        if(accelerationGraphZ != null ){
+            LineData data3 = accelerationGraphZ.getData();
             if (data3 != null) {
 
                 ILineDataSet set = data3.getDataSetByIndex(0);
@@ -370,10 +402,10 @@ public class HistoryTabFragment extends Fragment {
                 data3.addEntry(new Entry(i2, (float) accelerometerData.getzValue()), 0);
                 data3.notifyDataChanged();
 
-                accelerationGraph3.notifyDataSetChanged();
+                accelerationGraphZ.notifyDataSetChanged();
 
-                accelerationGraph3.setVisibleXRangeMaximum(40);
-                accelerationGraph3.moveViewToX(data3.getEntryCount());
+                accelerationGraphZ.setVisibleXRangeMaximum(40);
+                accelerationGraphZ.moveViewToX(data3.getEntryCount());
             }
         }
     }
@@ -444,104 +476,98 @@ public class HistoryTabFragment extends Fragment {
     }
 
     public void initializeVoltageGraphs(){
+        //get the expandable layout container that wraps the voltage graphs
         LinearLayout expandableLayout1 = rootView.findViewById(R.id.collapsibleContainer1);
+        //and the switch button attached to it
         Switch switchButton1 = rootView.findViewById(R.id.expand1);
         switchButton1.setChecked(true);
+        //set switch button action to expand/collapse the view
         switchButton1.setOnClickListener( v -> {
             if (switchButton1.isChecked()) {
-                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
+                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_SHORT).show();
                 expandView(expandableLayout1, 500);
 
             } else {
-                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
+                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_SHORT).show();
                 collapseView(expandableLayout1, 500);
             }
         });
 
-        voltageGraph1 = rootView.findViewById(R.id.voltage_sensor_graph_1);
-        voltageGraph1.setDragEnabled(true);
-        voltageGraph1.setScaleEnabled(true);
-        voltageGraph1.setDrawGridBackground(false);
-        voltageGraph1.getDescription().setEnabled(false);
+        //get the first voltage graph object
+        Ch1VoltageGraph = rootView.findViewById(R.id.voltage_sensor_graph_1);
+        //allow the user to drag to view other points
+        Ch1VoltageGraph.setDragEnabled(true);
+        //allow zooming
+        Ch1VoltageGraph.setScaleEnabled(true);
+        //disable grid background
+        Ch1VoltageGraph.setDrawGridBackground(false);
+        //disable description text
+        Ch1VoltageGraph.getDescription().setEnabled(false);
+        //allow pinch zooming
+        Ch1VoltageGraph.setPinchZoom(true);
 
-        voltageGraph1.setPinchZoom(true);
-
-        LineData data1 = new LineData();
-        data1.setValueTextColor(Color.RED);
-
-        voltageGraph1.setData(data1);
-
-        XAxis x1 = voltageGraph1.getXAxis();
+        //set x axis styling
+        XAxis x1 = Ch1VoltageGraph.getXAxis();
         x1.setTypeface(Typeface.SANS_SERIF);
         x1.setTextColor(Color.BLACK);
         x1.setDrawGridLines(true);
         x1.setEnabled(true);
         x1.setDrawGridLines(true);
 
-        YAxis leftAxis = voltageGraph1.getAxisLeft();
+        YAxis leftAxis = Ch1VoltageGraph.getAxisLeft();
         leftAxis.setTypeface(Typeface.SANS_SERIF);
         leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(true);
 
-        YAxis rightAxis = voltageGraph1.getAxisRight();
+        YAxis rightAxis = Ch1VoltageGraph.getAxisRight();
         rightAxis.setEnabled(false);
 
-        // second acceleration graph
-        voltageGraph2 = rootView.findViewById(R.id.voltage_sensor_graph_2);
-        voltageGraph2.setDragEnabled(true);
-        voltageGraph2.setScaleEnabled(true);
-        voltageGraph2.setDrawGridBackground(false);
-        voltageGraph2.getDescription().setEnabled(false);
+        // second voltage graph
+        Ch2VoltageGraph = rootView.findViewById(R.id.voltage_sensor_graph_2);
+        Ch2VoltageGraph.setDragEnabled(true);
+        Ch2VoltageGraph.setScaleEnabled(true);
+        Ch2VoltageGraph.setDrawGridBackground(false);
+        Ch2VoltageGraph.getDescription().setEnabled(false);
 
-        voltageGraph2.setPinchZoom(true);
+        Ch2VoltageGraph.setPinchZoom(true);
 
-        LineData data2 = new LineData();
-        data2.setValueTextColor(Color.RED);
-
-        voltageGraph2.setData(data2);
-
-        XAxis x2 = voltageGraph2.getXAxis();
+        XAxis x2 = Ch2VoltageGraph.getXAxis();
         x2.setTypeface(Typeface.SANS_SERIF);
         x2.setTextColor(Color.BLACK);
         x2.setDrawGridLines(true);
         x2.setEnabled(true);
         x2.setDrawGridLines(true);
 
-        YAxis leftAxis2 = voltageGraph2.getAxisLeft();
+        YAxis leftAxis2 = Ch2VoltageGraph.getAxisLeft();
         leftAxis2.setTypeface(Typeface.SANS_SERIF);
         leftAxis2.setTextColor(Color.BLACK);
         leftAxis2.setDrawGridLines(true);
 
-        YAxis rightAxis2 = voltageGraph2.getAxisRight();
+        YAxis rightAxis2 = Ch2VoltageGraph.getAxisRight();
         rightAxis2.setEnabled(false);
 
-        // third acceleration graph
-        voltageGraph3 = rootView.findViewById(R.id.voltage_sensor_graph_3);
-        voltageGraph3.setDragEnabled(true);
-        voltageGraph3.setScaleEnabled(true);
-        voltageGraph3.setDrawGridBackground(false);
-        voltageGraph3.getDescription().setEnabled(false);
+        // third voltage graph
+        Ch3VoltageGraph = rootView.findViewById(R.id.voltage_sensor_graph_3);
+        Ch3VoltageGraph.setDragEnabled(true);
+        Ch3VoltageGraph.setScaleEnabled(true);
+        Ch3VoltageGraph.setDrawGridBackground(false);
+        Ch3VoltageGraph.getDescription().setEnabled(false);
 
-        voltageGraph3.setPinchZoom(true);
+        Ch3VoltageGraph.setPinchZoom(true);
 
-        LineData data3 = new LineData();
-        data3.setValueTextColor(Color.RED);
-
-        voltageGraph3.setData(data3);
-
-        XAxis x3 = voltageGraph3.getXAxis();
+        XAxis x3 = Ch3VoltageGraph.getXAxis();
         x3.setTypeface(Typeface.SANS_SERIF);
         x3.setTextColor(Color.BLACK);
         x3.setDrawGridLines(true);
         x3.setEnabled(true);
         x3.setDrawGridLines(true);
 
-        YAxis leftAxis3 = voltageGraph3.getAxisLeft();
+        YAxis leftAxis3 = Ch3VoltageGraph.getAxisLeft();
         leftAxis3.setTypeface(Typeface.SANS_SERIF);
         leftAxis3.setTextColor(Color.BLACK);
         leftAxis3.setDrawGridLines(true);
 
-        YAxis rightAxis3 = voltageGraph3.getAxisRight();
+        YAxis rightAxis3 = Ch3VoltageGraph.getAxisRight();
         rightAxis3.setEnabled(false);
     }
 
@@ -551,59 +577,61 @@ public class HistoryTabFragment extends Fragment {
         switchButton2.setChecked(true);
         switchButton2.setOnClickListener( v -> {
             if (switchButton2.isChecked()) {
-                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
+                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_SHORT).show();
                 expandView(expandableLayout2, 500);
             } else {
-                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
+                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_SHORT).show();
                 collapseView(expandableLayout2, 500 );
             }
         });
 
         //Acceleration Graphs
-        accelerationGraph1 = rootView.findViewById(R.id.acceleration_sensor_graph_1);
-        accelerationGraph1.setDragEnabled(true);
-        accelerationGraph1.setScaleEnabled(true);
-        accelerationGraph1.setDrawGridBackground(false);
-        accelerationGraph1.getDescription().setEnabled(false);
+        accelerationGraphX = rootView.findViewById(R.id.acceleration_sensor_graph_1);
+        accelerationGraphX.setDragEnabled(true);
+        accelerationGraphX.setScaleEnabled(true);
+        accelerationGraphX.setDrawGridBackground(false);
+        accelerationGraphX.getDescription().setEnabled(false);
 
-        accelerationGraph1.setPinchZoom(true);
+        accelerationGraphX.setPinchZoom(true);
 
         LineData data1 = new LineData();
         data1.setValueTextColor(Color.RED);
 
-        accelerationGraph1.setData(data1);
+        accelerationGraphX.setData(data1);
 
-        XAxis x1 = accelerationGraph1.getXAxis();
+        XAxis x1 = accelerationGraphX.getXAxis();
         x1.setTypeface(Typeface.SANS_SERIF);
         x1.setTextColor(Color.BLACK);
         x1.setDrawGridLines(true);
         x1.setEnabled(true);
         x1.setDrawGridLines(true);
+        //with acceleration and temp/humid/pressure graphs, we use timestamps so here we set the custom DateValueFormatter
+        //as the value formatter class for the x axis.
         x1.setValueFormatter(new DateValueFormatter());
 
-        YAxis leftAxis = accelerationGraph1.getAxisLeft();
+        YAxis leftAxis = accelerationGraphX.getAxisLeft();
         leftAxis.setTypeface(Typeface.SANS_SERIF);
         leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(true);
 
-        YAxis rightAxis = accelerationGraph1.getAxisRight();
+        YAxis rightAxis = accelerationGraphX.getAxisRight();
         rightAxis.setEnabled(false);
 
         // second acceleration graph
-        accelerationGraph2 = rootView.findViewById(R.id.acceleration_sensor_graph_2);
-        accelerationGraph2.setDragEnabled(true);
-        accelerationGraph2.setScaleEnabled(true);
-        accelerationGraph2.setDrawGridBackground(false);
-        accelerationGraph2.getDescription().setEnabled(false);
+        accelerationGraphY = rootView.findViewById(R.id.acceleration_sensor_graph_2);
+        accelerationGraphY.setDragEnabled(true);
+        accelerationGraphY.setScaleEnabled(true);
+        accelerationGraphY.setDrawGridBackground(false);
+        accelerationGraphY.getDescription().setEnabled(false);
 
-        accelerationGraph2.setPinchZoom(true);
+        accelerationGraphY.setPinchZoom(true);
 
         LineData data2 = new LineData();
         data2.setValueTextColor(Color.RED);
 
-        accelerationGraph2.setData(data2);
+        accelerationGraphY.setData(data2);
 
-        XAxis x2 = accelerationGraph2.getXAxis();
+        XAxis x2 = accelerationGraphY.getXAxis();
         x2.setTypeface(Typeface.SANS_SERIF);
         x2.setTextColor(Color.BLACK);
         x2.setDrawGridLines(true);
@@ -611,29 +639,29 @@ public class HistoryTabFragment extends Fragment {
         x2.setDrawGridLines(true);
         x2.setValueFormatter(new DateValueFormatter());
 
-        YAxis leftAxis2 = accelerationGraph2.getAxisLeft();
+        YAxis leftAxis2 = accelerationGraphY.getAxisLeft();
         leftAxis2.setTypeface(Typeface.SANS_SERIF);
         leftAxis2.setTextColor(Color.BLACK);
         leftAxis2.setDrawGridLines(true);
 
-        YAxis rightAxis2 = accelerationGraph2.getAxisRight();
+        YAxis rightAxis2 = accelerationGraphY.getAxisRight();
         rightAxis2.setEnabled(false);
 
         // third acceleration graph
-        accelerationGraph3 = rootView.findViewById(R.id.acceleration_sensor_graph_3);
-        accelerationGraph3.setDragEnabled(true);
-        accelerationGraph3.setScaleEnabled(true);
-        accelerationGraph3.setDrawGridBackground(false);
-        accelerationGraph3.getDescription().setEnabled(false);
+        accelerationGraphZ = rootView.findViewById(R.id.acceleration_sensor_graph_3);
+        accelerationGraphZ.setDragEnabled(true);
+        accelerationGraphZ.setScaleEnabled(true);
+        accelerationGraphZ.setDrawGridBackground(false);
+        accelerationGraphZ.getDescription().setEnabled(false);
 
-        accelerationGraph3.setPinchZoom(true);
+        accelerationGraphZ.setPinchZoom(true);
 
         LineData data3 = new LineData();
         data3.setValueTextColor(Color.RED);
 
-        accelerationGraph3.setData(data3);
+        accelerationGraphZ.setData(data3);
 
-        XAxis x3 = accelerationGraph3.getXAxis();
+        XAxis x3 = accelerationGraphZ.getXAxis();
         x3.setTypeface(Typeface.SANS_SERIF);
         x3.setTextColor(Color.BLACK);
         x3.setDrawGridLines(true);
@@ -641,12 +669,12 @@ public class HistoryTabFragment extends Fragment {
         x3.setDrawGridLines(true);
         x3.setValueFormatter(new DateValueFormatter());
 
-        YAxis leftAxis3 = accelerationGraph3.getAxisLeft();
+        YAxis leftAxis3 = accelerationGraphZ.getAxisLeft();
         leftAxis3.setTypeface(Typeface.SANS_SERIF);
         leftAxis3.setTextColor(Color.BLACK);
         leftAxis3.setDrawGridLines(true);
 
-        YAxis rightAxis3 = accelerationGraph3.getAxisRight();
+        YAxis rightAxis3 = accelerationGraphZ.getAxisRight();
         rightAxis3.setEnabled(false);
     }
 
@@ -656,10 +684,10 @@ public class HistoryTabFragment extends Fragment {
         switchButton3.setChecked(true);
         switchButton3.setOnClickListener( v -> {
             if (switchButton3.isChecked()) {
-                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_LONG).show();
+                Toast.makeText(this.getContext(), "expanding...", Toast.LENGTH_SHORT).show();
                 expandView(expandableLayout3, 500);
             } else {
-                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_LONG).show();
+                Toast.makeText(this.getContext(), "collapsing...", Toast.LENGTH_SHORT).show();
                 collapseView(expandableLayout3, 500 );
             }
         });
