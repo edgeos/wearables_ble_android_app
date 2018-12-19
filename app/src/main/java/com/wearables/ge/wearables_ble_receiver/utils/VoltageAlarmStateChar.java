@@ -58,8 +58,13 @@ public class VoltageAlarmStateChar {
 
             this.devMode = true;
         }
-
     }
+    public VoltageAlarmStateChar (List<Integer> ch1Avgs, List<Integer> ch2Avgs, List<Integer> ch3Avgs){
+        this.ch1_fft_results = ch1Avgs;
+        this.ch2_fft_results = ch2Avgs;
+        this.ch3_fft_results = ch3Avgs;
+    }
+
 
     public int getNum_fft_bins() {
         return num_fft_bins;

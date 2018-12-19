@@ -121,77 +121,187 @@ public class HistoryTabFragment extends Fragment {
     }
 
     public int increment;
-
+    List<VoltageAlarmStateChar> averageList = new ArrayList<>();
+    List<Integer> ch1Avgs = new ArrayList<>();
+    List<Integer> ch2Avgs = new ArrayList<>();
+    List<Integer> ch3Avgs = new ArrayList<>();
     public void updateVoltageGraph(VoltageAlarmStateChar voltageAlarmState) {
         increment = voltageAlarmState.getFft_bin_size();
-        if(voltageGraph1 != null){
-            ArrayList<Entry> ch1Entries = new ArrayList<>();
-            for(int result : voltageAlarmState.getCh1_fft_results()){
-                lastX = lastX + increment;
-                float xValue = lastX - increment;
-                ch1Entries.add(new Entry(xValue, result));
+        if(averageList.size() < 5){
+            averageList.add(voltageAlarmState);
+        } else if (averageList.size() == 5) {
+            ch1Avgs = new ArrayList<>();
+            ch2Avgs = new ArrayList<>();
+            ch3Avgs = new ArrayList<>();
+            for(int i = 0; i < averageList.get(0).getCh1_fft_results().size(); i++){
+                int ch1Avg = (averageList.get(0).getCh1_fft_results().get(i)
+                        + averageList.get(1).getCh1_fft_results().get(i)
+                        + averageList.get(2).getCh1_fft_results().get(i)
+                        + averageList.get(3).getCh1_fft_results().get(i)
+                        + averageList.get(4).getCh1_fft_results().get(i)) / 5;
+                ch1Avgs.add(ch1Avg);
+
+                int ch2Avg = (averageList.get(0).getCh2_fft_results().get(i)
+                        + averageList.get(1).getCh2_fft_results().get(i)
+                        + averageList.get(2).getCh2_fft_results().get(i)
+                        + averageList.get(3).getCh2_fft_results().get(i)
+                        + averageList.get(4).getCh2_fft_results().get(i)) / 5;
+                ch2Avgs.add(ch2Avg);
+
+                int ch3Avg = (averageList.get(0).getCh3_fft_results().get(i)
+                        + averageList.get(1).getCh3_fft_results().get(i)
+                        + averageList.get(2).getCh3_fft_results().get(i)
+                        + averageList.get(3).getCh3_fft_results().get(i)
+                        + averageList.get(4).getCh3_fft_results().get(i)) / 5;
+                ch3Avgs.add(ch3Avg);
             }
-            lastX = 0;
-            LineDataSet ch1Set = new LineDataSet(ch1Entries, "Channel 1");
-            ch1Set.setDrawValues(false);
-            ch1Set.setAxisDependency(YAxis.AxisDependency.LEFT);
-            ch1Set.setCircleRadius(3);
-            ch1Set.setCircleHoleColor(ch1Set.getColor());
 
-            List<ILineDataSet> ch1DataSet = new ArrayList<>();
-            ch1DataSet.add(ch1Set);
-
-            LineData ch1Data = new LineData(ch1DataSet);
-
-            voltageGraph1.setData(ch1Data);
-            voltageGraph1.invalidate();
-        }
-
-        if(voltageGraph2 != null){
-            ArrayList<Entry> ch2Entries = new ArrayList<>();
-            for(int result : voltageAlarmState.getCh2_fft_results()){
-                lastX = lastX + increment;
-                float xValue = lastX - increment;
-                ch2Entries.add(new Entry(xValue, result));
+            averageList.add(new VoltageAlarmStateChar(ch1Avgs, ch2Avgs, ch3Avgs));
+        } else {
+            List<Integer> ch1AvgsNew = new ArrayList<>();
+            List<Integer> ch2AvgsNew = new ArrayList<>();
+            List<Integer> ch3AvgsNew = new ArrayList<>();
+            for(int i = 0; i < ch1Avgs.size(); i++){
+                int ch1Avg = ch1Avgs.get(i) + (voltageAlarmState.getCh1_fft_results().get(i) / 5) - (averageList.get(0).getCh1_fft_results().get(i) / 5);
+                int ch2Avg = ch1Avgs.get(i) + (voltageAlarmState.getCh2_fft_results().get(i) / 5) - (averageList.get(0).getCh2_fft_results().get(i) / 5);
+                int ch3Avg = ch1Avgs.get(i) + (voltageAlarmState.getCh3_fft_results().get(i) / 5) - (averageList.get(0).getCh3_fft_results().get(i) / 5);
+                ch1AvgsNew.add(ch1Avg);
+                ch2AvgsNew.add(ch2Avg);
+                ch3AvgsNew.add(ch3Avg);
             }
-            lastX = 0;
-            LineDataSet ch2Set = new LineDataSet(ch2Entries, "Channel 1");
-            ch2Set.setDrawValues(false);
-            ch2Set.setAxisDependency(YAxis.AxisDependency.LEFT);
-            ch2Set.setCircleRadius(3);
-            ch2Set.setCircleHoleColor(ch2Set.getColor());
+            averageList.remove(0);
+            ch1Avgs = ch1AvgsNew;
+            ch2Avgs = ch2AvgsNew;
+            ch3Avgs = ch3AvgsNew;
+            averageList.add(new VoltageAlarmStateChar(ch1Avgs, ch2Avgs, ch3Avgs));
 
-            List<ILineDataSet> ch2DataSet = new ArrayList<>();
-            ch2DataSet.add(ch2Set);
+            if(voltageGraph1 != null){
+                ArrayList<Entry> ch1Entries = new ArrayList<>();
+                for(int result : voltageAlarmState.getCh1_fft_results()){
+                    lastX = lastX + increment;
+                    float xValue = lastX - increment;
+                    ch1Entries.add(new Entry(xValue, result));
+                }
+                lastX = 0;
+                LineDataSet ch1Set = new LineDataSet(ch1Entries, "Channel 1");
+                ch1Set.setColor(ColorTemplate.getHoloBlue());
+                ch1Set.setDrawValues(false);
+                ch1Set.setAxisDependency(YAxis.AxisDependency.LEFT);
+                ch1Set.setCircleRadius(3);
+                ch1Set.setCircleHoleColor(ch1Set.getColor());
 
-            LineData ch2Data = new LineData(ch2DataSet);
+                List<ILineDataSet> ch1DataSet = new ArrayList<>();
+                ch1DataSet.add(ch1Set);
 
-            voltageGraph2.setData(ch2Data);
-            voltageGraph2.invalidate();
-        }
+                //add average line
+                ArrayList<Entry> ch1AvgEntries = new ArrayList<>();
+                for(int result : ch1Avgs){
+                    lastX = lastX + increment;
+                    float xValue = lastX - increment;
+                    ch1AvgEntries.add(new Entry(xValue, result));
+                }
+                lastX = 0;
+                LineDataSet ch1AvgSet = new LineDataSet(ch1AvgEntries, "Channel 1 Average");
+                ch1AvgSet.setColor(Color.RED);
+                ch1AvgSet.setDrawValues(false);
+                ch1AvgSet.setAxisDependency(YAxis.AxisDependency.LEFT);
+                ch1AvgSet.setCircleRadius(1);
+                ch1AvgSet.setCircleHoleColor(ch1AvgSet.getColor());
 
-        if(voltageGraph3 != null){
-            ArrayList<Entry> ch3Entries = new ArrayList<>();
-            for(int result : voltageAlarmState.getCh3_fft_results()){
-                lastX = lastX + increment;
-                float xValue = lastX - increment;
-                ch3Entries.add(new Entry(xValue, result));
+                ch1DataSet.add(ch1AvgSet);
+
+                LineData ch1Data = new LineData(ch1DataSet);
+
+                voltageGraph1.setData(ch1Data);
+                voltageGraph1.invalidate();
             }
-            lastX = 0;
-            LineDataSet ch3Set = new LineDataSet(ch3Entries, "Channel 1");
-            ch3Set.setDrawValues(false);
-            ch3Set.setAxisDependency(YAxis.AxisDependency.LEFT);
-            ch3Set.setCircleRadius(3);
-            ch3Set.setCircleHoleColor(ch3Set.getColor());
 
-            List<ILineDataSet> ch3DataSet = new ArrayList<>();
-            ch3DataSet.add(ch3Set);
+            if(voltageGraph2 != null){
+                ArrayList<Entry> ch2Entries = new ArrayList<>();
+                for(int result : voltageAlarmState.getCh2_fft_results()){
+                    lastX = lastX + increment;
+                    float xValue = lastX - increment;
+                    ch2Entries.add(new Entry(xValue, result));
+                }
+                lastX = 0;
+                LineDataSet ch2Set = new LineDataSet(ch2Entries, "Channel 1");
+                ch2Set.setColor(ColorTemplate.getHoloBlue());
+                ch2Set.setDrawValues(false);
+                ch2Set.setAxisDependency(YAxis.AxisDependency.LEFT);
+                ch2Set.setCircleRadius(3);
+                ch2Set.setCircleHoleColor(ch2Set.getColor());
 
-            LineData ch3Data = new LineData(ch3DataSet);
+                List<ILineDataSet> ch2DataSet = new ArrayList<>();
+                ch2DataSet.add(ch2Set);
 
-            voltageGraph3.setData(ch3Data);
-            voltageGraph3.invalidate();
+                //add average line
+                ArrayList<Entry> ch2AvgEntries = new ArrayList<>();
+                for(int result : ch2Avgs){
+                    lastX = lastX + increment;
+                    float xValue = lastX - increment;
+                    ch2AvgEntries.add(new Entry(xValue, result));
+                }
+                lastX = 0;
+                LineDataSet ch2AvgSet = new LineDataSet(ch2AvgEntries, "Channel 1 Average");
+                ch2AvgSet.setColor(Color.RED);
+                ch2AvgSet.setDrawValues(false);
+                ch2AvgSet.setAxisDependency(YAxis.AxisDependency.LEFT);
+                ch2AvgSet.setCircleRadius(1);
+                ch2AvgSet.setCircleHoleColor(ch2AvgSet.getColor());
+
+                ch2DataSet.add(ch2AvgSet);
+
+                LineData ch2Data = new LineData(ch2DataSet);
+
+                voltageGraph2.setData(ch2Data);
+                voltageGraph2.invalidate();
+            }
+
+            if(voltageGraph3 != null){
+                ArrayList<Entry> ch3Entries = new ArrayList<>();
+                for(int result : voltageAlarmState.getCh3_fft_results()){
+                    lastX = lastX + increment;
+                    float xValue = lastX - increment;
+                    ch3Entries.add(new Entry(xValue, result));
+                }
+                lastX = 0;
+                LineDataSet ch3Set = new LineDataSet(ch3Entries, "Channel 1");
+                ch3Set.setColor(ColorTemplate.getHoloBlue());
+                ch3Set.setDrawValues(false);
+                ch3Set.setAxisDependency(YAxis.AxisDependency.LEFT);
+                ch3Set.setCircleRadius(3);
+                ch3Set.setCircleHoleColor(ch3Set.getColor());
+
+                List<ILineDataSet> ch3DataSet = new ArrayList<>();
+                ch3DataSet.add(ch3Set);
+
+                //add average line
+                ArrayList<Entry> ch3AvgEntries = new ArrayList<>();
+                for(int result : ch3Avgs){
+                    lastX = lastX + increment;
+                    float xValue = lastX - increment;
+                    ch3AvgEntries.add(new Entry(xValue, result));
+                }
+                lastX = 0;
+                LineDataSet ch3AvgSet = new LineDataSet(ch3AvgEntries, "Channel 1 Average");
+                ch3AvgSet.setColor(Color.RED);
+                ch3AvgSet.setDrawValues(false);
+                ch3AvgSet.setAxisDependency(YAxis.AxisDependency.LEFT);
+                ch3AvgSet.setCircleRadius(1);
+                ch3AvgSet.setCircleHoleColor(ch3AvgSet.getColor());
+
+                ch3DataSet.add(ch3AvgSet);
+
+                LineData ch3Data = new LineData(ch3DataSet);
+
+                voltageGraph3.setData(ch3Data);
+                voltageGraph3.invalidate();
+            }
         }
+    }
+
+    public void showAverageLine(){
+
     }
 
     int i = 0;
@@ -205,9 +315,10 @@ public class HistoryTabFragment extends Fragment {
                 // set.addEntry(...); // can be called as well
 
                 if (set == null) {
-                    set = createSet();
+                    set = createSet("X");
                     data1.addDataSet(set);
                 }
+
 
                 data1.addEntry(new Entry(i, (float) accelerometerData.getxValue()), 0);
                 data1.notifyDataChanged();
@@ -230,7 +341,7 @@ public class HistoryTabFragment extends Fragment {
                 ILineDataSet set = data2.getDataSetByIndex(0);
 
                 if (set == null) {
-                    set = createSet();
+                    set = createSet("Y");
                     data2.addDataSet(set);
                 }
 
@@ -250,7 +361,7 @@ public class HistoryTabFragment extends Fragment {
                 ILineDataSet set = data3.getDataSetByIndex(0);
 
                 if (set == null) {
-                    set = createSet();
+                    set = createSet("Z");
                     data3.addDataSet(set);
                 }
 
@@ -275,7 +386,7 @@ public class HistoryTabFragment extends Fragment {
                 ILineDataSet set = data1.getDataSetByIndex(0);
 
                 if (set == null) {
-                    set = createSet();
+                    set = createSet("humidity");
                     data1.addDataSet(set);
                 }
 
@@ -295,7 +406,7 @@ public class HistoryTabFragment extends Fragment {
                 ILineDataSet set = data2.getDataSetByIndex(0);
 
                 if (set == null) {
-                    set = createSet();
+                    set = createSet("temperature");
                     data2.addDataSet(set);
                 }
 
@@ -315,7 +426,7 @@ public class HistoryTabFragment extends Fragment {
                 ILineDataSet set = data3.getDataSetByIndex(0);
 
                 if (set == null) {
-                    set = createSet();
+                    set = createSet("pressure");
                     data3.addDataSet(set);
                 }
 
@@ -349,6 +460,7 @@ public class HistoryTabFragment extends Fragment {
         voltageGraph1.setDragEnabled(true);
         voltageGraph1.setScaleEnabled(true);
         voltageGraph1.setDrawGridBackground(false);
+        voltageGraph1.getDescription().setEnabled(false);
 
         voltageGraph1.setPinchZoom(true);
 
@@ -377,6 +489,7 @@ public class HistoryTabFragment extends Fragment {
         voltageGraph2.setDragEnabled(true);
         voltageGraph2.setScaleEnabled(true);
         voltageGraph2.setDrawGridBackground(false);
+        voltageGraph2.getDescription().setEnabled(false);
 
         voltageGraph2.setPinchZoom(true);
 
@@ -405,6 +518,7 @@ public class HistoryTabFragment extends Fragment {
         voltageGraph3.setDragEnabled(true);
         voltageGraph3.setScaleEnabled(true);
         voltageGraph3.setDrawGridBackground(false);
+        voltageGraph3.getDescription().setEnabled(false);
 
         voltageGraph3.setPinchZoom(true);
 
@@ -448,6 +562,7 @@ public class HistoryTabFragment extends Fragment {
         accelerationGraph1.setDragEnabled(true);
         accelerationGraph1.setScaleEnabled(true);
         accelerationGraph1.setDrawGridBackground(false);
+        accelerationGraph1.getDescription().setEnabled(false);
 
         accelerationGraph1.setPinchZoom(true);
 
@@ -477,6 +592,7 @@ public class HistoryTabFragment extends Fragment {
         accelerationGraph2.setDragEnabled(true);
         accelerationGraph2.setScaleEnabled(true);
         accelerationGraph2.setDrawGridBackground(false);
+        accelerationGraph2.getDescription().setEnabled(false);
 
         accelerationGraph2.setPinchZoom(true);
 
@@ -506,6 +622,7 @@ public class HistoryTabFragment extends Fragment {
         accelerationGraph3.setDragEnabled(true);
         accelerationGraph3.setScaleEnabled(true);
         accelerationGraph3.setDrawGridBackground(false);
+        accelerationGraph3.getDescription().setEnabled(false);
 
         accelerationGraph3.setPinchZoom(true);
 
@@ -550,6 +667,7 @@ public class HistoryTabFragment extends Fragment {
         tempGraph.setDragEnabled(true);
         tempGraph.setScaleEnabled(true);
         tempGraph.setDrawGridBackground(false);
+        tempGraph.getDescription().setEnabled(false);
 
         tempGraph.setPinchZoom(true);
 
@@ -579,6 +697,7 @@ public class HistoryTabFragment extends Fragment {
         humidityGraph.setDragEnabled(true);
         humidityGraph.setScaleEnabled(true);
         humidityGraph.setDrawGridBackground(false);
+        humidityGraph.getDescription().setEnabled(false);
 
         humidityGraph.setPinchZoom(true);
 
@@ -608,6 +727,7 @@ public class HistoryTabFragment extends Fragment {
         pressureGraph.setDragEnabled(true);
         pressureGraph.setScaleEnabled(true);
         pressureGraph.setDrawGridBackground(false);
+        pressureGraph.getDescription().setEnabled(false);
 
         pressureGraph.setPinchZoom(true);
 
@@ -642,18 +762,20 @@ public class HistoryTabFragment extends Fragment {
         }
     }
 
-    private LineDataSet createSet() {
-        LineDataSet set = new LineDataSet(null, "Dynamic Data");
+    private LineDataSet createSet(String label) {
+        LineDataSet set = new LineDataSet(null, label);
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
         set.setColor(ColorTemplate.getHoloBlue());
         set.setCircleColor(Color.WHITE);
         set.setLineWidth(2f);
         set.setCircleRadius(4f);
         set.setFillAlpha(65);
+        set.setCircleRadius(3);
         set.setFillColor(ColorTemplate.getHoloBlue());
         set.setHighLightColor(Color.rgb(244, 117, 117));
         set.setValueTextColor(Color.WHITE);
         set.setValueTextSize(9f);
+        set.setCircleHoleColor(set.getColor());
         set.setDrawValues(false);
         return set;
     }
