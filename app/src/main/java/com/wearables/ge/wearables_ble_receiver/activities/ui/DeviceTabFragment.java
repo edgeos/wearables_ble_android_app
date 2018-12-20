@@ -58,9 +58,12 @@ public class DeviceTabFragment extends Fragment {
         Log.d(TAG, "onCreate called");
         rootView = inflater.inflate(R.layout.fragment_tab_device, container, false);
 
+        //create the slider bar for alarm threshold
         logThresholdBar = rootView.findViewById(R.id.logThresholdBar);
         logThresholdView = rootView.findViewById(R.id.logThresholdView);
         logThresholdView.setText(getString(R.string.alarm_threshold, logThresholdBar.getProgress()));
+        //set global var for alarm level here
+        //eventually this should be set by reading the alarm level from the device
         alarmLevel = logThresholdBar.getProgress();
         logThresholdBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -80,6 +83,7 @@ public class DeviceTabFragment extends Fragment {
                 if(MainTabbedActivity.connectedDevice != null){
                     alert.setMessage("Are you sure you would like to set the voltage alarm threshold to " + seekBar.getProgress() + "?");
 
+                    //when the user accepts the dialog, write the new voltage level to the device and show the line on the graph
                     alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
                         ((MainTabbedActivity)Objects.requireNonNull(getActivity())).mService.writeToVoltageAlarmConfigChar(GattAttributes.MESSAGE_TYPE_ALARM_THRESHOLD, String.valueOf(seekBar.getProgress()));
                         alarmLevel = seekBar.getProgress();
@@ -114,14 +118,18 @@ public class DeviceTabFragment extends Fragment {
         return rootView;
     }
 
+    /**
+     * Instantiate the Event graph here.
+     * This will set all the styling for the event log graph at once when this fragment is first created.
+     */
     public void initializeEventChart(){
         logGraph = rootView.findViewById(R.id.sensor_log_graph);
         logGraph.setDrawBarShadow(false);
         logGraph.setDrawValueAboveBar(false);
-        logGraph.setMaxVisibleValueCount(30);
 
         XAxis xAxis = logGraph.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        //show axis (time) labels on the top
+        xAxis.setPosition(XAxis.XAxisPosition.TOP);
         xAxis.setTypeface(Typeface.SANS_SERIF);
         xAxis.setDrawGridLines(false);
         xAxis.setGranularity(1f); // only intervals of 1 day
@@ -143,15 +151,14 @@ public class DeviceTabFragment extends Fragment {
         rightAxis.setSpaceTop(15f);
         rightAxis.setAxisMinimum(0f); // this replaces setStartAtZero(true)
         rightAxis.setAxisMaximum(250);
-
     }
 
     int i = 0;
     List<BarEntry> entries = new ArrayList<>();
     public void updateGraph(VoltageEvent voltageEvent){
-        Log.d(TAG, "Update Voltage graph called");
         if(logGraph != null ){
             i++;
+            //keep the list size at 15
             if(entries.size() == 15){
                 entries.remove(0);
             }
@@ -166,14 +173,14 @@ public class DeviceTabFragment extends Fragment {
             logGraph.setData(data);
 
             logGraph.invalidate();
-
-
         } else {
             Log.d(TAG, "Log graph uninitialised");
         }
     }
 
     public LineData addAlarmLevelLine(){
+        //add the alarm level line here
+        //it is just a line series with two points at either end of the graph
         List<Entry> alarmLevelEntries = new ArrayList<>();
         alarmLevelEntries.add(new Entry(entries.get(0).getX(), logThresholdBar.getProgress()));
         alarmLevelEntries.add(new Entry(entries.get(entries.size() - 1).getX(), logThresholdBar.getProgress()));

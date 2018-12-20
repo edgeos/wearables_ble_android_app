@@ -20,6 +20,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -151,31 +152,23 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     @Override
     public void onResume(){
         super.onResume();
-
+        //when this activity is resumed, rebind the bluetooth service
         Intent intent = new Intent(this, BluetoothService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         mBound = true;
+        //and re-register the broadcast receiver
         registerReceiver(mGattUpdateReceiver, createIntentFilter());
     }
 
     @Override
     public void onDestroy(){
         super.onDestroy();
+        //when the activity is destroyed, unbind the bluetooth service
+        //and unregister the broadcast receiver
         if(mConnection != null){
             unbindService(mConnection);
             unregisterReceiver(mGattUpdateReceiver);
             mBound = false;
-        }
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        // Checks the orientation of the screen
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            Log.d(TAG, "Screen orientation is landscape");
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-            Log.d(TAG, "Screen orientation is portrait");
         }
     }
 
@@ -212,18 +205,28 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }
     }
 
+    /**
+     * Opens a dialog for the user to enter a new name for the connected device.
+     * Will call the writeToVoltageAlarmConfigChar method in the bluetooth service with a "rename" message type.
+     */
     public void renameDevice(){
+        //create alert dialog with custom alert style
         AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
 
+        //If there is no device connected, don't allow the user to enter a name
         if(connectedDevice != null){
             alert.setMessage(R.string.rename_device_modal_message);
 
+            //create edit text dialog
             final EditText input = new EditText(this);
+            //set the max length of the field to 16 characters, since the board can only take a rename up to a length of 16
+            input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(16)});
             input.setInputType(InputType.TYPE_CLASS_TEXT);
             input.setTextColor(Color.WHITE);
 
             alert.setView(input);
 
+            //when the user accepts the entered name, call the write method in the bluetooth service to make the change
             alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
                 connectedDevice.fetchUuidsWithSdp();
                 mService.writeToVoltageAlarmConfigChar(GattAttributes.MESSAGE_TYPE_RENAME, input.getText().toString());
@@ -237,24 +240,37 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         alert.show();
     }
 
+    /**
+     * Connect the selected bluetooth device and set the global variables for device name and connected device
+     * @param device
+     * @param deviceName
+     */
     public void connectDevice(BluetoothDevice device, String deviceName){
         Log.d(TAG, "Attempting to connect to: " + deviceName);
         connectedDeviceName = deviceName;
         connectedDevice = device;
         mService.connectDevice(device);
+        //once the device is connected, display the name in the device tab fragment
         mDeviceTabFragment.displayDeviceName(deviceName);
     }
 
+    /**
+     * Disconnect the connected bluetooth device
+     */
     public void disconnectDevice(){
         mService.disconnectGattServer();
         connectedDevice = null;
         connectedDeviceName = null;
+        //negate the switch for that device on the pairing page if it is visible
         Switch button = findViewById(R.id.connected_button);
         if(button != null){
             button.setChecked(false);
         }
     }
 
+    /**
+     * Show the MAC address of the connected device. If no device is connected, alert that to the user.
+     */
     public void showDeviceID(){
         AlertDialog.Builder alert = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
         if(connectedDevice != null){
@@ -265,6 +281,12 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         alert.show();
     }
 
+    /**
+     * This method will switch modes from Dev(engineering) mode to normal mode and chang ethe menu item accordingly.
+     * First, check if a device is connected and alert the user if no device is connected.
+     * Write to the VoltageAlarmConfig characteristic with a "mode" write type to change the mode type.
+     * Then change the menu item to the other option.
+     */
     public void switchModes() {
         if(connectedDevice != null){
             MenuItem devModeItem = menuBar.findItem(R.id.dev_mode);
@@ -284,6 +306,12 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }
     }
 
+    /**
+     * Method used for just switching the devmode menu items if the modes have been switched on their own.
+     * Most common use case for this would be when the use leaves the device in engineering mode and restarts the application.
+     * The default menu option is "dev mode" so this activity will automatically determine what mode is enabled based on incoming characteristics
+     * and change the menu items accordingly.
+     */
     public void switchDevModeMenuItems() {
         MenuItem devModeItem = menuBar.findItem(R.id.dev_mode);
         if(devMode){
@@ -293,12 +321,17 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }
     }
 
+    /**
+     * Logout of AWS instance and disconnect the device.
+     */
     public void logout(){
         IdentityManager.getDefaultIdentityManager().signOut();
         disconnectDevice();
     }
 
-    //connection callback for bluetooth service
+    /**
+     * Connection callback method for the bluetooth service
+     */
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -321,7 +354,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }
     };
 
-    //create custom intent filter for broadcasting messages from the bluetooth service to this activity
+    /**
+     * Create custom intent filter for broadcasting messages from the bluetooth service to this activity
+     * @return IntentFilter object
+     */
     private static IntentFilter createIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothService.ACTION_GATT_SERVICES_DISCOVERED);
@@ -329,7 +365,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         return intentFilter;
     }
 
-    //this method handles broadcasts sent from the bluetooth service
+    /**
+     * Broadcast receiver for getting messages back from the bluetooth service.
+     * When a message is received, the message type is determined and appropriate action is taken.
+     */
     public final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -427,15 +466,27 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }
     }
 
+    /**
+     * Worker method for reading bluetooth data sent from a characteristic.
+     * This will read any data from any characteristic and parse it to the correct format.
+     * @param intent
+     */
     public void readAvailableData(Intent intent){
+        //get the UUID of the incoming data
         UUID extraUuid = UUID.fromString(intent.getStringExtra(BluetoothService.EXTRA_UUID));
+        //grab the raw data as a byte array
         byte[] extraData = intent.getByteArrayExtra(BluetoothService.EXTRA_DATA);
+        //sometimes the data is a single integer and we don't need to parse the byte array
         int extraIntData = intent.getIntExtra(BluetoothService.EXTRA_INT_DATA, 0);
 
+        //stop here if there is no message to read
         if(extraData == null){
             Log.d(TAG, "No message parsed on characteristic.");
             return;
         }
+
+        //here attempt to convert the byte array to a string
+        //the incoming data from the voltage bang should be hexadecimal strings
         String value = null;
         try {
             final StringBuilder stringBuilder = new StringBuilder(extraData.length);
@@ -447,35 +498,57 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             Log.e(TAG, "Unable to convert message bytes to string" + e.getMessage());
         }
 
+        //if we were able to get a string value from the byte array message, parse it based on the UUID with it
         if(value != null){
+            //for battery level, just show the battery level on the UI
             if(extraUuid.equals(GattAttributes.BATT_LEVEL_CHAR_UUID)){
                 if(mDeviceTabFragment.isVisible()){
                     mDeviceTabFragment.updateBatteryLevel(extraIntData);
                 }
                 Log.d(TAG, "Battery level: " + extraIntData + "%");
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
+                //The voltage alarm state characteristic sends the larges messages and the most often
                 Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
 
+                //Create a new VoltageAlarmStateChar object with the message.
+                //The VoltageAlarmStateChar class will do the heavy lifting with converting the raw message into usable data.
                 VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
+
+                //From the data included in the message, VoltageAlarmStateChar determines if the device is in DevMode or not.
                 if(voltageAlarmState.getDevMode()){
+                    //if the message was an engineering(dev) mode message, then it will have more characteristics to send to the UI
+                    //And if the UI was not already in devmode then switch it now.
                     if(!devMode){
                         devMode = true;
                         switchDevModeMenuItems();
                     }
+
+                    //update the graphs on the voltage page
+                    //if the voltage tab has not been created yet then this will not do much
                     mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
-                    //get peak between 40 and 70Hz bins
+
+                    //next, we will calculate the peak between 40 and 70Hz bins
+                    //since the bin size and number of bins may change, we will use them as variables
+                    //to find the range of values between 40 and 70
                     int start = Math.round(40/voltageAlarmState.getFft_bin_size()) + 1;
                     int end = Math.round(70/voltageAlarmState.getFft_bin_size()) + 1;
+
+                    //create a list of all the values within that range
                     List<Integer> peakRange = new ArrayList<>();
                     for(int i = start; i <= end; i++){
                         peakRange.add(voltageAlarmState.getCh1_fft_results().get(i));
                     }
+
+                    //get the highest value in that list, that is the peak
                     int peak = Collections.max(peakRange);
 
+                    //now determine if that peak is above the alarm threshold to log an alarm event
                     //TODO: read the alarm threshold config value to determine an event
                     int threshold = mDeviceTabFragment.alarmLevel;
                     if(peak != lastPeak && peak > threshold){
+                        //we also want to determine how long the peak lasted so log the peak time at each unique peak
                         Long peakTime = Calendar.getInstance().getTimeInMillis();
+                        //find the duration by subtracting the time from the last peak
                         Long duration;
                         if(lastPeakTime == null){
                             duration = 0L;
@@ -483,6 +556,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                             duration = peakTime - lastPeakTime;
                         }
 
+                        //create a Voltage Event to log on the Events page
                         VoltageEvent voltageEvent = new VoltageEvent(lastPeak, duration);
                         mEventsTabFragment.voltageEvents.add(voltageEvent);
                         lastPeak = peak;
@@ -491,6 +565,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                             mEventsTabFragment.addEventItem(voltageEvent);
                         }
                     }
+                    //create a voltage event object for the device tab, this is not an alarm event so duration doesn't matter
                     VoltageEvent voltageEvent = new VoltageEvent(peak, 0L);
                     mDeviceTabFragment.updateGraph(voltageEvent);
                     if(mDeviceTabFragment.isVisible()){
@@ -503,14 +578,17 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                     }
                 }
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
+                //voltage alarm config is a write characteristic but may send a notification when it is written to
                 Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
             } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
+                //Get accelerometer data and send to UI
                 AccelerometerData accelerometerData = new AccelerometerData(value);
                 if(accelerometerData.getDate() != null){
                     mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
                 }
                 Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
             } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
+                //display Temp/Humid/Pressure data on UI
                 TempHumidPressure tempHumidPressure = new TempHumidPressure(value);
                 if(tempHumidPressure.getDate() != null){
                     if(mDeviceTabFragment.isVisible()){
