@@ -26,6 +26,23 @@ Scroll the threshold slider bar to the desired number and a dialog will appear t
 
 Once you have accepted the new threshold, Volt Sense will write data to the voltage band to make those changes on the BLE device.
 The changes should be applied immediately and, if the threshold is below any of the peaks of the device chatter, you will hear the alarm.
+The new threshold line will appear on the voltage peak graph below.
+
+### Voltage Peak detection
+
+The bar graph on the Device tab shows the voltage peaks at the 60Hz bin of channel one's FFT data.
+Volt Sense does this programmatically by simply finding all the voltage levels between the 50 and 70Hz bins and grabbing the maximumm of those value.
+This is what is displayed in real-time on the "Voltage Level" section above and as well as on the graph. 
+The result is generally the value around the 60Hz bin, but can vary when the device is away from a voltage source and Volt Sense is just reading general jitter.
+If any of these peaks reach above the alarm threshold, they will be logged on the "events" tab.
+
+## Events
+
+The Events tab shows all voltage peaks that have crossed the alarm theshold.
+Volt sens logs the date, time, location (of the android device), and duration of each peak.
+The bar graph on this page is similar to the one on the Device tab in that it shows voltage peaks, but this one only shows peaks that have crossed the threshold, which we will rever to as "Events".
+
+![alt text](https://github.com/edgeos/wearables_ble_android_app/blob/master/images/events_tab.jpg)
 
 ## To build
 
