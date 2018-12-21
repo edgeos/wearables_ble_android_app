@@ -1,4 +1,17 @@
-# wearables_ble_android_app
+# Volt Sense
+
+## Description
+
+This is the android mobile application developed by GE Global Research Center to work with the high voltage sensor wristband device also develpoed by GRC.
+Volt Sense requires an Amazon Cognito login for app-to-cloud data streaming and provides an interface for new users to create an account.
+Once a user has logged into their account they will be redirected to the device connection page where they can connect to nearby bluetooth devices.
+While Volt Sense can connect to any bluetooth device that will allow it, the fatures in the app will only work with a Bluetooth Low Energy (BLE) voltage wristband.
+Once a device is connceted via BLE, you will see a message at the botom of the screen that says "Device Connected!" this indicated that Volt Sense has not only connected to the device but also discovered some services on the device that broadcast data.
+At this point, the device will start streaming live data to the application, move to the "Device" dab to see the incoming data.
+
+## Device Tab
+
+![alt text](https://github.com/edgeos/wearables_ble_android_app/blob/master/images/device_tab.jpg)
 
 ## To build
 
