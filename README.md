@@ -102,10 +102,8 @@ mHandler.postDelayed(this::stopScan, SCAN_PERIOD);
 ```
 
 First Volt Sense checks if it has Bluetooth permissions and the method returns if it does not. It will first ask for permissions before returning.
-A [filter is added](https://developer.android.com/reference/android/bluetooth/le/ScanSettings) to run the scan in low power mode, which returns results in quick batches rather than realtime scan results, this consumes less battery on the device.
-The BtleScanCallback is a callback method for the scan, which asynchronously handles the scan results as they are returned.
-
----
+A [filter](https://developer.android.com/reference/android/bluetooth/le/ScanSettings)  is added to run the scan in low power mode, which returns results in quick batches rather than realtime scan results, this consumes less battery on the device.
+The BtleScanCallback is the callback method for the scan, which asynchronously handles the scan results as they are returned.
 
 ```java
 private class BtleScanCallback extends ScanCallback {
@@ -142,11 +140,26 @@ private class BtleScanCallback extends ScanCallback {
 	}
 }
 ```
+
+Each element on the Pairing tab is programmatically added in this callback method when the scan finds them.
+With the low energy scan, these results are usually returned in onBatchScanResults() in about 3 or 4 batches over a 10 second scan.
+When the scan is complete, a "Scan again" button is added to restart the process.
+
 ---
 
+### Bluetooth Service
 
+Volt Sense's custom Bluetooth service (BLE Service) generally adheres to Androids guidlines for Bluetooth Low Energy (BLE) connections found [here](https://developer.android.com/guide/topics/connectivity/bluetooth-le).
+When a user taps to connect a device, the pairing fragment uses the connectDevice() method in MainTabbedActivity to connect the selected bluetooth device via the binded Bluetooth Service.
+The Bluetooth Service will then [connect](https://developer.android.com/reference/android/bluetooth/BluetoothDevice.html#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback,%20int)) 
+to the device and discover any services that the Bluetooth device is broadcasting.
 
----
+Since the voltage band is designed to have all of its characteristics set to [notify](https://developer.android.com/guide/topics/connectivity/bluetooth-le#notification), the BLE Service will set any service it has discovered to notify.
+Generally, any service that cannot be set to notify will (by design) fail silently.
+The BLE Service has a hefty [callback function](https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback) that handles connection changes, new services discovered, and characteristic reads/writes.
+Most of the work in this callback comes from the onCharacteristicChanged() method which is triggered everytime any characteristic sends a notification with new data.
+This is different from a characteristic read in that a notificationChanged event is triggered from the BLE device (in this case, the voltage band) where a read is a query from the mobile device to the BLE device to ask for data.
+
 
 ## To build
 
