@@ -295,8 +295,17 @@ public class BluetoothService extends Service {
 
             //here we broadcast a message to the main activity to send the device connected message to the UI
             broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+            //once the UI has been update, MainTabbedActivity will call the setNotifyOnCharacteristics() method
+            //we could just as well do that here, but it feels right to do after we send a response to the UI
         }
 
+        /**
+         * Triggered when a characteristic has been read explicitly
+         * Not to be confused with onCharacteristicChanged which triggers on notifications
+         * @param gatt
+         * @param characteristic
+         * @param status
+         */
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             Log.d(TAG, "Characteristic read: " + characteristic.getUuid());
@@ -306,17 +315,35 @@ public class BluetoothService extends Service {
             processQueue();
         }
 
+        /**
+         * Triggers when a characteristic on the connected BLE device has changed.
+         * This is the most commonly used callback in this app, since most incoming data comes from changed characteristics which trigger a notify
+         * @param gatt
+         * @param characteristic
+         */
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic, BLEQueue.ITEM_TYPE_READ);
         }
 
+        /**
+         * Triggered when a descriptor is written to
+         * @param gatt
+         * @param descriptor
+         * @param status
+         */
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             bleQueueIsFree = true;
             processQueue();
         }
 
+        /**
+         * Triggered when a characteristic is written to.
+         * @param gatt
+         * @param characteristic
+         * @param status
+         */
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS)
@@ -327,6 +354,10 @@ public class BluetoothService extends Service {
 
     }
 
+    /**
+     * This function will set all available characteristics on the connected device to notify
+     * Sometimes a characteristic is read/write only and can not be set to notify, these should just fail silently
+     */
     public void setNotifyOnCharacteristics(){
         Log.d(TAG, "setNotifyOnCharacteristics() called");
         for (BluetoothGattService service : getSupportedGattServices()) {
