@@ -31,7 +31,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,11 +65,24 @@ public class BluetoothService extends Service {
         return mBinder;
     }
 
+    /**
+     * Broadcast an update to the main activity.
+     * This method just takes a string, which will generally be the SERVICES_AVAILABLE identifier.
+     * @param action
+     */
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
         sendBroadcast(intent);
     }
 
+    /**
+     * The more commonly used method for broadcasting actual data to the main activity.
+     * Takes action type which will usually be DATA_AVAILABLE.
+     * Also adds the characteristic to be read and the type of item which is usually "read".
+     * @param action
+     * @param characteristic
+     * @param itemType
+     */
     private void broadcastUpdate(String action, BluetoothGattCharacteristic characteristic, int itemType) {
         Intent intent = new Intent(action);
 
@@ -82,19 +94,27 @@ public class BluetoothService extends Service {
         sendBroadcast(intent);
     }
 
+    /**
+     * Connects the service to the selected Bluetooth device.
+     * Register the callback function and make the connection.
+     * @param device
+     */
     public void connectDevice(BluetoothDevice device) {
         BluetoothService.GattClientCallback gattClientCallback = new BluetoothService.GattClientCallback();
         device.fetchUuidsWithSdp();
         connectedGatt = device.connectGatt(this, false, gattClientCallback);
-        /*Boolean refreshed = refreshDeviceCache(connectedGatt);
-        Log.d(TAG, "Device cache refreshed: " + refreshed);*/
         Log.d(TAG, "Device " + deviceName + " connected");
     }
 
+    /**
+     * Attempts to disconnect from the connected bluetooth device.
+     * Does nothing if no device is connected.
+     */
     public void disconnectGattServer() {
         //disconnect
         Log.d(TAG, "Attempting to disconnect " + deviceName);
         if (connectedGatt != null) {
+            //refresh the device cache on the mobile device right before disconnecting
             Boolean refreshed = refreshDeviceCache(connectedGatt);
             Log.d(TAG, "Device cache refreshed: " + refreshed);
             connectedGatt.disconnect();
@@ -105,28 +125,55 @@ public class BluetoothService extends Service {
         }
     }
 
+    /**
+     * Writes a message to the voltage band.
+     * There are several types of messages that can be sent, but all go to the same characteristic.
+     * All messages are prefixed with a number to indicate what type of message it is.
+     * 01 for a rename, 02 for alarm threshold, 03 for engineering mode toggle
+     * @param messageType
+     * @param message
+     */
     public void writeToVoltageAlarmConfigChar(int messageType, String message){
+        //return if no device is connected, this should really never be hit as the app will display a dialog
+        //when the user taps on a write function without connecting a device.
         if(connectedGatt == null){
             return;
         }
+
+        //grab the voltage service from the connected gatt
         BluetoothGattService voltageService = connectedGatt.getService(GattAttributes.VOLTAGE_WRISTBAND_SERVICE_UUID);
+        //if this is true, the user may be connected to the wrong device, or the broadcast data structure
+        //of the voltage band has changed
         if(voltageService == null){
             return;
         }
+
+        //get the characteristic that we are going to write to
         BluetoothGattCharacteristic alarmThreshChar = voltageService.getCharacteristic(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID);
         int threshold = 0;
+
+        //here we create the message, in all scenarios the message will be a serial hex stream
         if(messageType == GattAttributes.MESSAGE_TYPE_RENAME){
+            //if the message is supposed to be a rename, we need to trim the length
+            //the name must be exactly 16 characters long to add spaces if it is too short.
+            //the edit-text box for the rename is set to a 16 char max
             message = String.format("%1$-" + 16 + "s", message);
         } else if(messageType == GattAttributes.MESSAGE_TYPE_ALARM_THRESHOLD){
             try {
+                //if the message is meant to change the alarm threshold then the String message should be a number
                 threshold = Integer.parseInt(message);
+                //message string should be empty here since the threshold integer will be used to create the message that we send
                 message = "";
             } catch (NumberFormatException e){
-                Log.d(TAG, "Invalid AlarmThreshold value");
+                //Something went wrong here, likely a bug that needs to be tracked down
+                Log.d(TAG, "Invalid AlarmThreshold value: " + message);
             }
         }
 
+        //here we add the 01, 02, or 03, to the beginning of the message
         message = Character.toString((char) messageType) + message;
+
+        //translate the string message to a byte array
         byte[] messageBytes = new byte[0];
         try {
             messageBytes = message.getBytes("UTF-8");
@@ -134,11 +181,17 @@ public class BluetoothService extends Service {
             Log.d(TAG, "Unable to convert message to bytes" + e.getMessage());
         }
 
+        //the alarm threshold level message requires a bit more logic
         if(messageType == GattAttributes.MESSAGE_TYPE_ALARM_THRESHOLD){
+            //the byte array needs to be a 4-byte little endian float
+            //here we create that with a byte buffer
             byte[] thresholdBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(threshold).array();
+            //here we have to create another byte array to combine the one we just made with messageBytes
+            //which at this point, will just be the "02" prefix that we need
             byte[] newMessage = new byte[messageBytes.length + thresholdBytes.length];
             System.arraycopy(messageBytes, 0, newMessage, 0, messageBytes.length);
             System.arraycopy(thresholdBytes, 0, newMessage, messageBytes.length, thresholdBytes.length);
+            //we have our final message
             messageBytes = newMessage;
         }
 
@@ -150,44 +203,66 @@ public class BluetoothService extends Service {
         String value = stringBuilder.toString();
         Log.d(TAG, "Writing value: " + value + " to Alarm config characteristic");
 
+        //finally, make the write to the characteristic
         writeCharacteristic(alarmThreshChar, messageBytes);
     }
 
+    /**
+     * This method uses reflection (spooky) to reset the device cache on the mobile device
+     * This is useful to refresh any cached data that may have changed since the BLE device restarted
+     * For instance, a device rename may work, but the old name will be associated with the MAC address in the cache so the old one will be what is seen
+     * As of now, there is no more elegant solution to this issue that reflectively clearing the cache
+     * @param gatt
+     * @return
+     */
     private boolean refreshDeviceCache(BluetoothGatt gatt){
         try {
             Method localMethod = gatt.getClass().getMethod("refresh", new Class[0]);
             return (Boolean) localMethod.invoke(gatt, new Object[0]);
         }
         catch (Exception localException) {
-            Log.e(TAG, "An exception occured while refreshing device");
+            Log.e(TAG, "An exception occurred while refreshing device");
         }
         return false;
     }
 
+    /**
+     * Callback method for the bluetooth connection
+     * Listens for status changes and acts accordingly
+     * See https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback for more information
+     */
     private class GattClientCallback extends BluetoothGattCallback {
 
+        /**
+         * Triggered when the connection state of that gatt has changed
+         * Usually just for connects or disconnects, but this is a good place to add a handler for unexpected disconnects
+         * @param gatt
+         * @param status
+         * @param newState
+         */
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            if (status == BluetoothGatt.GATT_FAILURE) {
-                disconnectGattServer();
-                return;
-            } else if (status != BluetoothGatt.GATT_SUCCESS) {
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                //if the connection is anything but successful, stop here and disconnect
                 disconnectGattServer();
                 return;
             }
+            //here we check that the state change was a connection and not a disconnect
+            //we can also add actions for connecting, and disconnecting
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                //triggered when a device is connected
-
                 //set global variables for connected device and device name
                 if(gatt != null){
                     connectedGatt = gatt;
+                    //refresh the device cache here
                     Boolean refreshed = refreshDeviceCache(connectedGatt);
                     Log.d(TAG, "Device cache refreshed: " + refreshed);
+                    //set the variable for device name, use the MAC address if no name is available
                     deviceName = gatt.getDevice().getName() == null ? gatt.getDevice().getAddress() : gatt.getDevice().getName();
                     Log.d(TAG, "Device connected: " + deviceName);
                 }
 
+                //check for BLE services, if successful this will trigger onServicesDiscovered
                 if (gatt != null) {
                     gatt.discoverServices();
                 }
@@ -196,19 +271,29 @@ public class BluetoothService extends Service {
             }
         }
 
+        /**
+         * Triggered when services have been discovered on the connected gatt
+         * @param gatt
+         * @param status
+         */
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             Log.d(TAG, "Services discovered: ");
             if (status != BluetoothGatt.GATT_SUCCESS) {
+                //if the service discovery was not successful, stop here
                 Log.d(TAG, "Problem with BLE connection, status not successful: " + status);
                 return;
             }
+
+            //the following is just for debug purposes to see all UUIDs associated with the connected device
             for(BluetoothGattService service : gatt.getServices()){
                 Log.d(TAG, "Found Service: " + service.getUuid());
                 for(BluetoothGattCharacteristic characteristic : service.getCharacteristics()){
                     Log.d(TAG, "With characteristic: " + characteristic.getUuid());
                 }
             }
+
+            //here we broadcast a message to the main activity to send the device connected message to the UI
             broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
         }
 
