@@ -160,6 +160,19 @@ The BLE Service has a hefty [callback function](https://developer.android.com/re
 Most of the work in this callback comes from the onCharacteristicChanged() method which is triggered everytime any characteristic sends a notification with new data.
 This is different from a characteristic read in that a notificationChanged event is triggered from the BLE device (in this case, the voltage band) where a read is a query from the mobile device to the BLE device to ask for data.
 
+Whenever a characteristic changes and triggers the onCharacteristicChanged( callback function, the BLE Service will [broadcast](https://developer.android.com/guide/components/broadcasts) an update to MainTabbedActivity.
+The receiving activity will translate this broadcast into readable data.
+
+#### Bluetooth Process Queuing
+
+Although Androids bluetooth commands can all be sent asynchronously, bluetooth-low-energy (BLE) devices can only receive one command at a time.
+All subsequent commands must wait until the previous one has finished processing in order to send the next.
+It is because of this restriction that the BLE Queuing system was created.
+The queue works by simply storing all operations in memory and processing them one at a time, waiting for a response from the BLE device to mark a successful transaction.
+In normal operation of Volt Sense with the voltage band, not many items need to be queued as most data comes from notifications, which are alerts from the device.
+However, when setting all of the services to notify mode, those are writes to the BLE device and are queued for synchronized processing.
+
+---
 
 ## To build
 
