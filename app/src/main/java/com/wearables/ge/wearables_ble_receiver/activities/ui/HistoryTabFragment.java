@@ -399,7 +399,7 @@ public class HistoryTabFragment extends Fragment {
                     data3.addDataSet(set);
                 }
 
-                data3.addEntry(new Entry(i2, (float) accelerometerData.getzValue()), 0);
+                data3.addEntry(new Entry(i, (float) accelerometerData.getzValue()), 0);
                 data3.notifyDataChanged();
 
                 accelerationGraphZ.notifyDataSetChanged();
