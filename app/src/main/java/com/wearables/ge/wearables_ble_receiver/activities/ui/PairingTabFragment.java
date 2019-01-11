@@ -213,7 +213,7 @@ public class PairingTabFragment extends Fragment {
         }
     }
 
-    private class BtleScanCallback extends no.nordicsemi.android.support.v18.scanner.ScanCallback {
+    private class BtleScanCallback extends ScanCallback {
 
         private Map<String, BluetoothDevice> scanResults;
 
