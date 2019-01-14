@@ -228,7 +228,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
             //when the user accepts the entered name, call the write method in the bluetooth service to make the change
             alert.setPositiveButton(R.string.dialog_accept_button_message, (dialog, whichButton) -> {
-                connectedDevice.fetchUuidsWithSdp();
                 mService.writeToVoltageAlarmConfigChar(GattAttributes.MESSAGE_TYPE_RENAME, input.getText().toString());
             });
 

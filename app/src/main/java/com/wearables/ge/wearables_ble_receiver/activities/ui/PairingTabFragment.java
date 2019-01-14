@@ -5,10 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -38,6 +35,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
+import no.nordicsemi.android.support.v18.scanner.ScanCallback;
+import no.nordicsemi.android.support.v18.scanner.ScanResult;
+import no.nordicsemi.android.support.v18.scanner.ScanSettings;
+
 import static android.content.Context.BLUETOOTH_SERVICE;
 
 
@@ -54,7 +56,7 @@ public class PairingTabFragment extends Fragment {
     private Handler mHandler;
 
     private BluetoothAdapter mBluetoothAdapter;
-    private BluetoothLeScanner mBluetoothLeScanner;
+    private BluetoothLeScannerCompat mBluetoothLeScanner;
     private ScanCallback mScanCallback;
 
     private ProgressBar spinner;
@@ -110,14 +112,13 @@ public class PairingTabFragment extends Fragment {
             return;
         }
 
-        List<ScanFilter> filters = new ArrayList<>();
         ScanSettings settings = new ScanSettings.Builder()
-                .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .build();
 
         mScanCallback = new BtleScanCallback();
-        mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
-        mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
+        mBluetoothLeScanner = BluetoothLeScannerCompat.getScanner();
+        mBluetoothLeScanner.startScan(null, settings, mScanCallback);
         mScanning = true;
         mHandler = new Handler();
         mHandler.postDelayed(this::stopScan, SCAN_PERIOD);
