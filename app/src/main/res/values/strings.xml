@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name"> Volt Sense </string>
+    <string name="login_text">Log in</string>
+    <string name="signup_text">Sign up</string>
+    <string name="password_text">Password</string>
+    <string name="forgot_password_text">Forgot?</string>
     <string name="edit_message">Enter a message</string>
     <string name="scan_button">Scan Again</string>
     <string name="connect_button">Connect</string>
