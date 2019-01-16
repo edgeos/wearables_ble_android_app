@@ -69,10 +69,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
      */
     ViewPager mViewPager;
 
-    static DeviceTabFragment mDeviceTabFragment = new DeviceTabFragment();
-    static PairingTabFragment mPairingTabFragment = new PairingTabFragment();
-    static EventsTabFragment mEventsTabFragment = new EventsTabFragment();
-    static HistoryTabFragment mHistoryTabFragment = new HistoryTabFragment();
+    private DeviceTabFragment mDeviceTabFragment;
+    private PairingTabFragment mPairingTabFragment;
+    private EventsTabFragment mEventsTabFragment;
+    private HistoryTabFragment mHistoryTabFragment;
 
     public static String ARG_SECTION_NUMBER = "section_number";
 
@@ -93,8 +93,15 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         Log.d(TAG, "onCreate called");
         setContentView(R.layout.activity_tabbed_main);
 
+        // Initialize the fragments
+        mDeviceTabFragment = new DeviceTabFragment();
+        mPairingTabFragment = new PairingTabFragment();
+        mEventsTabFragment = new EventsTabFragment();
+        mHistoryTabFragment = new HistoryTabFragment();
+
         // Create the adapter that will return a fragment for each of the three primary sections of the app.
-        mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(getSupportFragmentManager());
+        mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(getSupportFragmentManager(), mDeviceTabFragment,
+                mPairingTabFragment, mEventsTabFragment, mHistoryTabFragment);
 
         // Set up the action bar.
         final ActionBar actionBar = getActionBar();
@@ -324,8 +331,16 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
      * Logout of AWS instance and disconnect the device.
      */
     public void logout(){
-        IdentityManager.getDefaultIdentityManager().signOut();
+        // Disconnect the device
         disconnectDevice();
+
+        // Tell AWS to dump the credentials
+        IdentityManager.getDefaultIdentityManager().signOut();
+
+        // Redirect to the Login page
+        Intent loginIntent = new Intent(getApplicationContext(), NewAuthenticatorActivity.class);
+        startActivity(loginIntent);
+
     }
 
     /**
@@ -412,8 +427,21 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
      */
     public static class AppSectionsPagerAdapter extends FragmentPagerAdapter {
 
-        AppSectionsPagerAdapter(FragmentManager fm){
+        DeviceTabFragment mDeviceTabFragment;
+        PairingTabFragment mPairingTabFragment;
+        EventsTabFragment mEventsTabFragment;
+        HistoryTabFragment mHistoryTabFragment;
+
+        AppSectionsPagerAdapter(FragmentManager fm, DeviceTabFragment deviceTabFragment,
+                                PairingTabFragment pairingTabFragment, EventsTabFragment eventsTabFragment,
+                                HistoryTabFragment historyTabFragment) {
             super(fm);
+
+            // Save the fragments passed from the main activity
+            this.mDeviceTabFragment = deviceTabFragment;
+            this.mPairingTabFragment = pairingTabFragment;
+            this.mEventsTabFragment = eventsTabFragment;
+            this.mHistoryTabFragment = historyTabFragment;
         }
 
         @Override
