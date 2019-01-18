@@ -179,7 +179,7 @@ public class AuthenticatorActivity extends FragmentActivity implements Confirmat
 
                     // If the error is that the user is not yet confirmed, allow the user to confirm themselves
                     if (exception instanceof UserNotConfirmedException) {
-                        if (mConfirmationDialogFragment.getDialog().isShowing()) {
+                        if (mConfirmationDialogFragment.getDialog() != null && mConfirmationDialogFragment.getDialog().isShowing()) {
                             mConfirmationDialogFragment.dismiss();
                         }
                         mConfirmationDialogFragment = ConfirmationDialogFragment.showConfirmationDialog(getSupportFragmentManager(), cognitoUser);

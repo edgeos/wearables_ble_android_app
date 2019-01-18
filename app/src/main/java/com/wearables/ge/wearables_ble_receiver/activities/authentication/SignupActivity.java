@@ -36,6 +36,7 @@ public class SignupActivity extends FragmentActivity implements ConfirmationDial
     @Override
     public void onConfirmationCodeDialogSuccess(DialogFragment dialogFragment) {
         // If everything went well, dismiss the popup and redirect to the login page
+        mConfirmationDialogFragment.dismiss();
         Intent loginIntent = new Intent(getApplicationContext(), AuthenticatorActivity.class);
         startActivity(loginIntent);
     }
@@ -87,7 +88,7 @@ public class SignupActivity extends FragmentActivity implements ConfirmationDial
 
                     if (!signUpConfirmationState) {
                         // Show the confirmation dialog
-                        if (mConfirmationDialogFragment.getDialog().isShowing()) {
+                        if (mConfirmationDialogFragment.getDialog() != null && mConfirmationDialogFragment.getDialog().isShowing()) {
                             mConfirmationDialogFragment.dismiss();
                         }
                         mConfirmationDialogFragment = ConfirmationDialogFragment.showConfirmationDialog(getSupportFragmentManager(), user);
