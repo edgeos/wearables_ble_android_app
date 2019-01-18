@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <include layout="@layout/dialog_title_success"
+        android:id="@+id/dialog_success_title"/>
+
+    <TextView
+        android:id="@+id/dialog_success_text_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/dialog_success_title"
+        android:layout_margin="15dp"
+        android:text="@string/default_success_text"/>
+    <Button
+        android:id="@+id/dialog_success_button_ok"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/dialog_success_text_message"
+        android:layout_margin="15dp"
+        android:background="@android:color/darker_gray"
+        android:ems="10"
+        android:text="@string/dialog_accept_button_message"/>
+</RelativeLayout>

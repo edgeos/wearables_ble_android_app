@@ -1,4 +1,4 @@
-package com.wearables.ge.wearables_ble_receiver.activities.ui;
+package com.wearables.ge.wearables_ble_receiver.activities.util.fragments;
 
 import android.app.Activity;
 import android.app.AlertDialog;

@@ -4,12 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.main.AuthenticatorActivity">
+    tools:context=".activities.authentication.AuthenticatorActivity">
 
     <include layout="@layout/content_authenticator" />
 
     <ImageView
-        android:id="@+id/imageLogo"
+        android:id="@+id/activity_authenticator_image_logo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -17,23 +17,23 @@
         android:ems="10"
         android:src="@mipmap/ge_logo_hd_foreground"/>
     <EditText
-        android:id="@+id/editUsername"
+        android:id="@+id/activity_authenticator_edit_username"
         android:layout_width="215dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/imageLogo"
+        android:layout_below="@id/activity_authenticator_image_logo"
         android:padding="20dp"
         android:ems="10"
         android:hint="@string/username_text"
         android:inputType="textNoSuggestions|textVisiblePassword"/>
     <RelativeLayout
-        android:id="@+id/layoutPassword"
+        android:id="@+id/activity_authenticator_layout_password"
         android:layout_width="215dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/editUsername"
+        android:layout_below="@id/activity_authenticator_edit_username"
         android:layout_centerHorizontal="true">
         <EditText
-            android:id="@+id/editPassword"
+            android:id="@+id/activity_authenticator_edit_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
@@ -42,7 +42,7 @@
             android:hint="@string/password_text"
             android:inputType="textPassword"/>
         <TextView
-            android:id="@+id/textForgotPassword"
+            android:id="@+id/activity_authenticator_text_forgot_password"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -53,22 +53,22 @@
             android:text="@string/forgot_password_text"/>
     </RelativeLayout>
     <Button
-        android:id="@+id/buttonLogin"
+        android:id="@+id/activity_authenticator_button_login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/layoutPassword"
+        android:layout_below="@id/activity_authenticator_layout_password"
         android:layout_marginTop="15dp"
         android:background="#005ac8"
         android:textColor="@android:color/white"
         android:ems="10"
         android:text="@string/login_text"/>
     <Button
-        android:id="@+id/buttonSignup"
+        android:id="@+id/activity_authenticator_button_signup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/buttonLogin"
+        android:layout_below="@id/activity_authenticator_button_login"
         android:layout_marginTop="15dp"
         android:background="@android:color/darker_gray"
         android:ems="10"

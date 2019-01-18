@@ -4,12 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.main.SignupActivity">
+    tools:context=".activities.authentication.SignupActivity">
 
     <include layout="@layout/content_signup" />
 
     <EditText
-        android:id="@+id/editUsernameSignup"
+        android:id="@+id/activity_signup_edit_username"
         android:layout_width="215dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -18,51 +18,51 @@
         android:hint="@string/username_text"
         android:inputType="textNoSuggestions|textVisiblePassword"/>
     <EditText
-        android:id="@+id/editPasswordSignup"
+        android:id="@+id/activity_signup_edit_password"
         android:layout_width="215dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/editUsernameSignup"
+        android:layout_below="@id/activity_signup_edit_username"
         android:padding="20dp"
         android:ems="10"
         android:hint="@string/password_text"
         android:inputType="textPassword"/>
     <EditText
-        android:id="@+id/editGivenName"
+        android:id="@+id/activity_signup_edit_given_name"
         android:layout_width="215dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/editPasswordSignup"
+        android:layout_below="@id/activity_signup_edit_password"
         android:padding="20dp"
         android:ems="10"
         android:hint="@string/given_name_text"
         android:inputType="textNoSuggestions|textVisiblePassword"/>
     <EditText
-        android:id="@+id/editEmailAddress"
+        android:id="@+id/activity_signup_edit_email_address"
         android:layout_width="215dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/editGivenName"
+        android:layout_below="@id/activity_signup_edit_given_name"
         android:padding="20dp"
         android:ems="10"
         android:hint="@string/email_address_text"
         android:inputType="textEmailAddress"/>
     <EditText
-        android:id="@+id/editPhoneNumber"
+        android:id="@+id/activity_signup_edit_phone_number"
         android:layout_width="215dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/editEmailAddress"
+        android:layout_below="@id/activity_signup_edit_email_address"
         android:padding="20dp"
         android:ems="10"
         android:hint="@string/phone_number_text"
         android:inputType="phone"/>
     <Button
-        android:id="@+id/buttonSignupSubmit"
+        android:id="@+id/activity_signup_button_submit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/editPhoneNumber"
+        android:layout_below="@id/activity_signup_edit_phone_number"
         android:layout_marginTop="15dp"
         android:background="#005ac8"
         android:textColor="@android:color/white"

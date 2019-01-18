@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -32,16 +31,15 @@ import android.widget.Toast;
 
 import com.amazonaws.mobile.auth.core.IdentityManager;
 import com.wearables.ge.wearables_ble_receiver.R;
-import com.wearables.ge.wearables_ble_receiver.activities.ui.DeviceTabFragment;
-import com.wearables.ge.wearables_ble_receiver.activities.ui.EventsTabFragment;
-import com.wearables.ge.wearables_ble_receiver.activities.ui.HistoryTabFragment;
-import com.wearables.ge.wearables_ble_receiver.activities.ui.PairingTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.main.fragments.DeviceTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.main.fragments.EventsTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.main.fragments.HistoryTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.main.fragments.PairingTabFragment;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerData;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
-import com.wearables.ge.wearables_ble_receiver.utils.MqttManager;
 import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
@@ -336,11 +334,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
         // Tell AWS to dump the credentials
         IdentityManager.getDefaultIdentityManager().signOut();
-
-        // Redirect to the Login page
-        Intent loginIntent = new Intent(getApplicationContext(), NewAuthenticatorActivity.class);
-        startActivity(loginIntent);
-
     }
 
     /**
