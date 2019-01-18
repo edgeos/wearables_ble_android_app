@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -32,16 +31,15 @@ import android.widget.Toast;
 
 import com.amazonaws.mobile.auth.core.IdentityManager;
 import com.wearables.ge.wearables_ble_receiver.R;
-import com.wearables.ge.wearables_ble_receiver.activities.ui.DeviceTabFragment;
-import com.wearables.ge.wearables_ble_receiver.activities.ui.EventsTabFragment;
-import com.wearables.ge.wearables_ble_receiver.activities.ui.HistoryTabFragment;
-import com.wearables.ge.wearables_ble_receiver.activities.ui.PairingTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.main.fragments.DeviceTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.main.fragments.EventsTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.main.fragments.HistoryTabFragment;
+import com.wearables.ge.wearables_ble_receiver.activities.main.fragments.PairingTabFragment;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerData;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
-import com.wearables.ge.wearables_ble_receiver.utils.MqttManager;
 import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageAlarmStateChar;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
@@ -69,10 +67,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
      */
     ViewPager mViewPager;
 
-    static DeviceTabFragment mDeviceTabFragment = new DeviceTabFragment();
-    static PairingTabFragment mPairingTabFragment = new PairingTabFragment();
-    static EventsTabFragment mEventsTabFragment = new EventsTabFragment();
-    static HistoryTabFragment mHistoryTabFragment = new HistoryTabFragment();
+    private DeviceTabFragment mDeviceTabFragment;
+    private PairingTabFragment mPairingTabFragment;
+    private EventsTabFragment mEventsTabFragment;
+    private HistoryTabFragment mHistoryTabFragment;
 
     public static String ARG_SECTION_NUMBER = "section_number";
 
@@ -93,8 +91,15 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         Log.d(TAG, "onCreate called");
         setContentView(R.layout.activity_tabbed_main);
 
+        // Initialize the fragments
+        mDeviceTabFragment = new DeviceTabFragment();
+        mPairingTabFragment = new PairingTabFragment();
+        mEventsTabFragment = new EventsTabFragment();
+        mHistoryTabFragment = new HistoryTabFragment();
+
         // Create the adapter that will return a fragment for each of the three primary sections of the app.
-        mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(getSupportFragmentManager());
+        mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(getSupportFragmentManager(), mDeviceTabFragment,
+                mPairingTabFragment, mEventsTabFragment, mHistoryTabFragment);
 
         // Set up the action bar.
         final ActionBar actionBar = getActionBar();
@@ -324,8 +329,11 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
      * Logout of AWS instance and disconnect the device.
      */
     public void logout(){
-        IdentityManager.getDefaultIdentityManager().signOut();
+        // Disconnect the device
         disconnectDevice();
+
+        // Tell AWS to dump the credentials
+        IdentityManager.getDefaultIdentityManager().signOut();
     }
 
     /**
@@ -412,8 +420,21 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
      */
     public static class AppSectionsPagerAdapter extends FragmentPagerAdapter {
 
-        AppSectionsPagerAdapter(FragmentManager fm){
+        DeviceTabFragment mDeviceTabFragment;
+        PairingTabFragment mPairingTabFragment;
+        EventsTabFragment mEventsTabFragment;
+        HistoryTabFragment mHistoryTabFragment;
+
+        AppSectionsPagerAdapter(FragmentManager fm, DeviceTabFragment deviceTabFragment,
+                                PairingTabFragment pairingTabFragment, EventsTabFragment eventsTabFragment,
+                                HistoryTabFragment historyTabFragment) {
             super(fm);
+
+            // Save the fragments passed from the main activity
+            this.mDeviceTabFragment = deviceTabFragment;
+            this.mPairingTabFragment = pairingTabFragment;
+            this.mEventsTabFragment = eventsTabFragment;
+            this.mHistoryTabFragment = historyTabFragment;
         }
 
         @Override

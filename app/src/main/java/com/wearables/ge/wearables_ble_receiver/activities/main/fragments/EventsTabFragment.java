@@ -1,4 +1,4 @@
-package com.wearables.ge.wearables_ble_receiver.activities.ui;
+package com.wearables.ge.wearables_ble_receiver.activities.main.fragments;
 
 import android.Manifest;
 import android.content.pm.PackageManager;

@@ -1,4 +1,4 @@
-package com.wearables.ge.wearables_ble_receiver.activities.ui;
+package com.wearables.ge.wearables_ble_receiver.activities.main.fragments;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -191,7 +191,9 @@ public class DeviceTabFragment extends Fragment {
 
     public void displayDeviceName(String name){
         deviceName = rootView.findViewById(R.id.deviceNameView);
-        deviceName.setText(name);
+        if (deviceName != null) {
+            deviceName.setText(name);
+        }
     }
 
     public class DateValueFormatter implements IAxisValueFormatter {

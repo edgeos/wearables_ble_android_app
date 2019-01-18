@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <include layout="@layout/dialog_title_success"
+        android:id="@+id/dialog_confirmation_code_title"/>
+
+    <TextView
+        android:id="@+id/dialog_confirmation_code_text_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/dialog_confirmation_code_title"
+        android:padding="20dp"
+        android:text="@string/enter_confirmation_code_text"/>
+    <EditText
+        android:id="@+id/dialog_confirmation_code_edit_code"
+        android:layout_width="215dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/dialog_confirmation_code_text_message"
+        android:padding="20dp"
+        android:ems="10"
+        android:hint="@string/sign_up_confirm_code"
+        android:inputType="number"/>
+    <Button
+        android:id="@+id/dialog_confirmation_code_button_submit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/dialog_confirmation_code_edit_code"
+        android:layout_margin="15dp"
+        android:background="#005ac8"
+        android:textColor="@android:color/white"
+        android:ems="10"
+        android:text="@string/sign_up_confirm_text"/>
+</RelativeLayout>
