@@ -29,7 +29,6 @@ import java.util.UUID;
 
 public class MqttManager {
 
-    private boolean mCanPublish;
     private String mClientId;
     private Context mCtxt;
     private String mAwsIoTEndpoint;
@@ -77,25 +76,6 @@ public class MqttManager {
     }
 
     public void connect() {
-        // Run the request in a thread, once the request is finished we are free to publish
-        mCanPublish = false;
-        Thread attachPolicyThread = new Thread(() -> {
-            /*Attach an IoT Policy to the Cognito Identity, so that we can then have access to
-             * AWS IoT Service for streaming messages via MQTT over websockets, all the configuration is in
-             * awsconfiguration.json in res/raw folder*/
-            CognitoCachingCredentialsProvider credentialsProvider =
-                    (CognitoCachingCredentialsProvider) AWSMobileClient.getInstance().getCredentialsProvider();
-            AWSIotClient awsIotClient = new AWSIotClient(credentialsProvider);
-            awsIotClient.setRegion(Region.getRegion(getConfig("IoTRegion")));
-            String principalId = credentialsProvider.getIdentityId();
-            AttachPrincipalPolicyRequest attachPrincipalPolicyRequest = new AttachPrincipalPolicyRequest()
-                    .withPrincipal(principalId).withPolicyName(getConfig("IoTPolicy"));
-
-            awsIotClient.attachPrincipalPolicy(attachPrincipalPolicyRequest);
-            mCanPublish = true;
-        });
-        attachPolicyThread.start();
-
         //TODO: maintain status of the Connection and provide it to the Application if required
         try {
             mMqttMgr.connect(mCredentialsProvider, new AWSIotMqttClientStatusCallback() {
@@ -143,13 +123,11 @@ public class MqttManager {
     //TODO for the next phase and provide callbacks for Message delivery notifications:
     // can add supported QoS as input parameter, callback function
     public  void publish(String pMqttTopic,String pMsg) {
-        if (mCanPublish) {
-            try {
-                mMqttMgr.publishString( pMsg,pMqttTopic, AWSIotMqttQos.QOS0);
-            }
-            catch(Exception e){
-                e.printStackTrace();
-            }
+        try {
+            mMqttMgr.publishString( pMsg,pMqttTopic, AWSIotMqttQos.QOS0);
+        }
+        catch(Exception e){
+            e.printStackTrace();
         }
     }
 }

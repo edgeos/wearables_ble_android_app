@@ -11,12 +11,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobile.auth.core.IdentityManager;
+import com.amazonaws.mobile.auth.core.IdentityProvider;
 import com.amazonaws.mobile.auth.core.SignInStateChangeListener;
 import com.amazonaws.mobile.auth.core.StartupAuthResult;
 import com.amazonaws.mobile.auth.userpools.CognitoUserPoolsSignInProvider;
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobile.client.AWSStartupResult;
+import com.amazonaws.mobile.config.AWSConfiguration;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoDevice;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUser;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool;
@@ -28,7 +34,11 @@ import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.Forg
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.MultiFactorAuthenticationContinuation;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.AuthenticationHandler;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.ForgotPasswordHandler;
+import com.amazonaws.regions.Region;
 import com.amazonaws.services.cognitoidentityprovider.model.UserNotConfirmedException;
+import com.amazonaws.services.iot.AWSIotClient;
+import com.amazonaws.services.iot.model.AttachPrincipalPolicyRequest;
+import com.google.gson.JsonObject;
 import com.wearables.ge.wearables_ble_receiver.R;
 import com.wearables.ge.wearables_ble_receiver.activities.authentication.fragments.ConfirmationDialogFragment;
 import com.wearables.ge.wearables_ble_receiver.activities.authentication.fragments.ForgotPasswordDialogFragment;
@@ -37,6 +47,9 @@ import com.wearables.ge.wearables_ble_receiver.activities.util.fragments.ErrorDi
 import com.wearables.ge.wearables_ble_receiver.activities.util.fragments.ProgressDialogFragment;
 import com.wearables.ge.wearables_ble_receiver.activities.util.fragments.SuccessDialogFragment;
 import com.wearables.ge.wearables_ble_receiver.utils.ActivityUtil;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class AuthenticatorActivity extends FragmentActivity implements ConfirmationDialogFragment.ConfirmationDialogListener {
 
@@ -55,13 +68,34 @@ public class AuthenticatorActivity extends FragmentActivity implements Confirmat
 
         // Initialize the AWS mobile client
         AWSMobileClient.getInstance().initialize(this, (AWSStartupResult awsStartupResult) -> {
-            IdentityManager identityManager = IdentityManager.getDefaultIdentityManager();
-
             // Register a signout listener to redirect the user to this page on signout
+            IdentityManager identityManager = IdentityManager.getDefaultIdentityManager();
             identityManager.addSignInStateChangeListener(new SignInStateChangeListener() {
                 @Override
                 public void onUserSignedIn() {
-                    // Do nothing here as this behavior is handled below
+                    /*
+                     * Attach an IoT Policy to the Cognito Identity, so that we can then have access to
+                     * AWS IoT Service for streaming messages via MQTT over websockets, all the configuration is in
+                     * awsconfiguration.json in res/raw folder
+                     */
+                    String iotRegion = "";
+                    String iotPolicy = "";
+                    final AWSConfiguration configuration = identityManager.getConfiguration();
+                    final JSONObject jsonObject = configuration.optJsonObject("IoTConfig");
+                    try {
+                        iotRegion = jsonObject.getString("IoTRegion");
+                        iotPolicy = jsonObject.getString("IoTPolicy");
+                    } catch (JSONException j) {
+                        Log.e(TAG, "Unable to find required keys in awsconfiguration.json");
+                    }
+                    CognitoCachingCredentialsProvider credentialsProvider =
+                            (CognitoCachingCredentialsProvider) identityManager.getCredentialsProvider();
+                    AWSIotClient awsIotClient = new AWSIotClient(credentialsProvider);
+                    awsIotClient.setRegion(Region.getRegion(iotRegion));
+                    String principalId = credentialsProvider.getIdentityId();
+                    AttachPrincipalPolicyRequest attachPrincipalPolicyRequest = new AttachPrincipalPolicyRequest()
+                            .withPrincipal(principalId).withPolicyName(iotPolicy);
+                    awsIotClient.attachPrincipalPolicy(attachPrincipalPolicyRequest);
                 }
 
                 @Override
@@ -142,6 +176,11 @@ public class AuthenticatorActivity extends FragmentActivity implements Confirmat
             cognitoUser.getSessionInBackground(new AuthenticationHandler() {
                 @Override
                 public void onSuccess(CognitoUserSession userSession, CognitoDevice newDevice) {
+                    // Update the identity and credentials provider with the user session
+                    IdentityProvider identityProvider = IdentityManager.getDefaultIdentityManager().getCurrentIdentityProvider();
+                    identityProvider.refreshUserSignInState();
+                    IdentityManager.getDefaultIdentityManager().federateWithProvider(identityProvider);
+
                     // Switch to the main view
                     progressDialogFragment.dismiss();
                     Intent mainIntent = new Intent(getApplicationContext(), MainTabbedActivity.class);
