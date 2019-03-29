@@ -13,12 +13,14 @@ import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.AlertDialog;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
@@ -37,7 +39,9 @@ import com.wearables.ge.wearables_ble_receiver.activities.main.fragments.History
 import com.wearables.ge.wearables_ble_receiver.activities.main.fragments.PairingTabFragment;
 import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.services.LocationService;
+import com.wearables.ge.wearables_ble_receiver.services.StoreAndForwardService;
 import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerData;
+import com.wearables.ge.wearables_ble_receiver.utils.AggregateJsonObject;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
@@ -47,6 +51,7 @@ import com.wearables.ge.wearables_ble_receiver.utils.VoltageEvent;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,10 +59,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     private static final String TAG = "Main Tabbed Activity";
 
     /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide fragments for each of the
+     * The {@link PagerAdapter} that will provide fragments for each of the
      * three primary sections of the app. We use a {@link FragmentPagerAdapter}
      * derivative, which will keep every loaded fragment in memory. If this becomes too memory
-     * intensive, it may be best to switch to a {@link android.support.v4.app.FragmentStatePagerAdapter}.
+     * intensive, it may be best to switch to a {@link FragmentStatePagerAdapter}.
      */
     AppSectionsPagerAdapter mAppSectionsPagerAdapter;
 
@@ -78,6 +83,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     public BluetoothService mService;
     public static BluetoothDevice connectedDevice;
 
+    public StoreAndForwardService mStoreAndForwardService;
+    // This object will be used to aggregate the data and then push it to the store and forward queue
+    private AggregateJsonObject mAggregateJsonObject = new AggregateJsonObject();
+
     public static String connectedDeviceName;
 
     public boolean devMode;
@@ -85,6 +94,18 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     public int lastPeak;
     public Long lastPeakTime;
+
+    // This is a really gross way to throttle the number of messages we send to the cloud
+    private long messageCount = 0;
+    final private long maxMessageCount = 10;
+
+    // Do some more crappy throttling on the graphs
+    private long voltageCount = 0;
+    final private long maxVoltageCount = 10;
+    private long accelerometerCount = 0;
+    final private long maxAccelerometerCount = 10;
+    private long tempHumidityCount = 0;
+    final private long maxTempHumidityCount = 10;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -161,6 +182,12 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         Intent intent = new Intent(this, BluetoothService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         mBound = true;
+
+        // Start the storea and forward service
+        final Intent storeAndForwardIntent = new Intent(this, StoreAndForwardService.class);
+        startService(storeAndForwardIntent);
+        bindService(storeAndForwardIntent, mStoreAndForwardConnection, Context.BIND_IMPORTANT);
+
         //and re-register the broadcast receiver
         registerReceiver(mGattUpdateReceiver, createIntentFilter());
     }
@@ -332,6 +359,13 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         // Disconnect the device
         disconnectDevice();
 
+        if (mStoreAndForwardConnection != null) {
+            unbindService(mStoreAndForwardConnection);
+        }
+        // Stop any running store and forward service
+        final Intent storeAndForwardIntent = new Intent(this, StoreAndForwardService.class);
+        stopService(storeAndForwardIntent);
+
         // Tell AWS to dump the credentials
         IdentityManager.getDefaultIdentityManager().signOut();
     }
@@ -358,6 +392,22 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         public void onServiceDisconnected(ComponentName arg0) {
             Log.d(TAG, "Bluetooth service disconnected");
             mBound = false;
+        }
+    };
+
+    /**
+     * Connection callback method for the store and forward service
+     */
+    private ServiceConnection mStoreAndForwardConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            StoreAndForwardService.StoreAndForwardBinder binder = (StoreAndForwardService.StoreAndForwardBinder) service;
+            mStoreAndForwardService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "Disconnnected");
         }
     };
 
@@ -491,7 +541,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
      * This will read any data from any characteristic and parse it to the correct format.
      * @param intent
      */
-    public void readAvailableData(Intent intent){
+    public void readAvailableData(Intent intent) {
         //get the UUID of the incoming data
         UUID extraUuid = UUID.fromString(intent.getStringExtra(BluetoothService.EXTRA_UUID));
         //grab the raw data as a byte array
@@ -520,6 +570,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
         //if we were able to get a string value from the byte array message, parse it based on the UUID with it
         if(value != null){
+            mAggregateJsonObject.setDeviceId(connectedDevice.getAddress());
             //for battery level, just show the battery level on the UI
             if(extraUuid.equals(GattAttributes.BATT_LEVEL_CHAR_UUID)){
                 if(mDeviceTabFragment.isVisible()){
@@ -533,6 +584,17 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 //Create a new VoltageAlarmStateChar object with the message.
                 //The VoltageAlarmStateChar class will do the heavy lifting with converting the raw message into usable data.
                 VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
+                mAggregateJsonObject.setVoltageAlarmData(voltageAlarmState);
+
+                // Only send every maxMessagecount messages
+                if (messageCount++ >= maxMessageCount) {
+                    if (mStoreAndForwardService != null) {
+                        new Thread(() -> {
+                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mAggregateJsonObject.toJson());
+                        }).start();
+                    }
+                    messageCount = 0;
+                }
 
                 //From the data included in the message, VoltageAlarmStateChar determines if the device is in DevMode or not.
                 if(voltageAlarmState.getDevMode()){
@@ -545,7 +607,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
                     //update the graphs on the voltage page
                     //if the voltage tab has not been created yet then this will not do much
-                    mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
+                    if (voltageCount++ >= maxVoltageCount) {
+                        mHistoryTabFragment.updateVoltageGraph(voltageAlarmState);
+                    }
 
                     //next, we will calculate the peak between 40 and 70Hz bins
                     //since the bin size and number of bins may change, we will use them as variables
@@ -604,8 +668,11 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 //Get accelerometer data and send to UI
                 AccelerometerData accelerometerData = new AccelerometerData(value);
                 if(accelerometerData.getDate() != null){
-                    mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
+                    if (accelerometerCount++ >= maxAccelerometerCount) {
+                        mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
+                    }
                 }
+                mAggregateJsonObject.setAccelerometerData(accelerometerData);
                 Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
             } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
                 //display Temp/Humid/Pressure data on UI
@@ -617,9 +684,12 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                         mDeviceTabFragment.updatePressure(tempHumidPressure.getPres());
                     }
                     if(mHistoryTabFragment.isVisible()){
-                        mHistoryTabFragment.updateTempHumidityPressureGraph(tempHumidPressure);
+                        if (tempHumidityCount++ >= maxTempHumidityCount) {
+                            mHistoryTabFragment.updateTempHumidityPressureGraph(tempHumidPressure);
+                        }
                     }
                 }
+                mAggregateJsonObject.setTempHumidPressureData(tempHumidPressure);
                 Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
             } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "GAS_SENSOR_DATA value: " + value);

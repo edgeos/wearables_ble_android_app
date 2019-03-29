@@ -114,9 +114,13 @@ public class BluetoothService extends Service {
         Log.d(TAG, "Attempting to disconnect " + deviceName);
         if (connectedGatt != null) {
             //refresh the device cache on the mobile device right before disconnecting
+            // This is super messy, but for now instead of disconnecting, try to reconnect
+            final BluetoothService.GattClientCallback gattClientCallback = new BluetoothService.GattClientCallback();
+            final BluetoothDevice device = connectedGatt.getDevice();
             connectedGatt.disconnect();
             connectedGatt.close();
-            connectedGatt = null;
+            connectedGatt = device.connectGatt(this, false, gattClientCallback);
+//            connectedGatt = null;
         } else {
             Log.d(TAG, "connectedGatt was null");
         }

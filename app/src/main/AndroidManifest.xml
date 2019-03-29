@@ -44,6 +44,9 @@
 
 
         <service android:name=".services.BluetoothService" />
+        <service android:name=".services.StoreAndForwardService"
+            android:exported="false"
+            android:enabled="true"/>
 
     </application>
 

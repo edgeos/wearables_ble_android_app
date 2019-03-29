@@ -9,8 +9,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -76,6 +76,29 @@ public class PairingTabFragment extends Fragment {
         BluetoothManager bluetoothManager = (BluetoothManager) Objects.requireNonNull(getActivity()).getSystemService(BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
+        // If we are already connected to a device show it here
+        if(MainTabbedActivity.connectedDevice != null){
+            View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
+            linLayout.addView(view, 0);
+            String objName = connectedDevice.getName() == null ? connectedDevice.getAddress() : connectedDevice.getName();
+            ((TextView) view.findViewById(R.id.text)).setText(objName);
+            ((TextView) view.findViewById(R.id.address)).setText(connectedDevice.getAddress());
+            Switch switchButton = view.findViewById(R.id.button);
+            switchButton.setChecked(true);
+            switchButton.setOnClickListener( v -> {
+                if (switchButton.isChecked()) {
+                    connectDevice();
+                    switchButton.setId(R.id.connected_button);
+                    Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
+                    disconnectDevice();
+                }
+            });
+        } else {
+            Log.d(TAG, "No connected device found");
+        }
+
         startScan();
 
         setRetainInstance(true);
@@ -133,29 +156,6 @@ public class PairingTabFragment extends Fragment {
     private void scanComplete() {
         //on completed scan, remove spinner
         spinner.setVisibility(View.GONE);
-
-        if(MainTabbedActivity.connectedDevice != null && !checkedWhileScanning){
-            View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
-            linLayout.addView(view, 0);
-            String objName = connectedDevice.getName() == null ? connectedDevice.getAddress() : connectedDevice.getName();
-            ((TextView) view.findViewById(R.id.text)).setText(objName);
-            Switch switchButton = view.findViewById(R.id.button);
-            switchButton.setChecked(true);
-            switchButton.setOnClickListener( v -> {
-                if (switchButton.isChecked()) {
-                    connectDevice();
-                    switchButton.setId(R.id.connected_button);
-                    Toast.makeText(this.getContext(), "connecting...", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(this.getContext(), "disconnecting...", Toast.LENGTH_LONG).show();
-                    disconnectDevice();
-                }
-            });
-        } else if(checkedWhileScanning) {
-            checkedWhileScanning = false;
-        } else {
-            Log.d(TAG, "No connected device found");
-        }
 
         Button scanAgainButton = new Button(rootView.getContext());
         scanAgainButton.setText(R.string.scan_button);
@@ -238,17 +238,24 @@ public class PairingTabFragment extends Fragment {
             BluetoothDevice obj = result.getDevice();
             String deviceAddress = obj.getAddress();
             String objName = obj.getName() == null ? deviceAddress : obj.getName();
+
+            // If the device we found is the same as the active device, ignore it
+            if (connectedDevice != null && objName.equals(connectedDevice.getName())) {
+                return;
+            }
+
             Log.d(TAG, "Found device: " + objName);
             if(!scanResults.containsKey(deviceAddress)){
-                View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
-                linLayout.addView(view, linLayout.indexOfChild(spinner));
-
                 String displayName;
                 if(objName.equals(deviceAddress)){
-                    displayName = "Unknown";
+                    // Skip any devices without a name
+                    return;
                 } else {
                     displayName = objName;
                 }
+
+                View view = inflater.inflate(R.layout.fragment_tab_pairing_row, null);
+                linLayout.addView(view, linLayout.indexOfChild(spinner));
 
                 ((TextView) view.findViewById(R.id.text)).setText(displayName);
                 ((TextView) view.findViewById(R.id.address)).setText(deviceAddress);
