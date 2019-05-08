@@ -249,7 +249,7 @@ public class StoreAndForwardService extends Service {
                     try {
                         final String topic = (mMqttTopic.endsWith("/")) ?
                                 (mMqttTopic + data.deviceId) : (mMqttTopic + "/" + data.deviceId);
-                        mMqttManager.publishString(data.toString(), topic, AWSIotMqttQos.QOS1, (status, userData) -> {
+                        mMqttManager.publishString(data.toString(), topic, AWSIotMqttQos.QOS0, (status, userData) -> {
                             if (status == AWSIotMqttMessageDeliveryCallback.MessageDeliveryStatus.Success) {
                                 // If we were able to publish, set sent to true
                                 synchronized (data) {

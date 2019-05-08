@@ -36,5 +36,6 @@ public class GattAttributes {
     public static int MESSAGE_TYPE_RENAME = 1;
     public static int MESSAGE_TYPE_ALARM_THRESHOLD = 2;
     public static int MESSAGE_TYPE_MODE = 3;
+    public static int MESSAGE_TYPE_HEARTBEAT = 4;
 
 }

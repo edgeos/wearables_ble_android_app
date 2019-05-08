@@ -39,6 +39,7 @@ public class BluetoothService extends Service {
 
     public static BluetoothGatt connectedGatt;
     public static String deviceName;
+    public static int heartbeat = 0;
 
     private final IBinder mBinder = new LocalBinder();
 
@@ -56,6 +57,15 @@ public class BluetoothService extends Service {
 
     public class LocalBinder extends Binder {
         public BluetoothService getService() {
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        writeToVoltageAlarmConfigChar(GattAttributes.MESSAGE_TYPE_HEARTBEAT, "");
+                        Thread.sleep(1000);
+                    } catch (InterruptedException i) {
+                    }
+                }
+            }).start();
             return BluetoothService.this;
         }
     }
@@ -102,6 +112,7 @@ public class BluetoothService extends Service {
     public void connectDevice(BluetoothDevice device) {
         BluetoothService.GattClientCallback gattClientCallback = new BluetoothService.GattClientCallback();
         connectedGatt = device.connectGatt(this, false, gattClientCallback);
+        heartbeat = 0;
         Log.d(TAG, "Device " + deviceName + " connected");
     }
 
@@ -119,7 +130,9 @@ public class BluetoothService extends Service {
             final BluetoothDevice device = connectedGatt.getDevice();
             connectedGatt.disconnect();
             connectedGatt.close();
+            connectedGatt = null;
             connectedGatt = device.connectGatt(this, false, gattClientCallback);
+            heartbeat = 0;
 //            connectedGatt = null;
         } else {
             Log.d(TAG, "connectedGatt was null");
@@ -169,6 +182,8 @@ public class BluetoothService extends Service {
                 //Something went wrong here, likely a bug that needs to be tracked down
                 Log.d(TAG, "Invalid AlarmThreshold value: " + message);
             }
+        } else if (messageType == GattAttributes.MESSAGE_TYPE_HEARTBEAT) {
+            message = Integer.toHexString(heartbeat++);
         }
 
         //here we add the 01, 02, or 03, to the beginning of the message
