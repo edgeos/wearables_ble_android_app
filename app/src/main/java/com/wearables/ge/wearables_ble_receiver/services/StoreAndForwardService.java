@@ -265,6 +265,26 @@ public class StoreAndForwardService extends Service {
         }
     }
 
+    public void forceSend(long timestamp, String deviceId, String headerLine, String dataLine) {
+        // Create an instance of the table data
+        StoreAndForwardData data = new StoreAndForwardData();
+        data.timestamp = timestamp;
+        data.deviceId = deviceId;
+        data.sent = false;
+        data.dataLine = dataLine;
+
+        // Save the data either in memory or to the database
+        if (mInitialized.get()) {
+            try {
+                final String topic = (mMqttTopic.endsWith("/")) ?
+                        (mMqttTopic + data.deviceId) : (mMqttTopic + "/" + data.deviceId);
+                mMqttManager.publishString(data.toString(), topic, AWSIotMqttQos.QOS0, (status, userData) -> {}, null);
+            } catch (Exception e) {
+                Log.d(TAG, "Unable to publish data: " + e.getLocalizedMessage());
+            }
+        }
+    }
+
     synchronized private void saveData(StoreAndForwardData data) {
         // If the mDataList is already too full, save the data to the mDatabase
         if (mDataList.size() < mEntryLimit.get()) {

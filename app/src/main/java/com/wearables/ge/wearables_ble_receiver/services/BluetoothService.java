@@ -33,6 +33,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class BluetoothService extends Service {
     private static String TAG = "Bluetooth Service";
@@ -54,9 +55,20 @@ public class BluetoothService extends Service {
     public final static String EXTRA_DATA =                             "com.wearables.ge.EXTRA_DATA";
     public final static String EXTRA_INT_DATA =                         "com.wearables.ge.EXTRA_INT_DATA";
 
+    private void refreshDeviceCache(BluetoothGatt gatt) {
+        try {
+            Method localMethod = gatt.getClass().getMethod("refresh");
+            if(localMethod != null) {
+                localMethod.invoke(gatt);
+            }
+        } catch(Exception localException) {
+            Log.d("Exception", localException.toString());
+        }
+    }
 
     public class LocalBinder extends Binder {
         public BluetoothService getService() {
+            /*
             new Thread(() -> {
                 while (true) {
                     try {
@@ -66,6 +78,7 @@ public class BluetoothService extends Service {
                     }
                 }
             }).start();
+            */
             return BluetoothService.this;
         }
     }
@@ -111,7 +124,7 @@ public class BluetoothService extends Service {
      */
     public void connectDevice(BluetoothDevice device) {
         BluetoothService.GattClientCallback gattClientCallback = new BluetoothService.GattClientCallback();
-        connectedGatt = device.connectGatt(this, false, gattClientCallback);
+        connectedGatt = device.connectGatt(this, false, gattClientCallback, BluetoothDevice.TRANSPORT_LE);
         heartbeat = 0;
         Log.d(TAG, "Device " + deviceName + " connected");
     }
@@ -131,7 +144,7 @@ public class BluetoothService extends Service {
             connectedGatt.disconnect();
             connectedGatt.close();
             connectedGatt = null;
-            connectedGatt = device.connectGatt(this, false, gattClientCallback);
+            connectedGatt = device.connectGatt(this, false, gattClientCallback, BluetoothDevice.TRANSPORT_LE);
             heartbeat = 0;
 //            connectedGatt = null;
         } else {
@@ -240,17 +253,18 @@ public class BluetoothService extends Service {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            if (status != BluetoothGatt.GATT_SUCCESS) {
-                //if the connection is anything but successful, stop here and disconnect
-                disconnectGattServer();
-                return;
-            }
             //here we check that the state change was a connection and not a disconnect
             //we can also add actions for connecting, and disconnecting
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 //set global variables for connected device and device name
                 if(gatt != null){
                     connectedGatt = gatt;
+                    refreshDeviceCache(connectedGatt);
+                    try {
+                        TimeUnit.SECONDS.sleep(5);
+                    } catch (InterruptedException i) {
+                        Log.d(TAG, "Interrupted");
+                    }
                     //refresh the device cache here
                     //set the variable for device name, use the MAC address if no name is available
                     deviceName = gatt.getDevice().getName() == null ? gatt.getDevice().getAddress() : gatt.getDevice().getName();
@@ -263,6 +277,8 @@ public class BluetoothService extends Service {
                 }
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 disconnectGattServer();
+            } else {
+                Log.d(TAG, "Hello");
             }
         }
 

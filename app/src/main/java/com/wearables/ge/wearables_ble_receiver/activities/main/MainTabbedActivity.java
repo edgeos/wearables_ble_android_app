@@ -97,6 +97,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     // This is a really gross way to throttle the number of messages we send to the cloud
     private long messageCount = 0;
+    private boolean wasAlarming = false;
     final private long maxMessageCount = 10;
 
     // Do some more crappy throttling on the graphs
@@ -587,14 +588,19 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 mAggregateJsonObject.setVoltageAlarmData(voltageAlarmState);
 
                 // Only send every maxMessagecount messages
-                if (messageCount++ >= maxMessageCount) {
-                    if (mStoreAndForwardService != null) {
+                if (mStoreAndForwardService != null) {
+                    if ((voltageAlarmState.getOverall_alarm() && !wasAlarming) || (!voltageAlarmState.getOverall_alarm() && wasAlarming)) {
+                        new Thread(() -> {
+                            mStoreAndForwardService.forceSend((new Date()).getTime(), connectedDevice.getAddress(), "", mAggregateJsonObject.toJson());
+                        }).start();
+                    } else if (messageCount++ >= maxMessageCount) {
                         new Thread(() -> {
                             mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mAggregateJsonObject.toJson());
                         }).start();
+                        messageCount = 0;
                     }
-                    messageCount = 0;
                 }
+                wasAlarming = voltageAlarmState.getOverall_alarm();
 
                 //From the data included in the message, VoltageAlarmStateChar determines if the device is in DevMode or not.
                 if(voltageAlarmState.getDevMode()){

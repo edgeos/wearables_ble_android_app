@@ -101,8 +101,8 @@ public class EventsTabFragment extends Fragment {
 
         setRetainInstance(true);
 
-        mMqttMgr = MqttManager.getInstance(rootView.getContext());
-        mMqttMgr.connect();
+        //mMqttMgr = MqttManager.getInstance(rootView.getContext());
+        //mMqttMgr.connect();
 
         return rootView;
     }
@@ -388,9 +388,9 @@ public class EventsTabFragment extends Fragment {
             message = message + " " + line;
         }
 
-        if(mMqttMgr.getConnectionStatus() == MqttManager.ConnectionStatus.CONNECTED) {
+        /*if(mMqttMgr.getConnectionStatus() == MqttManager.ConnectionStatus.CONNECTED) {
             Log.d(TAG, "{ \"data\":\"" + message + "\"}");
             mMqttMgr.publish("ge/test/data", "{ \"data\":\"" + message + "\"}");
-        }
+        }*/
     }
 }
