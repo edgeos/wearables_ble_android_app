@@ -684,6 +684,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
                 //Get accelerometer data and send to UI
                 AccelerometerData accelerometerData = new AccelerometerData(value);
+                mAccelerometerJsonObject.setDeviceId(connectedDevice.getAddress());
                 if(accelerometerData.getDate() != null){
                     if (accelerometerCount++ >= maxAccelerometerCount) {
                         mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
@@ -707,6 +708,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
                 //display Temp/Humid/Pressure data on UI
                 TempHumidPressure tempHumidPressure = new TempHumidPressure(value);
+                mTempHumidPressureJsonObject.setDeviceId(connectedDevice.getAddress());
                 if(tempHumidPressure.getDate() != null){
                     if(mDeviceTabFragment.isVisible()){
                         mDeviceTabFragment.updateHumidity(tempHumidPressure.getHumid());
