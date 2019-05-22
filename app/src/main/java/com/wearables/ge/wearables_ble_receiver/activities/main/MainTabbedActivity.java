@@ -41,7 +41,9 @@ import com.wearables.ge.wearables_ble_receiver.services.BluetoothService;
 import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 import com.wearables.ge.wearables_ble_receiver.services.StoreAndForwardService;
 import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerData;
-import com.wearables.ge.wearables_ble_receiver.utils.AggregateJsonObject;
+import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerJsonObject;
+import com.wearables.ge.wearables_ble_receiver.utils.VoltageJsonObject;
+import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressureJsonObject;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
 import com.wearables.ge.wearables_ble_receiver.utils.GattAttributes;
 import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressure;
@@ -85,7 +87,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     public StoreAndForwardService mStoreAndForwardService;
     // This object will be used to aggregate the data and then push it to the store and forward queue
-    private AggregateJsonObject mAggregateJsonObject = new AggregateJsonObject();
+    private VoltageJsonObject mVoltageJsonObject = new VoltageJsonObject();
+    private AccelerometerJsonObject mAccelerometerJsonObject = new AccelerometerJsonObject();
+    private TempHumidPressureJsonObject mTempHumidPressureJsonObject = new TempHumidPressureJsonObject();
 
     public static String connectedDeviceName;
 
@@ -96,9 +100,14 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     public Long lastPeakTime;
 
     // This is a really gross way to throttle the number of messages we send to the cloud
-    private long messageCount = 0;
+    private long voltageMessageCount = 0;
+    private long acceleromterMessageCount = 0;
+    private long tempHumidPressureMessageCount = 0;
+
     private boolean wasAlarming = false;
-    final private long maxMessageCount = 10;
+    final private long voltageMaxMessageCount = 10;
+    final private long acceleromterMaxMessageCount = 10;
+    final private long tempHumidPressureMaxMessageCount = 10;
 
     // Do some more crappy throttling on the graphs
     private long voltageCount = 0;
@@ -571,7 +580,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
         //if we were able to get a string value from the byte array message, parse it based on the UUID with it
         if(value != null){
-            mAggregateJsonObject.setDeviceId(connectedDevice.getAddress());
+//            mAggregateJsonObject.setDeviceId(connectedDevice.getAddress());
             //for battery level, just show the battery level on the UI
             if(extraUuid.equals(GattAttributes.BATT_LEVEL_CHAR_UUID)){
                 if(mDeviceTabFragment.isVisible()){
@@ -579,25 +588,27 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 }
                 Log.d(TAG, "Battery level: " + extraIntData + "%");
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
-                //The voltage alarm state characteristic sends the larges messages and the most often
+                mVoltageJsonObject.setDeviceId(connectedDevice.getAddress());
+                //The voltage alarm state characteristic sends the largest messages and the most often
                 Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
 
                 //Create a new VoltageAlarmStateChar object with the message.
                 //The VoltageAlarmStateChar class will do the heavy lifting with converting the raw message into usable data.
                 VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
-                mAggregateJsonObject.setVoltageAlarmData(voltageAlarmState);
+                mVoltageJsonObject.setVoltageAlarmData(voltageAlarmState);
+//                mAggregateJsonObject.setVoltageAlarmData(voltageAlarmState);
 
                 // Only send every maxMessagecount messages
                 if (mStoreAndForwardService != null) {
                     if ((voltageAlarmState.getOverall_alarm() && !wasAlarming) || (!voltageAlarmState.getOverall_alarm() && wasAlarming)) {
                         new Thread(() -> {
-                            mStoreAndForwardService.forceSend((new Date()).getTime(), connectedDevice.getAddress(), "", mAggregateJsonObject.toJson());
+                            mStoreAndForwardService.forceSend((new Date()).getTime(), connectedDevice.getAddress(), "", mVoltageJsonObject.toJson());
                         }).start();
-                    } else if (messageCount++ >= maxMessageCount) {
+                    } else if (voltageMessageCount++ >= voltageMaxMessageCount) {
                         new Thread(() -> {
-                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mAggregateJsonObject.toJson());
+                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mVoltageJsonObject.toJson());
                         }).start();
-                        messageCount = 0;
+                        voltageMessageCount = 0;
                     }
                 }
                 wasAlarming = voltageAlarmState.getOverall_alarm();
@@ -678,8 +689,21 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                         mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
                     }
                 }
-                mAggregateJsonObject.setAccelerometerData(accelerometerData);
+                // YONI: This is where we combine accel with voltage. Only voltage updates however cause
+                // an enqueue. This is a place that needs to change
+                mAccelerometerJsonObject.setAccelerometerData(accelerometerData);
                 Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
+
+                // Only send every acceleromterMaxMessageCount messages
+                if (mStoreAndForwardService != null) {
+                    if (acceleromterMessageCount++ >= acceleromterMaxMessageCount) {
+                        new Thread(() -> {
+                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mAccelerometerJsonObject.toJson());
+                        }).start();
+                        acceleromterMessageCount = 0;
+                    }
+                }
+
             } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
                 //display Temp/Humid/Pressure data on UI
                 TempHumidPressure tempHumidPressure = new TempHumidPressure(value);
@@ -695,8 +719,17 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                         }
                     }
                 }
-                mAggregateJsonObject.setTempHumidPressureData(tempHumidPressure);
+                mTempHumidPressureJsonObject.setTempHumidPressureData(tempHumidPressure);
                 Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
+                // Only send every tempHumidPressureMaxMessageCount messages
+                if (mStoreAndForwardService != null) {
+                    if (tempHumidPressureMessageCount++ >= tempHumidPressureMaxMessageCount) {
+                        new Thread(() -> {
+                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mTempHumidPressureJsonObject.toJson());
+                        }).start();
+                        tempHumidPressureMessageCount = 0;
+                    }
+                }
             } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "GAS_SENSOR_DATA value: " + value);
             } else if(extraUuid.equals(GattAttributes.OPTICAL_SENSOR_DATA_CHARACTERISTIC_UUID)){
