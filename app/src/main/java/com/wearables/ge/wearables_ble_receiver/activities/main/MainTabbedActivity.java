@@ -608,12 +608,12 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 if (mStoreAndForwardService != null) {
                     if (alarm_message) {
                         new Thread(() -> {
-                            mStoreAndForwardService.forceSend((new Date()).getTime(), connectedDevice.getAddress(), "", mVoltageJsonObject.toJson(Boolean.TRUE));
+                            mStoreAndForwardService.forceSend((new Date()).getTime(), connectedDevice.getAddress().concat("/voltage"), "", mVoltageJsonObject.toJson(Boolean.TRUE));
                         }).start();
                     } else if (mVoltageJsonObject.timerCheck()){ // Switching to time-based check
                        //else if (voltageMessageCount++ >= voltageMaxMessageCount) {
                         new Thread(() -> {
-                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mVoltageJsonObject.toJson(Boolean.FALSE));
+                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress().concat("/voltage"), "", mVoltageJsonObject.toJson(Boolean.FALSE));
                         }).start();
                         voltageMessageCount = 0;
                     }
@@ -706,7 +706,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 if (mStoreAndForwardService != null) {
                     if (acceleromterMessageCount++ >= acceleromterMaxMessageCount) {
                         new Thread(() -> {
-                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mAccelerometerJsonObject.toJson());
+                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress().concat("/accelerometer"), "", mAccelerometerJsonObject.toJson());
                         }).start();
                         acceleromterMessageCount = 0;
                     }
@@ -734,7 +734,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 if (mStoreAndForwardService != null) {
                     if (tempHumidPressureMessageCount++ >= tempHumidPressureMaxMessageCount) {
                         new Thread(() -> {
-                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mTempHumidPressureJsonObject.toJson());
+                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress().concat("/temphumidpressure"), "", mTempHumidPressureJsonObject.toJson());
                         }).start();
                         tempHumidPressureMessageCount = 0;
                     }

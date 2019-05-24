@@ -190,11 +190,11 @@ public class StoreAndForwardService extends Service {
         return mBinder;
     }
 
-    public void enqueue(long timestamp, String deviceId, String headerLine, String dataLine) {
+    public void enqueue(long timestamp, String topic_suffix, String headerLine, String dataLine) {
         // Create an instance of the table data
         StoreAndForwardData data = new StoreAndForwardData();
         data.timestamp = timestamp;
-        data.deviceId = deviceId;
+        data.deviceId = topic_suffix;
         data.sent = false;
         data.dataLine = dataLine;
 
@@ -265,11 +265,11 @@ public class StoreAndForwardService extends Service {
         }
     }
 
-    public void forceSend(long timestamp, String deviceId, String headerLine, String dataLine) {
+    public void forceSend(long timestamp, String topic_suffix, String headerLine, String dataLine) {
         // Create an instance of the table data
         StoreAndForwardData data = new StoreAndForwardData();
         data.timestamp = timestamp;
-        data.deviceId = deviceId;
+        data.deviceId = topic_suffix;
         data.sent = false;
         data.dataLine = dataLine;
 
