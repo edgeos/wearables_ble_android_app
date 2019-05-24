@@ -6,22 +6,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class AccelerometerJsonObject {
-//    private VoltageAlarmStateChar voltageAlarmData;
     private AccelerometerData accelerometerData;
-//    private TempHumidPressure tempHumidPressureData;
     private String deviceId;
-
-//    public void setVoltageAlarmData(VoltageAlarmStateChar voltageAlarmData) {
-//        this.voltageAlarmData = voltageAlarmData;
-//    }
 
     public void setAccelerometerData(AccelerometerData accelerometerData) {
         this.accelerometerData = accelerometerData;
     }
-
-//    public void setTempHumidPressureData(TempHumidPressure tempHumidPressureData) {
-//        this.tempHumidPressureData = tempHumidPressureData;
-//    }
 
     public String getDeviceId() {
         return deviceId;
@@ -31,17 +21,9 @@ public class AccelerometerJsonObject {
         this.deviceId = deviceId;
     }
 
-//    public VoltageAlarmStateChar getVoltageAlarmData() {
-//        return voltageAlarmData;
-//    }
-
     public AccelerometerData getAccelerometerData() {
         return accelerometerData;
     }
-
-//    public TempHumidPressure getTempHumidPressureData() {
-//        return tempHumidPressureData;
-//    }
 
     public String toJson() {
         final ObjectMapper mapper = new ObjectMapper();

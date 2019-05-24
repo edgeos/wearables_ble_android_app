@@ -1,13 +1,23 @@
 package com.wearables.ge.wearables_ble_receiver.utils;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.lang.System;
+import java.util.Calendar;
+
+import org.json.*;
 
 @SuppressWarnings("unused")
+@JsonFilter("myFilter")
+//@JsonIgnoreProperties(value = { "ch1_fft_results","ch2_fft_results", "ch3_fft_results" })
 public class VoltageAlarmStateChar {
     public static String TAG = "voltageAlarmStateChar";
 
+    public Long date;
     private Boolean overall_alarm;
     private Boolean ch1_alarm;
     private Boolean ch2_alarm;
@@ -17,13 +27,20 @@ public class VoltageAlarmStateChar {
     private List<Integer> ch1_fft_results;
     private List<Integer> ch2_fft_results;
     private List<Integer> ch3_fft_results;
+    private int ch1_50HZ;
+    private int ch1_60HZ;
+    private int ch2_50HZ;
+    private int ch2_60HZ;
+    private int ch3_50HZ;
+    private int ch3_60HZ;
 
     private Boolean devMode;
 
     public VoltageAlarmStateChar (String hexString){
+        this.date = Calendar.getInstance().getTimeInMillis();
         List<String> hexSplit = Arrays.asList(hexString.split("\\s+"));
 
-        if(hexSplit.size() == 4){
+        if (hexSplit.size() == 4) {
             this.overall_alarm = !hexSplit.get(0).equals("00");
             this.ch1_alarm = !hexSplit.get(1).equals("00");
             this.ch2_alarm = !hexSplit.get(2).equals("00");
@@ -39,26 +56,33 @@ public class VoltageAlarmStateChar {
             this.fft_bin_size = Integer.parseInt(hexSplit.get(5), 16);
 
             List<Integer> ch1 = new ArrayList<>();
-            for(int i = 6; i < (this.num_fft_bins + 6); i ++ ){
+            for (int i = 6; i < (this.num_fft_bins + 6); i++) {
                 ch1.add(Integer.parseInt(hexSplit.get(i), 16));
             }
             this.ch1_fft_results = ch1;
+            this.ch1_50HZ = ch1.get(25);
+            this.ch1_60HZ = ch1.get(30);
 
             List<Integer> ch2 = new ArrayList<>();
-            for(int i = (6 + this.num_fft_bins); i < ((this.num_fft_bins*2) + 6); i ++ ){
+            for (int i = (6 + this.num_fft_bins); i < ((this.num_fft_bins * 2) + 6); i++) {
                 ch2.add(Integer.parseInt(hexSplit.get(i), 16));
             }
             this.ch2_fft_results = ch2;
+            this.ch2_50HZ = ch2.get(25);
+            this.ch2_60HZ = ch2.get(30);
 
             List<Integer> ch3 = new ArrayList<>();
-            for(int i = (6 + (this.num_fft_bins*2)); i < (hexSplit.size()); i ++ ){
+            for (int i = (6 + (this.num_fft_bins * 2)); i < (hexSplit.size()); i++) {
                 ch3.add(Integer.parseInt(hexSplit.get(i), 16));
             }
             this.ch3_fft_results = ch3;
+            this.ch3_50HZ = ch3.get(25);
+            this.ch3_60HZ = ch3.get(30);
 
             this.devMode = true;
         }
     }
+
     public VoltageAlarmStateChar (List<Integer> ch1Avgs, List<Integer> ch2Avgs, List<Integer> ch3Avgs){
         this.ch1_fft_results = ch1Avgs;
         this.ch2_fft_results = ch2Avgs;
@@ -144,5 +168,9 @@ public class VoltageAlarmStateChar {
 
     public void setDevMode(Boolean devMode) {
         this.devMode = devMode;
+    }
+
+    public void setFilter(Boolean abbreviate){
+
     }
 }

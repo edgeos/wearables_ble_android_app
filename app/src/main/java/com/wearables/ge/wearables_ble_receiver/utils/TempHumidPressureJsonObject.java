@@ -6,18 +6,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TempHumidPressureJsonObject {
-//    private VoltageAlarmStateChar voltageAlarmData;
-//    private AccelerometerData accelerometerData;
     private TempHumidPressure tempHumidPressureData;
     private String deviceId;
-
-//    public void setVoltageAlarmData(VoltageAlarmStateChar voltageAlarmData) {
-//        this.voltageAlarmData = voltageAlarmData;
-//    }
-
-//    public void setAccelerometerData(AccelerometerData accelerometerData) {
-//        this.accelerometerData = accelerometerData;
-//    }
 
     public void setTempHumidPressureData(TempHumidPressure tempHumidPressureData) {
         this.tempHumidPressureData = tempHumidPressureData;
@@ -30,14 +20,6 @@ public class TempHumidPressureJsonObject {
     public void setDeviceId(String deviceId) {
         this.deviceId = deviceId;
     }
-
-//    public VoltageAlarmStateChar getVoltageAlarmData() {
-//        return voltageAlarmData;
-//    }
-
-//    public AccelerometerData getAccelerometerData() {
-//        return accelerometerData;
-//    }
 
     public TempHumidPressure getTempHumidPressureData() {
         return tempHumidPressureData;

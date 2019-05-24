@@ -85,12 +85,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     public BluetoothService mService;
     public static BluetoothDevice connectedDevice;
 
-    public StoreAndForwardService mStoreAndForwardService;
-    // This object will be used to aggregate the data and then push it to the store and forward queue
-    private VoltageJsonObject mVoltageJsonObject = new VoltageJsonObject();
-    private AccelerometerJsonObject mAccelerometerJsonObject = new AccelerometerJsonObject();
-    private TempHumidPressureJsonObject mTempHumidPressureJsonObject = new TempHumidPressureJsonObject();
-
     public static String connectedDeviceName;
 
     public boolean devMode;
@@ -109,6 +103,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     final private long acceleromterMaxMessageCount = 10;
     final private long tempHumidPressureMaxMessageCount = 10;
 
+    final private long volt_abbreviated_message_timer_ms = 1000;
+    final private long volt_full_message_timer_ms = 5000;
+
     // Do some more crappy throttling on the graphs
     private long voltageCount = 0;
     final private long maxVoltageCount = 10;
@@ -116,6 +113,12 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     final private long maxAccelerometerCount = 10;
     private long tempHumidityCount = 0;
     final private long maxTempHumidityCount = 10;
+
+    public StoreAndForwardService mStoreAndForwardService;
+    // This object will be used to aggregate the data and then push it to the store and forward queue
+    private VoltageJsonObject mVoltageJsonObject = new VoltageJsonObject(volt_abbreviated_message_timer_ms, volt_full_message_timer_ms);
+    private AccelerometerJsonObject mAccelerometerJsonObject = new AccelerometerJsonObject();
+    private TempHumidPressureJsonObject mTempHumidPressureJsonObject = new TempHumidPressureJsonObject();
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -595,18 +598,22 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 //Create a new VoltageAlarmStateChar object with the message.
                 //The VoltageAlarmStateChar class will do the heavy lifting with converting the raw message into usable data.
                 VoltageAlarmStateChar voltageAlarmState = new VoltageAlarmStateChar(value);
+                // Check timers to see if we should send the message (alarms excluded)
+                Boolean peak_alarm = voltageAlarmState.getOverall_alarm();
+                Boolean alarm_message = (peak_alarm && !wasAlarming) || (!peak_alarm && wasAlarming);
+
                 mVoltageJsonObject.setVoltageAlarmData(voltageAlarmState);
-//                mAggregateJsonObject.setVoltageAlarmData(voltageAlarmState);
 
                 // Only send every maxMessagecount messages
                 if (mStoreAndForwardService != null) {
-                    if ((voltageAlarmState.getOverall_alarm() && !wasAlarming) || (!voltageAlarmState.getOverall_alarm() && wasAlarming)) {
+                    if (alarm_message) {
                         new Thread(() -> {
-                            mStoreAndForwardService.forceSend((new Date()).getTime(), connectedDevice.getAddress(), "", mVoltageJsonObject.toJson());
+                            mStoreAndForwardService.forceSend((new Date()).getTime(), connectedDevice.getAddress(), "", mVoltageJsonObject.toJson(Boolean.TRUE));
                         }).start();
-                    } else if (voltageMessageCount++ >= voltageMaxMessageCount) {
+                    } else if (mVoltageJsonObject.timerCheck()){ // Switching to time-based check
+                       //else if (voltageMessageCount++ >= voltageMaxMessageCount) {
                         new Thread(() -> {
-                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mVoltageJsonObject.toJson());
+                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress(), "", mVoltageJsonObject.toJson(Boolean.FALSE));
                         }).start();
                         voltageMessageCount = 0;
                     }
