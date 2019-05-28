@@ -1,19 +1,14 @@
 package com.wearables.ge.wearables_ble_receiver.utils;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.lang.System;
 import java.util.Calendar;
-
-import org.json.*;
 
 @SuppressWarnings("unused")
 @JsonFilter("myFilter")
-//@JsonIgnoreProperties(value = { "ch1_fft_results","ch2_fft_results", "ch3_fft_results" })
 public class VoltageAlarmStateChar {
     public static String TAG = "voltageAlarmStateChar";
 
@@ -170,7 +165,4 @@ public class VoltageAlarmStateChar {
         this.devMode = devMode;
     }
 
-    public void setFilter(Boolean abbreviate){
-
-    }
 }
