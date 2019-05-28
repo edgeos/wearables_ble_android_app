@@ -40,7 +40,7 @@ public class VoltageJsonObject {
 
     public String toJson(Boolean force_full_message) {
         SimpleBeanPropertyFilter theFilter;
-        if (this.abbreviate_message){
+        if (this.abbreviate_message && !force_full_message){
             theFilter = SimpleBeanPropertyFilter.serializeAllExcept("ch1_fft_results", "ch2_fft_results", "ch3_fft_results");
         } else {
             theFilter = SimpleBeanPropertyFilter.serializeAllExcept("ch1_50HZ", "ch1_60HZ","ch2_50HZ", "ch2_60HZ","ch3_50HZ", "ch3_60HZ");
