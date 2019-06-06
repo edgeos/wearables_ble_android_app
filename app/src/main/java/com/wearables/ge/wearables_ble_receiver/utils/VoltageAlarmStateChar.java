@@ -187,11 +187,12 @@ public class VoltageAlarmStateChar {
         channels.add(ch3);
         msg.put("\"channels\"", channels);
 
-        JsonObject info = new JsonObject();
-        info.put("\"fft_bin_size\"", this.fft_bin_size);
-        info.put("\"num_fft_bins\"",this.num_fft_bins);
-        msg.put("\"info\"", info);
-
+        if (full_message) {
+            JsonObject info = new JsonObject();
+            info.put("\"fft_bin_size\"", this.fft_bin_size);
+            info.put("\"num_fft_bins\"", this.num_fft_bins);
+            msg.put("\"info\"", info);
+        }
         return msg;
     }
 

@@ -1,18 +1,10 @@
 package com.wearables.ge.wearables_ble_receiver.utils;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.cliftonlabs.json_simple.JsonObject;
 
 import java.util.Calendar;
 
 
-//@JsonIgnoreProperties(value = { "full_message_ms", "abbreviated_message_ms", "last_abbreviated_message_timestamp", "last_message_timestamp" })
 public class VoltageJsonObject {
     private VoltageAlarmStateChar voltageAlarmData;
     private String deviceId;
@@ -50,25 +42,6 @@ public class VoltageJsonObject {
         msg.put("\"data\"", this.voltageAlarmData.toJson(full_message || !this.abbreviate_message));
 
         return msg.toString().replace("=", ":");
-    }
-
-    public String toJson2(Boolean force_full_message) {
-        SimpleBeanPropertyFilter theFilter;
-        if (this.abbreviate_message && !force_full_message){
-            theFilter = SimpleBeanPropertyFilter.serializeAllExcept("ch1_fft_results", "ch2_fft_results", "ch3_fft_results");
-        } else {
-            theFilter = SimpleBeanPropertyFilter.serializeAllExcept("ch1_50HZ", "ch1_60HZ","ch2_50HZ", "ch2_60HZ","ch3_50HZ", "ch3_60HZ");
-        }
-        FilterProvider filters = new SimpleFilterProvider()
-                .addFilter("myFilter", theFilter);
-
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        try {
-            return mapper.writer(filters).writeValueAsString(this);
-        } catch (JsonProcessingException j) {
-            return "{}";
-        }
     }
 
     public VoltageJsonObject(long abbreviated_message_ms, long full_message_ms){
