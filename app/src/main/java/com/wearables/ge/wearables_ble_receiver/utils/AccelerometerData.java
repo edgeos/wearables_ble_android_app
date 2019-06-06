@@ -2,6 +2,8 @@ package com.wearables.ge.wearables_ble_receiver.utils;
 
 import android.util.Log;
 
+import com.github.cliftonlabs.json_simple.JsonObject;
+
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -9,12 +11,15 @@ import java.util.List;
 public class AccelerometerData {
     public String TAG = "AccelerometerData";
 
+    public Long date;
+
     public int xValue;
     public int yValue;
     public int zValue;
-    public Long date;
 
     public AccelerometerData(String hexString){
+        this.date = Calendar.getInstance().getTimeInMillis();
+
         List<String> hexSplit = Arrays.asList(hexString.split("\\s+"));
         if(hexSplit.size() >= 6){
             //switch values for little endian
@@ -26,7 +31,6 @@ public class AccelerometerData {
             this.yValue = (short) Integer.parseInt(yValueString, 16);
             this.zValue = (short) Integer.parseInt(zValueString, 16);
             Log.d(TAG, "xValue: " + xValue + " yValue: " + yValue + " zValue: " + zValue);
-            this.date = Calendar.getInstance().getTimeInMillis();
         } else {
             Log.d(TAG, "HexSplit list size: " + hexSplit.size() + " size of 6 was expected");
         }
@@ -62,5 +66,14 @@ public class AccelerometerData {
 
     public void setDate(Long date) {
         this.date = date;
+    }
+
+
+    public JsonObject toJson() {
+        JsonObject msg = new JsonObject();
+        msg.put("\"x\"", this.getxValue());
+        msg.put("\"y\"", this.getyValue());
+        msg.put("\"z\"", this.getzValue());
+        return msg;
     }
 }

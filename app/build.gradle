@@ -76,4 +76,7 @@ dependencies {
     // For Jackson object mapper support
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.9.8'
+
+//    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation 'com.github.cliftonlabs:json-simple:3.1.0'
 }

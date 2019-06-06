@@ -2,10 +2,13 @@ package com.wearables.ge.wearables_ble_receiver.utils;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 
+import com.github.cliftonlabs.json_simple.JsonArray;
+import com.github.cliftonlabs.json_simple.JsonObject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Calendar;
+import java.util.List;
 
 @SuppressWarnings("unused")
 @JsonFilter("myFilter")
@@ -22,12 +25,6 @@ public class VoltageAlarmStateChar {
     private List<Integer> ch1_fft_results;
     private List<Integer> ch2_fft_results;
     private List<Integer> ch3_fft_results;
-    private int ch1_50HZ;
-    private int ch1_60HZ;
-    private int ch2_50HZ;
-    private int ch2_60HZ;
-    private int ch3_50HZ;
-    private int ch3_60HZ;
 
     private Boolean devMode;
 
@@ -55,24 +52,18 @@ public class VoltageAlarmStateChar {
                 ch1.add(Integer.parseInt(hexSplit.get(i), 16));
             }
             this.ch1_fft_results = ch1;
-            this.ch1_50HZ = ch1.get(25);
-            this.ch1_60HZ = ch1.get(30);
 
             List<Integer> ch2 = new ArrayList<>();
             for (int i = (6 + this.num_fft_bins); i < ((this.num_fft_bins * 2) + 6); i++) {
                 ch2.add(Integer.parseInt(hexSplit.get(i), 16));
             }
             this.ch2_fft_results = ch2;
-            this.ch2_50HZ = ch2.get(25);
-            this.ch2_60HZ = ch2.get(30);
 
             List<Integer> ch3 = new ArrayList<>();
             for (int i = (6 + (this.num_fft_bins * 2)); i < (hexSplit.size()); i++) {
                 ch3.add(Integer.parseInt(hexSplit.get(i), 16));
             }
             this.ch3_fft_results = ch3;
-            this.ch3_50HZ = ch3.get(25);
-            this.ch3_60HZ = ch3.get(30);
 
             this.devMode = true;
         }
@@ -103,6 +94,18 @@ public class VoltageAlarmStateChar {
 
     public List<Integer> getCh3_fft_results() {
         return ch3_fft_results;
+    }
+
+    public List<Integer> getCh1_fft_results(Boolean full_message) {
+        return full_message ? this.ch1_fft_results : Arrays.asList(this.ch1_fft_results.get(25),this.ch1_fft_results.get(30));
+    }
+
+    public List<Integer> getCh2_fft_results(Boolean full_message) {
+        return full_message ? this.ch2_fft_results : Arrays.asList(this.ch2_fft_results.get(25),this.ch2_fft_results.get(30));
+    }
+
+    public List<Integer> getCh3_fft_results(Boolean full_message) {
+        return full_message ? this.ch3_fft_results : Arrays.asList(this.ch3_fft_results.get(25),this.ch3_fft_results.get(30));
     }
 
     public Boolean getOverall_alarm() {
@@ -163,6 +166,33 @@ public class VoltageAlarmStateChar {
 
     public void setDevMode(Boolean devMode) {
         this.devMode = devMode;
+    }
+
+    public JsonObject toJson(Boolean full_message){
+        JsonObject msg = new JsonObject();
+
+        msg.put("\"overall_alarm\"", this.getOverall_alarm());
+        msg.put("\"dev_mode\"", this.devMode);
+
+        JsonObject ch1 = new JsonObject(), ch2= new JsonObject(), ch3 = new JsonObject();
+        ch1.put("\"fft\"", this.getCh1_fft_results(full_message));
+        ch2.put("\"fft\"", this.getCh2_fft_results(full_message));
+        ch3.put("\"fft\"", this.getCh3_fft_results(full_message));
+        ch1.put("\"alarm\"", this.getCh1_alarm());
+        ch2.put("\"alarm\"", this.getCh1_alarm());
+        ch3.put("\"alarm\"", this.getCh3_alarm());
+        JsonArray channels = new JsonArray();
+        channels.add(ch1);
+        channels.add(ch2);
+        channels.add(ch3);
+        msg.put("\"channels\"", channels);
+
+        JsonObject info = new JsonObject();
+        info.put("\"fft_bin_size\"", this.fft_bin_size);
+        info.put("\"num_fft_bins\"",this.num_fft_bins);
+        msg.put("\"info\"", info);
+
+        return msg;
     }
 
 }

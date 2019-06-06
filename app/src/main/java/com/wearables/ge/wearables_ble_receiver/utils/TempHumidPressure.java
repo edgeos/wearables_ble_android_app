@@ -2,6 +2,8 @@ package com.wearables.ge.wearables_ble_receiver.utils;
 
 import android.util.Log;
 
+import com.github.cliftonlabs.json_simple.JsonObject;
+
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -9,13 +11,16 @@ import java.util.List;
 public class TempHumidPressure {
     public String TAG = "TempHumidPressure";
 
+    public Long date;
+
     public double temp;
     public double humid;
     public double pres;
 
-    public Long date;
-
     public TempHumidPressure(String hexString){
+
+        this.date = Calendar.getInstance().getTimeInMillis();
+
         List<String> hexSplit = Arrays.asList(hexString.split("\\s+"));
         if(hexSplit.size() == 12){
             String tempString = hexSplit.get(3) + hexSplit.get(2) + hexSplit.get(1) + hexSplit.get(0);
@@ -29,7 +34,6 @@ public class TempHumidPressure {
             this.temp = (tempRaw * 0.01);
             this.humid = (humidRaw / 1024);
             this.pres = (presRaw / 256);
-            this.date = Calendar.getInstance().getTimeInMillis();
             Log.d(TAG, "temp: " + tempString + " humid: " + humidString + " pressure: "+ pressureString);
         } else if(hexSplit.size() == 6) {
             String tempString = hexSplit.get(1) + hexSplit.get(0);
@@ -42,7 +46,6 @@ public class TempHumidPressure {
             this.temp = (tempRaw * 0.01);
             this.humid = (humidRaw / 1024);
             this.pres = (presRaw / 256);
-            this.date = Calendar.getInstance().getTimeInMillis();
             Log.d(TAG, "temp: " + tempString + " humid: " + humidString + " pressure: "+ pressureString);
         } else {
             Log.d(TAG, "Temp/Pressure/Humid hex string malformed: " + hexString);
@@ -80,4 +83,15 @@ public class TempHumidPressure {
     public void setDate(Long date) {
         this.date = date;
     }
+
+    public JsonObject toJson() {
+        JsonObject msg = new JsonObject();
+
+        msg.put("\"temp\"",this.getTemp());
+        msg.put("\"humid\"",this.getHumid());
+        msg.put("\"pressure\"",this.getPres());
+
+        return msg;
+    }
+
 }

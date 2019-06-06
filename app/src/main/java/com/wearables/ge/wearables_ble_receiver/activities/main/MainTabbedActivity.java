@@ -697,8 +697,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                         mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
                     }
                 }
-                // YONI: This is where we combine accel with voltage. Only voltage updates however cause
-                // an enqueue. This is a place that needs to change
                 mAccelerometerJsonObject.setAccelerometerData(accelerometerData);
                 Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
 

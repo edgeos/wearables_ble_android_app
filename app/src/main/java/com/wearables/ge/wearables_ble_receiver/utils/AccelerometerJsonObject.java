@@ -1,9 +1,8 @@
 package com.wearables.ge.wearables_ble_receiver.utils;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.cliftonlabs.json_simple.JsonObject;
+
+import java.util.Calendar;
 
 public class AccelerometerJsonObject {
     private AccelerometerData accelerometerData;
@@ -26,12 +25,14 @@ public class AccelerometerJsonObject {
     }
 
     public String toJson() {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        try {
-            return mapper.writeValueAsString(this);
-        } catch (JsonProcessingException j) {
-            return "{}";
-        }
+        JsonObject msg = new JsonObject();
+
+        msg.put("\"timestamp\"", Calendar.getInstance().getTimeInMillis());
+        msg.put("\"deviceId\"", "\"" + getDeviceId() + "\"");
+        msg.put("\"type\"", "\"accelerometer\"");
+        msg.put("\"subtype\"","\"none\"");
+        msg.put("\"data\"", this.accelerometerData.toJson());
+
+        return msg.toString().replace("=",":");
     }
 }
