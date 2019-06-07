@@ -38,7 +38,7 @@ public class StoreAndForwardService extends Service {
     private static final String MQTT_IOT_ENDPOINT_KEY = "IoTEndpoint";
     private static final String MQTT_IOT_BASE_TOPIC_KEY = "IoTBaseTopic";
     private static final String USER_ID = "user_1";
-    private static final String MQTT_IOT_BASE_TOPIC_DEFAULT = "ge/grc/wearables/raw/".concat(USER_ID);
+    private static final String MQTT_IOT_BASE_TOPIC_DEFAULT = "wearables/raw/".concat(USER_ID);
     private static final String DATABASE_NAME = "store-and-forward";
     private static final long DEFAULT_ENTRY_LIMIT = 1024;
     private static final long DEFAULT_SAVE_WAIT_TIME_MS = 1000;
