@@ -38,7 +38,7 @@ public class VoltageJsonObject {
         msg.put("\"timestamp\"", Calendar.getInstance().getTimeInMillis());
         msg.put("\"deviceId\"", "\"" + getDeviceId() + "\"");
         msg.put("\"type\"", "\"voltage\"");
-        msg.put("\"subtype\"",this.abbreviate_message ? "\"abbreviated_message\"": "\"full_message\"");
+        msg.put("\"subtype\"", !full_message ? "\"abbreviated_message\"": "\"full_message\"");
         msg.put("\"data\"", this.voltageAlarmData.toJson(full_message || !this.abbreviate_message));
 
         return msg.toString().replace("=", ":");
