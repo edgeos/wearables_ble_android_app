@@ -6,6 +6,9 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+import androidx.room.Room;
+
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.mobile.auth.core.IdentityManager;
 import com.amazonaws.mobile.config.AWSConfiguration;
@@ -22,9 +25,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import androidx.annotation.Nullable;
-import androidx.room.Room;
-
 public class StoreAndForwardService extends Service {
 
     public static final String DATA_EXTRA_NAME = "STORE_AND_FORWARD_DATA";
@@ -37,7 +37,8 @@ public class StoreAndForwardService extends Service {
     private static final String MQTT_IOT_CONFIG_KEY = "IoTConfig";
     private static final String MQTT_IOT_ENDPOINT_KEY = "IoTEndpoint";
     private static final String MQTT_IOT_BASE_TOPIC_KEY = "IoTBaseTopic";
-    private static final String MQTT_IOT_BASE_TOPIC_DEFAULT = "ge/grc/wearables/volt/";
+    private static final String USER_ID = "user_1";
+    private static final String MQTT_IOT_BASE_TOPIC_DEFAULT = "ge/grc/wearables/raw/".concat(USER_ID);
     private static final String DATABASE_NAME = "store-and-forward";
     private static final long DEFAULT_ENTRY_LIMIT = 1024;
     private static final long DEFAULT_SAVE_WAIT_TIME_MS = 1000;
