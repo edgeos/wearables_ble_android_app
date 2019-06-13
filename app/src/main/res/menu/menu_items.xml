@@ -11,6 +11,9 @@
         android:id="@+id/rename"
         android:title="@string/rename" />
     <item
+        android:id="@+id/change_user"
+        android:title="@string/change_user" />
+    <item
         android:id="@+id/disconnect"
         android:title="@string/disconnect" />
     <item

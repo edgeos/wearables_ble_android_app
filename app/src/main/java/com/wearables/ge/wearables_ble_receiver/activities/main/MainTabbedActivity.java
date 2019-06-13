@@ -7,10 +7,13 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.IBinder;
 import androidx.fragment.app.Fragment;
@@ -23,6 +26,7 @@ import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AlertDialog;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.Menu;
@@ -74,6 +78,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
      */
     ViewPager mViewPager;
 
+    private String m_Text = ""; // Temporary text holder for user input for user_id
+
+
     private DeviceTabFragment mDeviceTabFragment;
     private PairingTabFragment mPairingTabFragment;
     private EventsTabFragment mEventsTabFragment;
@@ -122,6 +129,13 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences settings = getSharedPreferences("pref", 0);
+        m_Text = settings.getString("user_id", "");
+        if(m_Text.equals("")){
+            changeUser();
+        }
+
         Log.d(TAG, "onCreate called");
         setContentView(R.layout.activity_tabbed_main);
 
@@ -212,6 +226,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         //and unregister the broadcast receiver
         if(mConnection != null){
             unbindService(mConnection);
+            unbindService(mStoreAndForwardConnection);
             unregisterReceiver(mGattUpdateReceiver);
             mBound = false;
         }
@@ -228,6 +243,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             case R.id.rename:
                 Log.d(TAG, "rename button pushed");
                 renameDevice();
+                return true;
+            case R.id.change_user:
+                Log.d(TAG, "Change User button pushed");
+                changeUser();
                 return true;
             case R.id.disconnect:
                 //action for disconnect
@@ -282,6 +301,60 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             alert.setMessage("No device Connected");
         }
         alert.show();
+    }
+
+    public void changeUser(){
+
+        //final View view = layoutInflater.inflate(R.layout.dialog_user_id, null);
+        SharedPreferences settings = getSharedPreferences("pref", 0);
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
+
+        if(m_Text.equals("")){
+            m_Text = "default_user";
+            settings.edit().putString("user_id", m_Text).apply();
+        }
+
+        builder.setMessage("Your current User ID is \"" + m_Text + "\". Here you can enter a new User ID:");
+
+        //create edit text dialog
+        final EditText input = new EditText(this);
+        input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(32)});
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setTextColor(Color.WHITE);
+        input.setHint("User ID");
+
+        builder.setView(input);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                m_Text = input.getText().toString();
+                if(TextUtils.isEmpty(m_Text)) {
+                    Log.d("DEBUG", "no string set");
+                    input.setError("Please enter a name.");
+                    m_Text = settings.getString("user_id", "default_user");
+                    Toast.makeText(getApplicationContext(), "User ID not changed - Please use non-empty name", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Toast.makeText(getApplicationContext(), "User ID is now \"" + m_Text + "\"", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+        settings.edit().putString("user_id", m_Text).apply();
+
+        // If we're currently uploading data, we need to refresh the user_id
+        if(mStoreAndForwardService != null){
+            mStoreAndForwardService.updateUserID();
+        }
+
     }
 
     /**
@@ -582,6 +655,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }
 
         //if we were able to get a string value from the byte array message, parse it based on the UUID with it
+        //Log.d("DEBUG", "Received data " + value);
+
         if(value != null){
 //            mAggregateJsonObject.setDeviceId(connectedDevice.getAddress());
             //for battery level, just show the battery level on the UI

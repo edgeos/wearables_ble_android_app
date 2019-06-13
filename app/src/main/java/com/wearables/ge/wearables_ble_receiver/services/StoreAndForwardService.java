@@ -2,6 +2,7 @@ package com.wearables.ge.wearables_ble_receiver.services;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
@@ -37,8 +38,8 @@ public class StoreAndForwardService extends Service {
     private static final String MQTT_IOT_CONFIG_KEY = "IoTConfig";
     private static final String MQTT_IOT_ENDPOINT_KEY = "IoTEndpoint";
     private static final String MQTT_IOT_BASE_TOPIC_KEY = "IoTBaseTopic";
-    private static final String USER_ID = "user_1";
-    private static final String MQTT_IOT_BASE_TOPIC_DEFAULT = "wearables/raw/".concat(USER_ID);
+    private static String USER_ID = "user_1";
+    private static String MQTT_IOT_BASE_TOPIC_DEFAULT = "wearables/raw/".concat(USER_ID);
     private static final String DATABASE_NAME = "store-and-forward";
     private static final long DEFAULT_ENTRY_LIMIT = 1024;
     private static final long DEFAULT_SAVE_WAIT_TIME_MS = 1000;
@@ -313,6 +314,20 @@ public class StoreAndForwardService extends Service {
         if (mRunning.get()) {
             mDataList.clear();
             mDataList = mDatabase.storeAndForwardDataDao().getNotSent(mEntryLimit.get());
+        }
+    }
+
+    public void updateUserID(){
+        SharedPreferences settings = getSharedPreferences("pref", 0);
+        USER_ID = settings.getString("user_id", "user_1");
+        MQTT_IOT_BASE_TOPIC_DEFAULT = "wearables/raw/".concat(USER_ID);
+
+        try{
+            mMqttManager.disconnect();
+            connect();
+        }
+        catch (Exception e){
+            Log.d(TAG, "Error updating user ID");
         }
     }
 }

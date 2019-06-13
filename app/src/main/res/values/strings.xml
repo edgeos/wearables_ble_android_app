@@ -83,5 +83,6 @@
     <string name="pressure_graph_x_axis_label">Time</string>
     <string name="pressure_graph_y_axis_label">Pressure</string>
     <string name="logout_button">Logout</string>
+    <string name="change_user">Change User</string>
 
 </resources>
