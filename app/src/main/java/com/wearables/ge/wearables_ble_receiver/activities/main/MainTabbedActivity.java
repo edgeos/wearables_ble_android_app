@@ -307,6 +307,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
         //final View view = layoutInflater.inflate(R.layout.dialog_user_id, null);
         SharedPreferences settings = getSharedPreferences("pref", 0);
+        String old_m_Text = settings.getString("user_id", "default_user");
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
 
         if(m_Text.equals("")){
@@ -335,8 +336,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                     input.setError("Please enter a name.");
                     m_Text = settings.getString("user_id", "default_user");
                     Toast.makeText(getApplicationContext(), "User ID not changed - Please use non-empty name", Toast.LENGTH_SHORT).show();
-                    return;
+                    dialog.cancel();
                 }
+                settings.edit().putString("user_id", m_Text).apply();
                 Toast.makeText(getApplicationContext(), "User ID is now \"" + m_Text + "\"", Toast.LENGTH_SHORT).show();
             }
         });
@@ -348,10 +350,9 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         });
 
         builder.show();
-        settings.edit().putString("user_id", m_Text).apply();
 
         // If we're currently uploading data, we need to refresh the user_id
-        if(mStoreAndForwardService != null){
+        if(mStoreAndForwardService != null && !m_Text.equals(old_m_Text)){
             mStoreAndForwardService.updateUserID();
         }
 
