@@ -8,6 +8,7 @@ import java.util.Calendar;
 public class VoltageJsonObject {
     private VoltageAlarmStateChar voltageAlarmData;
     private String deviceId;
+    private String userId;
 
     private long full_message_ms;
     private long abbreviated_message_ms;
@@ -28,6 +29,14 @@ public class VoltageJsonObject {
         this.deviceId = deviceId;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public VoltageAlarmStateChar getVoltageAlarmData() {
         return voltageAlarmData;
     }
@@ -37,6 +46,7 @@ public class VoltageJsonObject {
 
         msg.put("\"timestamp\"", Calendar.getInstance().getTimeInMillis());
         msg.put("\"deviceId\"", "\"" + getDeviceId() + "\"");
+        msg.put("\"userId\"", "\"" + getUserId() + "\"");
         msg.put("\"type\"", "\"voltage\"");
         msg.put("\"subtype\"", (full_message || !this.abbreviate_message) ? "\"full_message\"" : "\"abbreviated_message\"");
         msg.put("\"data\"", this.voltageAlarmData.toJson(full_message || !this.abbreviate_message));

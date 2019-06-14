@@ -668,6 +668,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 Log.d(TAG, "Battery level: " + extraIntData + "%");
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
                 mVoltageJsonObject.setDeviceId(connectedDevice.getAddress());
+                mVoltageJsonObject.setUserId(m_Text);
+
                 //The voltage alarm state characteristic sends the largest messages and the most often
                 Log.d(TAG, "VOLTAGE_ALARM_STATE value: " + value);
 
@@ -768,6 +770,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 //Get accelerometer data and send to UI
                 AccelerometerData accelerometerData = new AccelerometerData(value);
                 mAccelerometerJsonObject.setDeviceId(connectedDevice.getAddress());
+                mAccelerometerJsonObject.setUserId(m_Text);
+
                 if(accelerometerData.getDate() != null){
                     if (accelerometerCount++ >= maxAccelerometerCount) {
                         mHistoryTabFragment.updateAccelerometerGraph(accelerometerData);
@@ -790,6 +794,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 //display Temp/Humid/Pressure data on UI
                 TempHumidPressure tempHumidPressure = new TempHumidPressure(value);
                 mTempHumidPressureJsonObject.setDeviceId(connectedDevice.getAddress());
+                mTempHumidPressureJsonObject.setUserId(m_Text);
+
                 if(tempHumidPressure.getDate() != null){
                     if(mDeviceTabFragment.isVisible()){
                         mDeviceTabFragment.updateHumidity(tempHumidPressure.getHumid());

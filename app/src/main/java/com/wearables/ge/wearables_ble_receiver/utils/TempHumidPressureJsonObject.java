@@ -7,6 +7,7 @@ import java.util.Calendar;
 public class TempHumidPressureJsonObject {
     private TempHumidPressure tempHumidPressureData;
     private String deviceId;
+    private String userId;
 
     public void setTempHumidPressureData(TempHumidPressure tempHumidPressureData) {
         this.tempHumidPressureData = tempHumidPressureData;
@@ -20,6 +21,14 @@ public class TempHumidPressureJsonObject {
         this.deviceId = deviceId;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public TempHumidPressure getTempHumidPressureData() {
         return tempHumidPressureData;
     }
@@ -29,6 +38,7 @@ public class TempHumidPressureJsonObject {
 
         msg.put("\"timestamp\"", Calendar.getInstance().getTimeInMillis());
         msg.put("\"deviceId\"", "\"" + getDeviceId() + "\"");
+        msg.put("\"userId\"", "\"" + getUserId() + "\"");
         msg.put("\"type\"", "\"temphumidpressure\"");
         msg.put("\"subtype\"","\"none\"");
         msg.put("\"data\"", this.tempHumidPressureData.toJson());
