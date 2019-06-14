@@ -332,7 +332,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             public void onClick(DialogInterface dialog, int which) {
                 m_Text = input.getText().toString();
                 if(TextUtils.isEmpty(m_Text)) {
-                    Log.d("DEBUG", "no string set");
                     input.setError("Please enter a name.");
                     m_Text = settings.getString("user_id", "default_user");
                     Toast.makeText(getApplicationContext(), "User ID not changed - Please use non-empty name", Toast.LENGTH_SHORT).show();
@@ -340,6 +339,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 }
                 settings.edit().putString("user_id", m_Text).apply();
                 Toast.makeText(getApplicationContext(), "User ID is now \"" + m_Text + "\"", Toast.LENGTH_SHORT).show();
+                // If we're currently uploading data, we need to refresh the user_id
+                if(mStoreAndForwardService != null && !m_Text.equals(old_m_Text)){
+                    mStoreAndForwardService.updateUserID();
+                }
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -350,12 +353,6 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         });
 
         builder.show();
-
-        // If we're currently uploading data, we need to refresh the user_id
-        if(mStoreAndForwardService != null && !m_Text.equals(old_m_Text)){
-            mStoreAndForwardService.updateUserID();
-        }
-
     }
 
     /**

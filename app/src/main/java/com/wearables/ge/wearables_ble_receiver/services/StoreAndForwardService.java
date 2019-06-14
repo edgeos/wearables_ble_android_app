@@ -38,7 +38,7 @@ public class StoreAndForwardService extends Service {
     private static final String MQTT_IOT_CONFIG_KEY = "IoTConfig";
     private static final String MQTT_IOT_ENDPOINT_KEY = "IoTEndpoint";
     private static final String MQTT_IOT_BASE_TOPIC_KEY = "IoTBaseTopic";
-    private static String USER_ID = "user_1";
+    private static String USER_ID = "default_user";
     private static String MQTT_IOT_BASE_TOPIC_DEFAULT = "wearables/raw/".concat(USER_ID);
     private static final String DATABASE_NAME = "store-and-forward";
     private static final long DEFAULT_ENTRY_LIMIT = 1024;
@@ -81,6 +81,12 @@ public class StoreAndForwardService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        // Set initial user_id
+        SharedPreferences settings = getSharedPreferences("pref", 0);
+        USER_ID = settings.getString("user_id", "default_user");
+        MQTT_IOT_BASE_TOPIC_DEFAULT = "wearables/raw/".concat(USER_ID);
+
         // Set all the config options
         mEntryLimit = new AtomicLong(DEFAULT_ENTRY_LIMIT);
         mSaveWaitTimeMs = new AtomicLong(DEFAULT_SAVE_WAIT_TIME_MS);
@@ -317,13 +323,15 @@ public class StoreAndForwardService extends Service {
         }
     }
 
-    public void updateUserID(){
-        SharedPreferences settings = getSharedPreferences("pref", 0);
-        USER_ID = settings.getString("user_id", "user_1");
-        MQTT_IOT_BASE_TOPIC_DEFAULT = "wearables/raw/".concat(USER_ID);
 
+
+
+    public void updateUserID(){
         try{
             mMqttManager.disconnect();
+            SharedPreferences settings = getSharedPreferences("pref", 0);
+            USER_ID = settings.getString("user_id", "default_user");
+            MQTT_IOT_BASE_TOPIC_DEFAULT = "wearables/raw/".concat(USER_ID);
             connect();
         }
         catch (Exception e){
