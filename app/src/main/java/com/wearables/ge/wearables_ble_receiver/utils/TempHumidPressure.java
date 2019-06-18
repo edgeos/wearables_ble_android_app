@@ -33,7 +33,7 @@ public class TempHumidPressure {
 
             this.temp = (tempRaw * 0.01);
             this.humid = (humidRaw / 1024);
-            this.pres = (presRaw / 256);
+            this.pres = (presRaw / 1000);
             Log.d(TAG, "temp: " + tempString + " humid: " + humidString + " pressure: "+ pressureString);
         } else if(hexSplit.size() == 6) {
             String tempString = hexSplit.get(1) + hexSplit.get(0);
@@ -45,7 +45,7 @@ public class TempHumidPressure {
 
             this.temp = (tempRaw * 0.01);
             this.humid = (humidRaw / 1024);
-            this.pres = (presRaw / 256);
+            this.pres = (presRaw / 1000);
             Log.d(TAG, "temp: " + tempString + " humid: " + humidString + " pressure: "+ pressureString);
         } else {
             Log.d(TAG, "Temp/Pressure/Humid hex string malformed: " + hexString);

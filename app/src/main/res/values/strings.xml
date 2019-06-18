@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name"> Volt Sense </string>
+    <string name="app_name">Volt Sense</string>
     <string name="login_text">Log in</string>
     <string name="signup_text">Sign up</string>
     <string name="password_text">Password</string>
