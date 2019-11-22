@@ -22,4 +22,7 @@
     <item
         android:id="@+id/dev_mode"
         android:title="@string/dev_mode_menu_item" />
+    <item
+        android:id="@+id/clear_db"
+        android:title="@string/clear_db_button" />
 </menu>

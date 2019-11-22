@@ -144,12 +144,16 @@ public class BluetoothService extends Service {
             connectedGatt.disconnect();
             connectedGatt.close();
             connectedGatt = null;
-            connectedGatt = device.connectGatt(this, false, gattClientCallback, BluetoothDevice.TRANSPORT_LE);
+//            connectedGatt = device.connectGatt(this, false, gattClientCallback, BluetoothDevice.TRANSPORT_LE);
             heartbeat = 0;
 //            connectedGatt = null;
         } else {
             Log.d(TAG, "connectedGatt was null");
         }
+    }
+
+    public void requestAlarmLevel() {
+        writeToVoltageAlarmConfigChar(GattAttributes.MESSAGE_TYPE_ALARM_THRESHOLD, "-1");
     }
 
     /**
@@ -212,7 +216,7 @@ public class BluetoothService extends Service {
 
         //the alarm threshold level message requires a bit more logic
         if(messageType == GattAttributes.MESSAGE_TYPE_ALARM_THRESHOLD){
-            //the byte array needs to be a 4-byte little endian float
+            //the byte array needs to be a 4-byte little endian int
             //here we create that with a byte buffer
             byte[] thresholdBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(threshold).array();
             //here we have to create another byte array to combine the one we just made with messageBytes
@@ -369,8 +373,14 @@ public class BluetoothService extends Service {
      * This function will set all available characteristics on the connected device to notify
      * Sometimes a characteristic is read/write only and can not be set to notify, these should just fail silently
      */
-    public void setNotifyOnCharacteristics(){
+    public boolean setNotifyOnCharacteristics(){
         Log.d(TAG, "setNotifyOnCharacteristics() called");
+        boolean bFoundVolt = false;
+        for (BluetoothGattService service : getSupportedGattServices())
+            if(service.getUuid().equals(GattAttributes.VOLTAGE_WRISTBAND_SERVICE_UUID))
+                bFoundVolt = true;
+
+        if(!bFoundVolt) return false;
         for (BluetoothGattService service : getSupportedGattServices()) {
             for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
                 UUID uuid = characteristic.getUuid();
@@ -378,6 +388,8 @@ public class BluetoothService extends Service {
                 setCharacteristicNotification(characteristic, true);
             }
         }
+        requestAlarmLevel();
+        return true;
     }
 
     /**

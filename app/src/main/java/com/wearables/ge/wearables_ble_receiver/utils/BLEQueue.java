@@ -57,5 +57,4 @@ public class BLEQueue {
         return queueItems.size();
     }
 
-
 }

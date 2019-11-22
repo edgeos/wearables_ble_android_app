@@ -83,6 +83,33 @@
                     android:textSize="18sp" />
 
                 <TextView
+                    android:id="@id/CO2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="Equiv CO2: undefined"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@id/VOC"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="Total VOC: undefined"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@id/Proximity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/geinspirasansfamily"
+                    android:text="Proximity: not detected"
+                    android:textSize="18sp" />
+
+                <TextView
                     android:id="@id/voltage_level"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -92,12 +119,12 @@
                     android:textSize="18sp" />
 
                 <TextView
-                    android:id="@id/alarm_threshold"
+                    android:id="@id/location_disp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/geinspirasansfamily"
-                    android:text="Alarm Threshold: undefined"
+                    android:text="Location: Gilligan's Island"
                     android:textSize="18sp" />
             </LinearLayout>
 
@@ -124,12 +151,11 @@
 
             </LinearLayout>
 
-            <com.github.mikephil.charting.charts.CombinedChart
-                android:id="@+id/sensor_log_graph"
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/sensor_log_chart"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
+                android:layout_height="200dp"
                 android:layout_marginTop="8dp"/>
-
 
         </LinearLayout>
 

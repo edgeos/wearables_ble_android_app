@@ -3,6 +3,7 @@ package com.wearables.ge.wearables_ble_receiver.activities.main;
 
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -46,6 +47,9 @@ import com.wearables.ge.wearables_ble_receiver.services.LocationService;
 import com.wearables.ge.wearables_ble_receiver.services.StoreAndForwardService;
 import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerData;
 import com.wearables.ge.wearables_ble_receiver.utils.AccelerometerJsonObject;
+import com.wearables.ge.wearables_ble_receiver.utils.Data;
+import com.wearables.ge.wearables_ble_receiver.utils.GasSensorData;
+import com.wearables.ge.wearables_ble_receiver.utils.OpticalData;
 import com.wearables.ge.wearables_ble_receiver.utils.VoltageJsonObject;
 import com.wearables.ge.wearables_ble_receiver.utils.TempHumidPressureJsonObject;
 import com.wearables.ge.wearables_ble_receiver.utils.BLEQueue;
@@ -60,9 +64,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.prefs.Preferences;
 
 public class MainTabbedActivity extends FragmentActivity implements ActionBar.TabListener {
     private static final String TAG = "Main Tabbed Activity";
+
+    private static final String BT_DEV = "BluetoothDevice";
+    private static final String BT_NAME = "BluetoothDeviceName";
 
     /**
      * The {@link PagerAdapter} that will provide fragments for each of the
@@ -91,8 +99,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
     boolean mBound;
     public BluetoothService mService;
     public static BluetoothDevice connectedDevice;
-
     public static String connectedDeviceName;
+    public static String connectedDeviceAddr;
 
     public boolean devMode;
     public Menu menuBar;
@@ -107,8 +115,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
 
     private boolean wasAlarming = false;
     final private long voltageMaxMessageCount = 10;
-    final private long acceleromterMaxMessageCount = 10;
-    final private long tempHumidPressureMaxMessageCount = 10;
+    final private long acceleromterMaxMessageCount = 0;
+    final private long tempHumidPressureMaxMessageCount = 2;
 
     final private long volt_abbreviated_message_timer_ms = 1000;
     final private long volt_full_message_timer_ms = 5000;
@@ -193,6 +201,17 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         //This is because we don't need the location service to send updates to the UI.
         //We only need to grab the latest coordinates from the location service.
         LocationService.startLocationService(this);
+
+        // try to connect to the last device
+        SharedPreferences prefs = getPreferences(0);
+        if(prefs.contains(BT_DEV) && prefs.contains(BT_NAME)) {
+            BluetoothAdapter bta = BluetoothAdapter.getDefaultAdapter();
+            if(bta != null) {
+                BluetoothDevice btd = bta.getRemoteDevice(prefs.getString(BT_DEV, ""));
+                if (btd != null)
+                    connectDevice(btd, prefs.getString(BT_NAME, "dev"));
+            }
+        }
     }
 
     @Override
@@ -227,6 +246,11 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         if(mConnection != null){
             unbindService(mConnection);
             unbindService(mStoreAndForwardConnection);
+
+            // Stop any running store and forward service
+            final Intent storeAndForwardIntent = new Intent(this, StoreAndForwardService.class);
+            stopService(storeAndForwardIntent);
+
             unregisterReceiver(mGattUpdateReceiver);
             mBound = false;
         }
@@ -262,6 +286,10 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 Log.d(TAG, "dev_mode button pushed");
                 //dev mode action
                 switchModes();
+                return true;
+            case R.id.clear_db:
+                if(mStoreAndForwardService != null)
+                    mStoreAndForwardService.ClearDB();
                 return true;
             default:
                 Log.d(TAG, "No menu item found for " + item.getItemId());
@@ -364,9 +392,13 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         Log.d(TAG, "Attempting to connect to: " + deviceName);
         connectedDeviceName = deviceName;
         connectedDevice = device;
+        // there are sometimes notifications that get processed after disconnect
+        // so we cache the device address so they can be processed
+        connectedDeviceAddr = device.getAddress();
         mService.connectDevice(device);
         //once the device is connected, display the name in the device tab fragment
         mDeviceTabFragment.displayDeviceName(deviceName);
+        Data.sm_sDeviceId = deviceName;
     }
 
     /**
@@ -381,6 +413,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         if(button != null){
             button.setChecked(false);
         }
+        Data.sm_sDeviceId = "Wedge XFF";
     }
 
     /**
@@ -521,7 +554,18 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                         //good indication that the device is successfully connected
                         mDeviceTabFragment.setConnectedMessage(true);
                         Toast.makeText(mPairingTabFragment.getContext(), "Device Connected", Toast.LENGTH_LONG).show();
-                        mService.setNotifyOnCharacteristics();
+                        if(mService.setNotifyOnCharacteristics()) {
+                            mViewPager.setCurrentItem(1); // switch to the device tab
+                            // remember our last connected device
+                            SharedPreferences prefs = getPreferences(0);
+                            prefs.edit().putString(BT_DEV, connectedDevice.getAddress());
+                            prefs.edit().putString(BT_NAME, connectedDeviceName);
+                            prefs.edit().commit();
+                        } else {
+                            // we didn't find our services, disconnect
+                            Toast.makeText(getApplicationContext(), "Wrong Device -- Voltage Band Not Found", Toast.LENGTH_LONG).show();
+                            disconnectDevice();
+                        }
                         break;
                     case BluetoothService.ACTION_DATA_AVAILABLE:
                         int extraType = intent.getIntExtra(BluetoothService.EXTRA_TYPE, -1);
@@ -620,6 +664,19 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }
     }
 
+    private void Enqueue(Data data) {
+        if(mStoreAndForwardService != null) {
+            new Thread(() -> {
+                mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress().concat("/" + data.Type()), "", data.toJSONString());
+            }).start();
+        }
+    }
+    private boolean Enqueue(Data data, long nCnt, long nThresh) {
+        if(nCnt < nThresh) return false;
+        Enqueue(data);
+        return true;
+    }
+
     /**
      * Worker method for reading bluetooth data sent from a characteristic.
      * This will read any data from any characteristic and parse it to the correct format.
@@ -633,7 +690,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         //sometimes the data is a single integer and we don't need to parse the byte array
         int extraIntData = intent.getIntExtra(BluetoothService.EXTRA_INT_DATA, 0);
 
-        //stop here if there is no message to read
+        //stop here if there is no message to read or the device has disconnected
         if(extraData == null){
             Log.d(TAG, "No message parsed on characteristic.");
             return;
@@ -664,7 +721,7 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 }
                 Log.d(TAG, "Battery level: " + extraIntData + "%");
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
-                mVoltageJsonObject.setDeviceId(connectedDevice.getAddress());
+                mVoltageJsonObject.setDeviceId(connectedDeviceAddr);
                 mVoltageJsonObject.setUserId(m_Text);
 
                 //The voltage alarm state characteristic sends the largest messages and the most often
@@ -683,12 +740,12 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 if (mStoreAndForwardService != null) {
                     if (alarm_message) {
                         new Thread(() -> {
-                            mStoreAndForwardService.forceSend((new Date()).getTime(), connectedDevice.getAddress().concat("/voltage"), "", mVoltageJsonObject.toJson(Boolean.TRUE));
+                            mStoreAndForwardService.forceSend((new Date()).getTime(), connectedDeviceAddr.concat("/voltage"), "", mVoltageJsonObject.toJson(Boolean.TRUE));
                         }).start();
                     } else if (mVoltageJsonObject.timerCheck()){ // Switching to time-based check
                        //else if (voltageMessageCount++ >= voltageMaxMessageCount) {
                         new Thread(() -> {
-                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress().concat("/voltage"), "", mVoltageJsonObject.toJson(Boolean.FALSE));
+                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDeviceAddr.concat("/voltage"), "", mVoltageJsonObject.toJson(Boolean.FALSE));
                         }).start();
                         voltageMessageCount = 0;
                     }
@@ -720,6 +777,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                     List<Integer> peakRange = new ArrayList<>();
                     for(int i = start; i <= end; i++){
                         peakRange.add(voltageAlarmState.getCh1_fft_results().get(i));
+                        peakRange.add(voltageAlarmState.getCh2_fft_results().get(i));
+                        peakRange.add(voltageAlarmState.getCh3_fft_results().get(i));
                     }
 
                     //get the highest value in that list, that is the peak
@@ -748,9 +807,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                             mEventsTabFragment.addEventItem(voltageEvent);
                         }
                     }
+                    mDeviceTabFragment.updateVoltageChart(voltageAlarmState);
                     //create a voltage event object for the device tab, this is not an alarm event so duration doesn't matter
-                    VoltageEvent voltageEvent = new VoltageEvent(peak, 0L);
-                    mDeviceTabFragment.updateGraph(voltageEvent);
                     if(mDeviceTabFragment.isVisible()){
                         mDeviceTabFragment.updateVoltageLevel(peak);
                     }
@@ -763,10 +821,17 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
             } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_CONFIG_CHARACTERISTIC_UUID)){
                 //voltage alarm config is a write characteristic but may send a notification when it is written to
                 Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + value);
+                if(value.length() > 14) {
+                    try {
+                        // Log.d(TAG, "VOLTAGE_ALARM_CONFIG value: " + Data.parseHex(value, 1, 4));
+                        mDeviceTabFragment.updateAlarmLevel(Data.parseHexInt(value, 1));
+                    } catch (NumberFormatException e) {
+                    }
+                }
             } else if(extraUuid.equals(GattAttributes.ACCELEROMETER_DATA_CHARACTERISTIC_UUID)){
                 //Get accelerometer data and send to UI
                 AccelerometerData accelerometerData = new AccelerometerData(value);
-                mAccelerometerJsonObject.setDeviceId(connectedDevice.getAddress());
+                mAccelerometerJsonObject.setDeviceId(connectedDeviceAddr);
                 mAccelerometerJsonObject.setUserId(m_Text);
 
                 if(accelerometerData.getDate() != null){
@@ -777,20 +842,23 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 mAccelerometerJsonObject.setAccelerometerData(accelerometerData);
                 Log.d(TAG, "ACCELEROMETER_DATA value: " + value);
 
-                // Only send every acceleromterMaxMessageCount messages
-                if (mStoreAndForwardService != null) {
-                    if (acceleromterMessageCount++ >= acceleromterMaxMessageCount) {
-                        new Thread(() -> {
-                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress().concat("/accelerometer"), "", mAccelerometerJsonObject.toJson());
-                        }).start();
-                        acceleromterMessageCount = 0;
-                    }
+                if(Enqueue(accelerometerData, ++acceleromterMessageCount, acceleromterMaxMessageCount)) {
+                    acceleromterMessageCount = 0;
                 }
+                // Only send every acceleromterMaxMessageCount messages
+//                if (mStoreAndForwardService != null) {
+//                    if (acceleromterMessageCount++ >= acceleromterMaxMessageCount) {
+//                        new Thread(() -> {
+//                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress().concat("/accelerometer"), "", mAccelerometerJsonObject.toJson());
+//                        }).start();
+//                        acceleromterMessageCount = 0;
+//                    }
+//                }
 
             } else if(extraUuid.equals(GattAttributes.TEMP_HUMIDITY_PRESSURE_DATA_CHARACTERISTIC_UUID)){
                 //display Temp/Humid/Pressure data on UI
                 TempHumidPressure tempHumidPressure = new TempHumidPressure(value);
-                mTempHumidPressureJsonObject.setDeviceId(connectedDevice.getAddress());
+                mTempHumidPressureJsonObject.setDeviceId(connectedDeviceAddr);
                 mTempHumidPressureJsonObject.setUserId(m_Text);
 
                 if(tempHumidPressure.getDate() != null){
@@ -807,19 +875,38 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                 }
                 mTempHumidPressureJsonObject.setTempHumidPressureData(tempHumidPressure);
                 Log.d(TAG, "TEMP_HUMIDITY_PRESSURE_DATA value: " + value);
-                // Only send every tempHumidPressureMaxMessageCount messages
-                if (mStoreAndForwardService != null) {
-                    if (tempHumidPressureMessageCount++ >= tempHumidPressureMaxMessageCount) {
-                        new Thread(() -> {
-                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress().concat("/temphumidpressure"), "", mTempHumidPressureJsonObject.toJson());
-                        }).start();
-                        tempHumidPressureMessageCount = 0;
-                    }
-                }
+
+                if(Enqueue(tempHumidPressure, ++tempHumidPressureMessageCount, tempHumidPressureMaxMessageCount))
+                    tempHumidPressureMessageCount = 0;
+
+//                // Only send every tempHumidPressureMaxMessageCount messages
+//                if (mStoreAndForwardService != null) {
+//                    if (tempHumidPressureMessageCount++ >= tempHumidPressureMaxMessageCount) {
+//                        new Thread(() -> {
+//                            mStoreAndForwardService.enqueue((new Date()).getTime(), connectedDevice.getAddress().concat("/temphumidpressure"), "", mTempHumidPressureJsonObject.toJson());
+//                        }).start();
+//                        tempHumidPressureMessageCount = 0;
+//                    }
+//                }
             } else if(extraUuid.equals(GattAttributes.GAS_SENSOR_DATA_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "GAS_SENSOR_DATA value: " + value);
+                GasSensorData gsd = new GasSensorData (value);
+                if(gsd.getDate() != null){
+                    if(mDeviceTabFragment.isVisible()){
+                        mDeviceTabFragment.updateCO2(gsd.getEquivCO2());
+                        mDeviceTabFragment.updateTVOC(gsd.getTotalVOC());
+                    }
+                }
+                Enqueue(gsd);
             } else if(extraUuid.equals(GattAttributes.OPTICAL_SENSOR_DATA_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "OPTICAL_SENSOR_DATA value: " + value);
+                OpticalData od = new OpticalData(value);
+                if(od.getDate() != null) {
+                    if (mDeviceTabFragment.isVisible()) {
+                        mDeviceTabFragment.updateProximity(od.getProximity());
+                    }
+                }
+                Enqueue(od);
             } else if(extraUuid.equals(GattAttributes.STREAMING_DATA_CHARACTERISTIC_UUID)){
                 Log.d(TAG, "STREAMING_DATA value: " + value);
             } else {

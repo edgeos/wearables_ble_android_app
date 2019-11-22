@@ -38,6 +38,9 @@ public class HistoryTabFragment extends Fragment {
     private static final String TAG = "History Tab Fragment";
 
     public static final String TAB_NAME = "History";
+    public static int smMaxAccelPts = 256;
+    public static int smMaxTPHPts = 256;
+
 
     private ScaleAnimation expandAnimation = new ScaleAnimation(1, 1, 0, 1);
     private ScaleAnimation collapseAnimation = new ScaleAnimation(1, 1, 1, 0);
@@ -350,7 +353,9 @@ public class HistoryTabFragment extends Fragment {
                     //create a new set if there is none
                     set = createSet("X");
                     data1.addDataSet(set);
-                }
+                } else
+                    while(set.getEntryCount() >= smMaxAccelPts )
+                        set.removeFirst();
 
                 //add the new entry
                 data1.addEntry(new Entry(i, (float) accelerometerData.getxValue()), 0);
@@ -376,7 +381,9 @@ public class HistoryTabFragment extends Fragment {
                 if (set == null) {
                     set = createSet("Y");
                     data2.addDataSet(set);
-                }
+                } else
+                    while(set.getEntryCount() >= smMaxAccelPts )
+                        set.removeFirst();
 
                 data2.addEntry(new Entry(i, (float) accelerometerData.getyValue()), 0);
                 data2.notifyDataChanged();
@@ -396,7 +403,9 @@ public class HistoryTabFragment extends Fragment {
                 if (set == null) {
                     set = createSet("Z");
                     data3.addDataSet(set);
-                }
+                } else
+                    while(set.getEntryCount() >= smMaxAccelPts )
+                        set.removeFirst();
 
                 data3.addEntry(new Entry(i, (float) accelerometerData.getzValue()), 0);
                 data3.notifyDataChanged();
@@ -421,7 +430,9 @@ public class HistoryTabFragment extends Fragment {
                 if (set == null) {
                     set = createSet("humidity");
                     data1.addDataSet(set);
-                }
+                } else
+                    while(set.getEntryCount() >= smMaxTPHPts )
+                        set.removeFirst();
 
                 data1.addEntry(new Entry(i2, (float) tempHumidPressure.getTemp()), 0);
                 data1.notifyDataChanged();
@@ -441,7 +452,9 @@ public class HistoryTabFragment extends Fragment {
                 if (set == null) {
                     set = createSet("temperature");
                     data2.addDataSet(set);
-                }
+                } else
+                    while(set.getEntryCount() >= smMaxTPHPts )
+                        set.removeFirst();
 
                 data2.addEntry(new Entry(i2, (float) tempHumidPressure.getHumid()), 0);
                 data2.notifyDataChanged();
@@ -461,7 +474,9 @@ public class HistoryTabFragment extends Fragment {
                 if (set == null) {
                     set = createSet("pressure");
                     data3.addDataSet(set);
-                }
+                } else
+                    while(set.getEntryCount() >= smMaxTPHPts )
+                        set.removeFirst();
 
                 data3.addEntry(new Entry(i2, (float) tempHumidPressure.getPres()), 0);
                 data3.notifyDataChanged();

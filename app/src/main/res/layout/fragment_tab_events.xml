@@ -105,6 +105,15 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/button3">-->
 
+                <TextView
+                    android:id="@+id/eventCountView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="10dp"
+                    android:textSize="16dp"
+                    android:textStyle="bold" />
+
                 <LinearLayout
                     android:id="@+id/logEventList"
                     android:layout_width="match_parent"
@@ -112,11 +121,10 @@
                     android:layout_marginTop="8dp"
                     android:background="@android:color/background_light"
                     android:orientation="vertical"
-                    app:layout_constraintTop_toBottomOf="@+id/button3">
-
-                </LinearLayout>
+                    app:layout_constraintTop_toBottomOf="@+id/button3" />
                 <!--</ScrollView>-->
             </androidx.constraintlayout.widget.ConstraintLayout>
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

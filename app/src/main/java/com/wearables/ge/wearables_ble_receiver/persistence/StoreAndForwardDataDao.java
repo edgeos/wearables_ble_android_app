@@ -20,4 +20,7 @@ public interface StoreAndForwardDataDao {
 
     @Query("DELETE FROM storeandforwarddata WHERE sent = 1")
     void deleteAllSent();
+
+    @Query("DELETE FROM storeandforwarddata")
+    void deleteAll();
 }

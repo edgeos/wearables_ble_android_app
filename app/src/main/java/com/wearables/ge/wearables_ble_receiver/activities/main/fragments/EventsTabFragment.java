@@ -49,6 +49,8 @@ public class EventsTabFragment extends Fragment {
 
     public static final String TAB_NAME = "Events";
 
+    public static int sm_nMaxLogEvents = 256;
+
     View rootView;
 
     public List<VoltageEvent> voltageEvents = new ArrayList<>();
@@ -56,6 +58,7 @@ public class EventsTabFragment extends Fragment {
     BarChart eventGraph;
 
     TextView deviceName;
+    TextView eventCount;
 
     File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "voltage_sensor");
 
@@ -66,6 +69,8 @@ public class EventsTabFragment extends Fragment {
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreate called");
         rootView = inflater.inflate(R.layout.fragment_tab_events, container, false);
+        eventCount = rootView.findViewById(R.id.eventCountView);
+        eventCount.setText(MainTabbedActivity.connectedDeviceName);
 
         refreshEventsLog();
 
@@ -187,6 +192,7 @@ public class EventsTabFragment extends Fragment {
 
             updateGraph(voltageEvent);
         }
+        eventCount.setText("Events: " + String.valueOf(logEventsList.getChildCount()));
     }
 
     List<String> lines = new ArrayList<>();
@@ -218,8 +224,12 @@ public class EventsTabFragment extends Fragment {
             TextView logTextView = new TextView(rootView.getContext());
             logTextView.setText(logMessage);
             logEventsList.addView(logTextView);
-        }
 
+            while(sm_nMaxLogEvents > 0 && logEventsList.getChildCount() > sm_nMaxLogEvents)
+                logEventsList.removeViewAt(0);
+
+            eventCount.setText("Events: " + String.valueOf(logEventsList.getChildCount()));
+        }
         updateGraph(voltageEvent);
     }
 
@@ -360,6 +370,7 @@ public class EventsTabFragment extends Fragment {
                     logEventsList.addView(textView);
                     line = reader.readLine();
                 }
+                eventCount.setText("Events: " + String.valueOf(logEventsList.getChildCount()));
             } catch (Exception e) {
                 Log.d(TAG, "Unable to read file: " + e.getMessage());
             }
@@ -372,6 +383,7 @@ public class EventsTabFragment extends Fragment {
         LinearLayout logEventsList = rootView.findViewById(R.id.logEventList);
         logEventsList.removeAllViews();
         lines = new ArrayList<>();
+        eventCount.setText("Events: " + String.valueOf(logEventsList.getChildCount()));
     }
 
     public void saveFileToCloud(){

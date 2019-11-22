@@ -18,6 +18,7 @@ import com.amazonaws.mobileconnectors.iot.AWSIotMqttMessageDeliveryCallback;
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttQos;
 import com.wearables.ge.wearables_ble_receiver.persistence.StoreAndForwardData;
 import com.wearables.ge.wearables_ble_receiver.persistence.StoreAndForwardDatabase;
+import com.wearables.ge.wearables_ble_receiver.utils.Data;
 
 import org.json.JSONException;
 
@@ -87,6 +88,8 @@ public class StoreAndForwardService extends Service {
         USER_ID = settings.getString("user_id", "default_user");
         MQTT_IOT_BASE_TOPIC_DEFAULT = "wearables/raw/".concat(USER_ID);
 
+        Data.sm_sUserId = USER_ID;
+
         // Set all the config options
         mEntryLimit = new AtomicLong(DEFAULT_ENTRY_LIMIT);
         mSaveWaitTimeMs = new AtomicLong(DEFAULT_SAVE_WAIT_TIME_MS);
@@ -116,6 +119,9 @@ public class StoreAndForwardService extends Service {
             synchronized (this) {
                 // Delete all of the sent entries on disk
                 mDatabase.storeAndForwardDataDao().deleteAllSent();
+
+                // FLUSH EVERYTHING
+                mDatabase.storeAndForwardDataDao().deleteAll();
 
                 // Get a chunk of the files on disk and load them into memory
                 mDataList = mDatabase.storeAndForwardDataDao().getNotSent(mEntryLimit.get());
@@ -234,18 +240,20 @@ public class StoreAndForwardService extends Service {
         mConnected = new AtomicBoolean(false);
         mMqttManager = new AWSIotMqttManager(MQTT_CLIENT_ID_PREPEND + UUID.randomUUID().toString(), iotEndpoint);
         final AWSCredentialsProvider provider = IdentityManager.getDefaultIdentityManager().getCredentialsProvider();
-        mMqttManager.connect(provider, (status, throwable) -> {
-            switch (status) {
-                case Connected:
-                    mConnected.set(true);
-                    break;
-                case Connecting:
-                case Reconnecting:
-                case ConnectionLost:
-                    // TODO: See if we want to do anything more specific for these cases
-                    mConnected.set(false);
-            }
-        });
+        if (true) {
+            mMqttManager.connect(provider, (status, throwable) -> {
+                switch (status) {
+                    case Connected:
+                        mConnected.set(true);
+                        break;
+                    case Connecting:
+                    case Reconnecting:
+                    case ConnectionLost:
+                        // TODO: See if we want to do anything more specific for these cases
+                        mConnected.set(false);
+                }
+            });
+        }
     }
 
     synchronized private void sendData() {
@@ -262,6 +270,7 @@ public class StoreAndForwardService extends Service {
                                 // If we were able to publish, set sent to true
                                 synchronized (data) {
                                     data.sent = true;
+//                                    Log.d(TAG, topic + ":" + data.toString());
                                 }
                             }
                         }, null);
@@ -286,7 +295,8 @@ public class StoreAndForwardService extends Service {
             try {
                 final String topic = (mMqttTopic.endsWith("/")) ?
                         (mMqttTopic + data.deviceId) : (mMqttTopic + "/" + data.deviceId);
-                mMqttManager.publishString(data.toString(), topic, AWSIotMqttQos.QOS0, (status, userData) -> {}, null);
+                mMqttManager.publishString(data.toString(), topic, AWSIotMqttQos.QOS0, (status, userData) -> {
+                }, null);
             } catch (Exception e) {
                 Log.d(TAG, "Unable to publish data: " + e.getLocalizedMessage());
             }
@@ -323,8 +333,14 @@ public class StoreAndForwardService extends Service {
         }
     }
 
-
-
+    public void ClearDB() {
+        new Thread(() -> {
+            synchronized (this) {
+                // FLUSH EVERYTHING
+                mDatabase.storeAndForwardDataDao().deleteAll();
+            }
+        }).start();
+    }
 
     public void updateUserID(){
         try{

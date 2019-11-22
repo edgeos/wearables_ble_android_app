@@ -6,6 +6,8 @@
     <item type="id" name="humidity" />
     <item type="id" name="pressure" />
     <item type="id" name="VOC" />
+    <item type="id" name="CO2" />
+    <item type="id" name="Proximity" />
     <item type="id" name="spo2_sensor" />
     <item type="id" name="voltage_level" />
     <item type="id" name="alarm_threshold" />
@@ -36,5 +38,6 @@
     <item type="id" name="num_sensors_bar_text" />
     <item type="id" name="connected_button" />
     <item type="id" name="logout_button" />
-
+    <item type="id" name="clear_db_button" />
+    <item type="id" name="location_disp" />
 </resources>

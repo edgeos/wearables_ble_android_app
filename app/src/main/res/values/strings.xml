@@ -30,7 +30,8 @@
     <string name="temperature">Temperature: %1$s °C</string>
     <string name="humidity">Humidity: %1$s%%</string>
     <string name="pressure">Pressure: %1$s mb</string>
-    <string name="VOC">VOC: %1$s ppm</string>
+    <string name="VOC">Total VOC: %1$s ppm</string>
+    <string name="CO2">Equiv CO2: %1$s ppm</string>
     <string name="spo2">SpO2 Sensor: %1$s</string>
     <string name="voltage_level">Voltage level: %1$d</string>
     <string name="active_gas_sensor">Active Gas Sensor: %1$s</string>
@@ -84,5 +85,8 @@
     <string name="pressure_graph_y_axis_label">Pressure</string>
     <string name="logout_button">Logout</string>
     <string name="change_user">Change User</string>
+    <string name="clear_db_button">Clear DB</string>
+    <string name="proxTrue">Proximity: Detected</string>
+    <string name="proxFalse">Proximity: Not Detected</string>
 
 </resources>
