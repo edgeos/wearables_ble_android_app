@@ -16,6 +16,7 @@ import com.amazonaws.mobile.config.AWSConfiguration;
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttManager;
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttMessageDeliveryCallback;
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttQos;
+import com.wearables.ge.wearables_ble_receiver.activities.main.MainTabbedActivity;
 import com.wearables.ge.wearables_ble_receiver.persistence.StoreAndForwardData;
 import com.wearables.ge.wearables_ble_receiver.persistence.StoreAndForwardDatabase;
 import com.wearables.ge.wearables_ble_receiver.utils.Data;
@@ -23,6 +24,7 @@ import com.wearables.ge.wearables_ble_receiver.utils.Data;
 import org.json.JSONException;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -65,6 +67,8 @@ public class StoreAndForwardService extends Service {
 
     private AWSIotMqttManager mMqttManager;
     private String mMqttTopic;
+
+    public boolean Connected() { return mConnected.get(); }
 
     // This binder will be used to communicate with the parent activity
     public class StoreAndForwardBinder extends Binder {

@@ -528,6 +528,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
         }
     };
 
+    public void SetCloudConn(boolean b) { if(null!=mDeviceTabFragment) mDeviceTabFragment.SetCloudConn(b);}
+
     /**
      * Create custom intent filter for broadcasting messages from the bluetooth service to this activity
      * @return IntentFilter object

@@ -53,6 +53,7 @@ public class DeviceTabFragment extends Fragment {
     private TextView deviceName = null;
     private TextView locationView = null;
     private LineChart lineChart = null;
+    private TextView cloud = null;
 
     View rootView;
 
@@ -123,6 +124,10 @@ public class DeviceTabFragment extends Fragment {
         setRetainInstance(true);
 
         locationView  = rootView.findViewById(R.id.location_disp);
+        cloud = rootView.findViewById(R.id.deviceConnView);
+        if(null != cloud) {
+            cloud.setText("\u2601");
+        }
 
         return rootView;
     }
@@ -206,6 +211,13 @@ public class DeviceTabFragment extends Fragment {
         return nmax;
     }
 
+    public void SetCloudConn(boolean bConnected) {
+        if(null != cloud) {
+            cloud.setText(bConnected ? "\u2601" : "\u20e0");
+            cloud.setTextColor(bConnected ? Color.GREEN : Color.RED);
+        }
+    }
+
     // convert a channel's data to a LineDataSet
     public LineDataSet toDataSet(List<Entry> l, String lbl, int color, YAxis.AxisDependency ax) {
         //create a data set for the live values
@@ -250,6 +262,7 @@ public class DeviceTabFragment extends Fragment {
         lineChart.invalidate();
         // make sure our location is up-to-date
         updateLocation();
+        SetCloudConn(((MainTabbedActivity)Objects.requireNonNull(getActivity())).mStoreAndForwardService.Connected());
     }
 
     public void displayDeviceName(String name){
