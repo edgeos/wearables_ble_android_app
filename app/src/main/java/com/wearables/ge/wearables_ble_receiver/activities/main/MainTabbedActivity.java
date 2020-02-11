@@ -722,7 +722,8 @@ public class MainTabbedActivity extends FragmentActivity implements ActionBar.Ta
                     mDeviceTabFragment.updateBatteryLevel(extraIntData);
                 }
                 Log.d(TAG, "Battery level: " + extraIntData + "%");
-            } else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
+            }
+            else if(extraUuid.equals(GattAttributes.VOLTAGE_ALARM_STATE_CHARACTERISTIC_UUID)){
                 mVoltageJsonObject.setDeviceId(connectedDeviceAddr);
                 mVoltageJsonObject.setUserId(m_Text);
 

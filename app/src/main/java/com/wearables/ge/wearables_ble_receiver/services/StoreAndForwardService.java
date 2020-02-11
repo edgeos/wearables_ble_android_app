@@ -215,7 +215,6 @@ public class StoreAndForwardService extends Service {
         data.deviceId = topic_suffix;
         data.sent = false;
         data.dataLine = dataLine;
-
         // Save the data either in memory or to the database
         if (mInitialized.get()) {
             saveData(data);
